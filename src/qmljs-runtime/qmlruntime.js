@@ -34,7 +34,8 @@
 // Exports
 var QObject,
     QmlEngine,
-    QmlComponent;
+    QmlComponent,
+    QW_GET;
 
 // Library
 (function(){
@@ -42,14 +43,34 @@ var __ = null;
 
 // === "macros" ===
 
-function QW_INHERIT(ctor, baseClass) {
+function QW_INHERIT(ctor, baseClass)
+{
     ctor.prototype = Object.create(baseClass.prototype);
     ctor.prototype.constructor = baseClass;
+    ctor.__properties = baseClass.__properties.slice();
     __ = ctor.prototype;
 }
 
-function QW_PROPERTY(data) {
-    data.obj.__properties.push(new QmlProperty(data.initialValue));
+function QW_PROPERTY(data)
+{
+    data.object.__properties.push(new QmlProperty(data));
+}
+
+QW_GET = function(object, propertyIndex)
+{
+    if (!object.__properties[propertyIndex])
+        object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
+
+    return object.__properties[propertyIndex].value;
+}
+
+function QW_SET(object, propertyIndex, newValue)
+{
+    if (!object.__properties[propertyIndex])
+        object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
+
+    object.__properties[propertyIndex].value = newValue;
+    object.__properties[propertyIndex].notify();
 }
 
 /**
@@ -57,7 +78,8 @@ function QW_PROPERTY(data) {
  * @param urls {Array} Urls to fetch.
  * @return {mixed} String of contents or false in errors.
  */
-function fetchData(urls) {
+function fetchData(urls)
+{
     var xhr = new XMLHttpRequest();
     xhr.open("GET", urls[0], false);
     xhr.send(null);
@@ -70,7 +92,8 @@ function fetchData(urls) {
 
 // === QmlWebEngine ===
 
-QmlEngine = function() {
+QmlEngine = function()
+{
 
 }
 __ = QmlEngine.prototype;
@@ -87,7 +110,8 @@ __.baseUrl = "";
  *               currently ignored.
  * @param options Options that allow finetuning of the signal.
  */
-function QWSignal(params, options) {
+function QWSignal(params, options)
+{
     options = options || {};
     var connectedSlots = [];
     var obj = options.obj
@@ -163,20 +187,33 @@ function QmlProperty(data)
     this.animation = null;
     this.notify = QWSignal();
 }
+QmlProperty.prototype.clone = function() {
+    return new QmlProperty({
+        initialValue: this.value,
+        get: this.get,
+        set: this.set
+    })
+}
 
 
 // === QtObject ===
 
-QObject = function(parent) {
-    QW_PROPERTY({obj: this, name:"", });
+QObject = function(parent)
+{
     this.__parent = parent;
     if (parent && parent.__tidyupList)
         parent.__tidyupList.push(this);
+
+    this.__properties = [];
+
     // List of things to tidy up when deleting this object.
     if (!this.__tidyupList)
         this.__tidyupList = [];
 }
-QObject.delete = function(obj) {
+QObject.__properties = [];
+QW_PROPERTY({ object: QObject, type: "string", name: "objectName", initialValue: "" });
+QObject.delete = function(obj)
+{
     while (obj.__tidyupList.length > 0) {
         var item = obj.__tidyupList[0];
         if (item instanceof QObject)
@@ -197,7 +234,8 @@ QObject.delete = function(obj) {
 
 // === QmlWebComponent ===
 
-QmlComponent = function(engine) {
+QmlComponent = function(engine)
+{
     var fileName = '', parent = null;
     if (typeof arguments[1] == "string") {
         fileName = arguments[1];
@@ -211,7 +249,7 @@ QmlComponent = function(engine) {
     var componentCtor = eval(fetchData([engine.baseUrl + fileName + ".js"]));
 
     this.create = function(context) {
-        componentCtor();
+        return new componentCtor();
     }
 }
 QW_INHERIT(QmlComponent, QObject);
