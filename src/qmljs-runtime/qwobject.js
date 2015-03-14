@@ -29,14 +29,17 @@
  */
 
 QWObject.__properties = [];
-QW_PROPERTY({ object: QWObject, type: "string", name: "objectName", initialValue: "" });
+QW_PROPERTY({ ctor: QWObject, type: "string", name: "objectName", initialValue: "" });
 function QWObject(parent)
 {
     this.__parent = parent;
     if (parent && parent.__tidyupList)
         parent.__tidyupList.push(this);
 
-    this.__properties = [];
+    this.__properties = []; // We create properties when they are first accessed, to save time and memory.
+    this.__propertyCount = this.constructor.__properties.length; // this.__properties.length won't always return the
+                                                                 // correct number of properties we have.
+
 
     // List of things to tidy up when deleting this object.
     if (!this.__tidyupList)

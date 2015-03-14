@@ -32,7 +32,12 @@
 
 function QW_PROPERTY(data)
 {
-    data.object.__properties.push(new QmlProperty(data));
+    if (data.object) {
+        data.object.__properties[data.object.__propertyCount] = new QmlProperty(data);
+        data.object.__propertyCount++;
+    } else {
+        data.ctor.__properties.push(new QmlProperty(data));
+    }
 }
 
 function QW_GET(object, propertyIndex)
