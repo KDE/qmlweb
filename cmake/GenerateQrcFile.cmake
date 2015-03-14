@@ -6,16 +6,18 @@ function(generate_qrc_file)
   cmake_parse_arguments(GENQRC "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   foreach(resource ${GENQRC_RESOURCES})
-    string(CONCAT resources_string ${resources_string} "    <file>" ${CMAKE_CURRENT_SOURCE_DIR}/${resource} "</file>/n")
+    get_filename_component(basename ${resource} NAME)
+    string(CONCAT resources_string ${resources_string} "    <file alias=\"${basename}\">" ${CMAKE_CURRENT_SOURCE_DIR}/${resource} "</file>\n")
   endforeach()
 
-  set(${GENQRC_FILEPATH_VAR} ${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${GENQRC_FILENAME})
+  set(generatedqrc_filepath ${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${GENQRC_FILENAME})
+  set(${GENQRC_FILEPATH_VAR} ${generatedqrc_filepath} PARENT_SCOPE)
 
   file(GENERATE
-     OUTPUT ${${GENQRC_FILEPATH_VAR}}
+     OUTPUT ${generatedqrc_filepath}
      CONTENT
       "<!DOCTYPE RCC><RCC version=\"1.0\">
-<qresource>
+<qresource prefix=\"/test\">
     ${resources_string}
 </qresource>
 </RCC>
