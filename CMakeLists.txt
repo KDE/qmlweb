@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(qmlweb)
 
-include(CreateQrcFile)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
+
+include(GenerateQrcFile)
 
 # QMLJSC
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
