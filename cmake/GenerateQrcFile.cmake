@@ -13,10 +13,7 @@ function(generate_qrc_file)
   set(generatedqrc_filepath ${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${GENQRC_FILENAME})
   set(${GENQRC_FILEPATH_VAR} ${generatedqrc_filepath} PARENT_SCOPE)
 
-  file(GENERATE
-     OUTPUT ${generatedqrc_filepath}
-     CONTENT
-      "<!DOCTYPE RCC><RCC version=\"1.0\">
+  file(WRITE ${generatedqrc_filepath} "<!DOCTYPE RCC><RCC version=\"1.0\">
 <qresource prefix=\"/test\">
     ${resources_string}
 </qresource>
