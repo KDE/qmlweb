@@ -41,3 +41,11 @@ QUnit.test("Minimal binding with a reference to an own property", function(asser
     assert.strictEqual(QW_GET(object, 0), "hello", "Object name is correct.");
     assert.strictEqual(QW_GET(object, 1), "hello world!", "Property value is correct.");
 });
+
+QUnit.test("Minimal element property - one element with a property that is an element itself (child element).", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalelementproperty.qml");
+    var object = component.create();
+    assert.strictEqual(typeof QW_GET(object, 1), "object", "Child is an object.");
+    assert.strictEqual(QW_GET(QW_GET(object, 1), 0), "childObject", "Child has correct object name.");
+});
