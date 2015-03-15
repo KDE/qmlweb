@@ -1,4 +1,5 @@
 /*
+ * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2015  Jan Marker <jan@jangmarker.de>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,14 +17,15 @@
  *
  */
 
-#include <QtCore/QCoreApplication>
+#ifndef QMLJSC_H
+#define QMLJSC_H
 
-#include "qmljsc.h"
+namespace QmlJSc {
 
-int main(int argc, char** argv) {
-  QCoreApplication app(argc, argv);
-  
-  QmlJSc::QmlJSc c;
-  
-  return app.exec();
+class QmlJSc
+{
+};
+
 }
+
+#endif // QMLJSC_H

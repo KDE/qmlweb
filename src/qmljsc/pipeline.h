@@ -1,4 +1,5 @@
-/*
+/* 	
+ * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2015  Jan Marker <jan@jangmarker.de>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,14 +17,37 @@
  *
  */
 
-#include <QtCore/QCoreApplication>
+#ifndef PIPELINE_H
+#define PIPELINE_H
 
-#include "qmljsc.h"
+#include <QtCore/QObject>
+#include <QtCore/QLinkedList>
+#include <QtCore/QUrl>
 
-int main(int argc, char** argv) {
-  QCoreApplication app(argc, argv);
-  
-  QmlJSc::QmlJSc c;
-  
-  return app.exec();
+namespace QmlJSc {
+
+class PipelineStage;
+
+class Pipeline : public QObject
+{
+    Q_OBJECT
+
+public:
+    Pipeline();
+    ~Pipeline();
+
+    void appendStage(PipelineStage *stage);
+
+    void execute();
+
+    QUrl file() const;
+    void setFile(const QUrl &file);
+
+private:
+    QLinkedList<PipelineStage*> m_pipeline;
+    QUrl m_file;
+};
+
 }
+
+#endif // PIPELINE_H

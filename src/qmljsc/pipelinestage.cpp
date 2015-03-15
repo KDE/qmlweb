@@ -16,14 +16,19 @@
  *
  */
 
-#include <QtCore/QCoreApplication>
+#include "pipelinestage.h"
 
-#include "qmljsc.h"
+using namespace QmlJSc;
 
-int main(int argc, char** argv) {
-  QCoreApplication app(argc, argv);
-  
-  QmlJSc::QmlJSc c;
-  
-  return app.exec();
+PipelineStage::PipelineStage(): QObject()
+{
+
+}
+
+void PipelineStage::setPipeline(Pipeline* pipeline) {
+   m_pipeline = pipeline;
+}
+
+Pipeline* PipelineStage::pipeline() {
+    return m_pipeline;
 }

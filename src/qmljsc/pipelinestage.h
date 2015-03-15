@@ -16,14 +16,39 @@
  *
  */
 
-#include <QtCore/QCoreApplication>
+#ifndef PIPELINESTAGE_H
+#define PIPELINESTAGE_H
 
-#include "qmljsc.h"
+#include <QtCore/QObject>
+#include <QtCore/QVariant>
 
-int main(int argc, char** argv) {
-  QCoreApplication app(argc, argv);
-  
-  QmlJSc::QmlJSc c;
-  
-  return app.exec();
+#include "error.h"
+
+namespace QmlJSc {
+
+class Pipeline;
+
+class PipelineStage : public QObject
+{
+  Q_OBJECT
+
+public:
+  PipelineStage();
+
+  void setPipeline(Pipeline*pipeline);
+  Pipeline* pipeline(void);
+
+public slots:
+  virtual void process(QVariant input) = 0;
+
+signals:
+  void finished(QVariant input);
+  void errorOccurred(Error error);
+
+private:
+  Pipeline* m_pipeline;
+};
+
 }
+
+#endif // PIPELINESTAGE_H

@@ -1,4 +1,5 @@
 /*
+ * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2015  Jan Marker <jan@jangmarker.de>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,14 +17,38 @@
  *
  */
 
-#include <QtCore/QCoreApplication>
+#ifndef ERROR_H
+#define ERROR_H
 
-#include "qmljsc.h"
+#include <QtCore/QUrl>
+#include <QtCore/QString>
 
-int main(int argc, char** argv) {
-  QCoreApplication app(argc, argv);
-  
-  QmlJSc::QmlJSc c;
-  
-  return app.exec();
+namespace QmlJSc {
+
+class Error
+{
+public:
+Error() {};
+
+ QUrl file() { return m_file; }
+ void setFile(QUrl file) { m_file = file; }
+
+ QString description() { return m_description; }
+ void setDescription(QString description) { m_description = description; }
+
+ int column() { return m_column; }
+ void setColumn(int column) { m_column = column; }
+
+ int line() { return m_line; }
+ void setLine(int line) { m_line = line; }
+
+private:
+    QUrl m_file;
+    QString m_description;
+    int m_column;
+    int m_line;
+};
+
 }
+
+#endif // ERROR_H

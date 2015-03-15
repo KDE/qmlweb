@@ -16,14 +16,34 @@
  *
  */
 
-#include <QtCore/QCoreApplication>
+#ifndef PARSER_H
+#define PARSER_H
 
-#include "qmljsc.h"
+#include <QtCore/QString>
 
-int main(int argc, char** argv) {
-  QCoreApplication app(argc, argv);
-  
-  QmlJSc::QmlJSc c;
-  
-  return app.exec();
+#include <private/qqmljsengine_p.h>
+#include <private/qqmljslexer_p.h>
+#include <private/qqmljsparser_p.h>
+
+
+#include "pipelinestage.h"
+
+namespace QmlJSc {
+
+class ParserStage : public PipelineStage
+{
+  Q_OBJECT
+
+public:
+    ParserStage();
+    ~ParserStage();
+
+public slots:
+    void process(QVariant input) override;
+};
+
 }
+
+Q_DECLARE_METATYPE(QQmlJS::AST::UiProgram*)
+
+#endif // PARSER_H
