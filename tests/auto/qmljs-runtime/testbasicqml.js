@@ -79,3 +79,11 @@ QUnit.test("Minimal basic type with an attribute.", function(assert) {
     assert.strictEqual(QW_GETATTR(object, 2, 1), 110, "Second property's g has the correct value.");
     assert.strictEqual(QW_GETATTR(object, 2, 2), 0, "Second property's b has the correct value.");
 });
+
+QUnit.test("Minimal signal declaration - no use.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalsignaldeclaration.qml");
+    var object = component.create();
+    assert.strictEqual(typeof object.someSignal, "function", "Signal is a function.");
+    assert.strictEqual(typeof object.someSignal.connect, "function", "Signal has a connect method.");
+});

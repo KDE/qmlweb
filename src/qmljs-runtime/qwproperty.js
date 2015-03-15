@@ -109,6 +109,10 @@ QW_SETATTR = function(object, propertyIndex, attributeIndex, newValue) {
     object.__properties[propertyIndex].notify();
 }
 
+QW_NOTIFYSIG = function(object, propertyIndex) {
+    return object.__properties[propertyIndex].notify;
+}
+
 // === QWQmlProperty ===
 
 QWQmlProperty = function(data)
@@ -118,7 +122,7 @@ QWQmlProperty = function(data)
     this.set = data.set;
     this.binding = null;
     this.interceptor = null;
-    this.notify = QWSignal();
+    this.notify = QW_SIGNAL({});
 }
 
 QWQmlProperty.prototype.clone = function() {
