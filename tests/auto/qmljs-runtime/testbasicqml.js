@@ -67,3 +67,15 @@ QUnit.test("Minimal element list - one element with a list property containing 5
     assert.strictEqual(typeof QW_GET(object, 1)[4], "object", "Fifth child is an object.");
     assert.strictEqual(QW_GET(QW_GET(object, 1)[4], 0), "el5", "Fifth child has correct object name.");
 });
+
+QUnit.test("Minimal basic type with an attribute.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalbasictypewithattributes.qml");
+    var object = component.create();
+    assert.strictEqual(QW_GETATTR(object, 1, 0), 255, "Attribute r has the correct value.");
+    assert.strictEqual(QW_GETATTR(object, 1, 1), 0, "Attribute g has the correct value.");
+    assert.strictEqual(QW_GETATTR(object, 1, 2), 136, "Attribute b has the correct value.");
+    assert.strictEqual(QW_GETATTR(object, 2, 0), 0, "Second property's r has the correct value.");
+    assert.strictEqual(QW_GETATTR(object, 2, 1), 110, "Second property's g has the correct value.");
+    assert.strictEqual(QW_GETATTR(object, 2, 2), 0, "Second property's b has the correct value.");
+});

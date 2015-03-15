@@ -100,6 +100,15 @@ QW_BIND = function(object, propertyIndex, bindingFunction)
     prop.notify();
 }
 
+QW_GETATTR = function(object, propertyIndex, attributeIndex) {
+    return object.__properties[propertyIndex].value[attributeIndex];
+}
+
+QW_SETATTR = function(object, propertyIndex, attributeIndex, newValue) {
+    object.__properties[propertyIndex].value[attributeIndex] = newValue;
+    object.__properties[propertyIndex].notify();
+}
+
 // === QWQmlProperty ===
 
 QWQmlProperty = function(data)
