@@ -60,15 +60,15 @@ QW_GET = function(object, propertyIndex)
     if (!object.__properties[propertyIndex]) {
         object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
     }
+    var prop = object.__properties[propertyIndex];
 
     // If this call to QW_GET is due to a property that is dependent on this
     // one, we need it to take track of changes
-    if (evaluatingProperty && !this.notify.isConnected(evaluatingProperty, QWQmlProperty.prototype.update)) {
-        this.notify.connect(evaluatingProperty, QWQmlProperty.prototype.update);
+    if (evaluatingProperty && !prop.notify.isConnected(evaluatingProperty, QWQmlProperty.prototype.update)) {
+        prop.notify.connect(evaluatingProperty, QWQmlProperty.prototype.update);
     }
 
-    return object.__properties[propertyIndex].value;
-    object.__properties[propertyIndex].notify();
+    return prop.value;
 }
 
 QW_SET = function(object, propertyIndex, newValue)
@@ -90,11 +90,13 @@ QW_BIND = function(object, propertyIndex, bindingFunction)
     if (!object.__properties[propertyIndex]) {
         object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
     }
+    var prop = object.__properties[propertyIndex];
 
     // put down for subsequent evaluation
-    object.constructor.component.__pendingBindingEvaluations.push(object.__properties[propertyIndex]);
+    object.constructor.component.__pendingBindingEvaluations.push(prop);
 
-    object.__properties[propertyIndex].binding = bindingFunction;
+    prop.binding = bindingFunction;
+    prop.notify();
 }
 
 // === QWQmlProperty ===
