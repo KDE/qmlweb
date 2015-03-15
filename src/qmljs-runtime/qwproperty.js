@@ -30,48 +30,102 @@
 
 // === pseudo-macros ===
 
-function QW_PROPERTY(data)
+// exports
+var QW_PROPERTY,
+    QW_GET,
+    QW_SET,
+    QW_BIND,
+    QWQmlProperty;
+
+(function() {
+
+// Property that is currently beeing evaluated. Used to get the information, which property called
+// the getter of a certain other property for evaluation and is thus dependent on it.
+var evaluatingProperty = null;
+
+QW_PROPERTY = function(data)
 {
     if (data.object) {
-        data.object.__properties[data.object.__propertyCount] = new QmlProperty(data);
+        data.object.__properties[data.object.__propertyCount] = new QWQmlProperty(data);
         data.object.__propertyCount++;
     } else {
-        data.ctor.__properties.push(new QmlProperty(data));
+        data.ctor.__properties.push(new QWQmlProperty(data));
     }
 }
 
-function QW_GET(object, propertyIndex)
+QW_GET = function(object, propertyIndex)
 {
-    if (!object.__properties[propertyIndex])
+    // We create properties when they are first accessed, to save time and memory, so if there is
+    // no property, yet, create it.
+    if (!object.__properties[propertyIndex]) {
         object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
+    }
+
+    // If this call to QW_GET is due to a property that is dependent on this
+    // one, we need it to take track of changes
+    if (evaluatingProperty && !this.notify.isConnected(evaluatingProperty, QWQmlProperty.prototype.update)) {
+        this.notify.connect(evaluatingProperty, QWQmlProperty.prototype.update);
+    }
 
     return object.__properties[propertyIndex].value;
+    object.__properties[propertyIndex].notify();
 }
 
-function QW_SET(object, propertyIndex, newValue)
+QW_SET = function(object, propertyIndex, newValue)
 {
-    if (!object.__properties[propertyIndex])
+    // We create properties when they are first accessed, to save time and memory, so if there is
+    // no property, yet, create it.
+    if (!object.__properties[propertyIndex]) {
         object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
+    }
 
     object.__properties[propertyIndex].value = newValue;
     object.__properties[propertyIndex].notify();
 }
 
-// === QmlProperty ===
+QW_BIND = function(object, propertyIndex, bindingFunction)
+{
+    // We create properties when they are first accessed, to save time and memory, so if there is
+    // no property, yet, create it.
+    if (!object.__properties[propertyIndex]) {
+        object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
+    }
 
-function QmlProperty(data)
+    // put down for subsequent evaluation
+    object.constructor.component.__pendingBindingEvaluations.push(object.__properties[propertyIndex]);
+
+    object.__properties[propertyIndex].binding = bindingFunction;
+}
+
+// === QWQmlProperty ===
+
+QWQmlProperty = function(data)
 {
     this.value = data.initialValue;
     this.get = data.get;
     this.set = data.set;
     this.binding = null;
-    this.animation = null;
+    this.interceptor = null;
     this.notify = QWSignal();
 }
-QmlProperty.prototype.clone = function() {
-    return new QmlProperty({
+
+QWQmlProperty.prototype.clone = function() {
+    return new QWQmlProperty({
         initialValue: this.value,
         get: this.get,
         set: this.set
     })
 }
+QWQmlProperty.prototype.update = function() {
+    if (!this.binding) {
+        return;
+    }
+
+    var oldVal = this.val;
+    evaluatingProperty = this;
+    this.value = this.binding();
+    evaluatingProperty = null;
+    this.notify();
+}
+
+})()

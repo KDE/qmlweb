@@ -40,10 +40,21 @@ function QWQmlComponent(engine)
     }
     QWObject.call(this, parent);
 
+    this.__pendingBindingEvaluations = [];
+
     var componentCtor = eval(qw_fetchData([engine.baseUrl + fileName + ".js"]));
+    componentCtor.component = this;
 
     this.create = function(context) {
-        return new componentCtor();
+        var comp = new componentCtor();
+        while(this.__pendingBindingEvaluations.length) {
+            var property = this.__pendingBindingEvaluations.pop();
+
+            if (!property.binding)
+                continue; // Probably, the binding was overwritten by an explicit value. Ignore.
+            property.update();
+        }
+        return comp;
     }
 }
 QW_INHERIT(QWQmlComponent, QWObject);

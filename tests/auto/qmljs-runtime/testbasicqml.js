@@ -26,3 +26,10 @@ QUnit.test("QML minimal function declaration - object and a self declared functi
     assert.strictEqual(typeof object.heyo, "function", "Function is valid.");
     assert.strictEqual(object.heyo(2), 42, "Function return value is correct.");
 });
+
+QUnit.test("QML minimal binding - without reference to any non-constant value", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalbindingwithoutreference.qml");
+    var object = component.create();
+    assert.strictEqual(QW_GET(object, 0), "300", "Property    value is correct.");
+});

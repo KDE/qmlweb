@@ -42,7 +42,8 @@ var __ = null;
 QW_INHERIT = function(ctor, baseClass)
 {
     ctor.prototype = Object.create(baseClass.prototype);
-    ctor.prototype.constructor = baseClass;
+    ctor.prototype.constructor = ctor;
+//     ctor.prototype = new baseClass();
     ctor.__properties = baseClass.__properties.slice();
     __ = ctor.prototype;
 }
