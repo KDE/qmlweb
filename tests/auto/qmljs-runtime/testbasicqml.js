@@ -49,3 +49,21 @@ QUnit.test("Minimal element property - one element with a property that is an el
     assert.strictEqual(typeof QW_GET(object, 1), "object", "Child is an object.");
     assert.strictEqual(QW_GET(QW_GET(object, 1), 0), "childObject", "Child has correct object name.");
 });
+
+QUnit.test("Minimal element list - one element with a list property containing 5 child elements.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalelementlist.qml");
+    var object = component.create();
+    assert.ok(QW_GET(object, 1) instanceof QWList, "Children list is a QWList.");
+    assert.ok(QW_GET(object, 1) instanceof Array, "Children list is an Array.");
+    assert.strictEqual(typeof QW_GET(object, 1)[0], "object", "First child is an object.");
+    assert.strictEqual(QW_GET(QW_GET(object, 1)[0], 0), "el1", "First child has correct object name.");
+    assert.strictEqual(typeof QW_GET(object, 1)[1], "object", "Second child is an object.");
+    assert.strictEqual(QW_GET(QW_GET(object, 1)[1], 0), "el2", "Second child has correct object name.");
+    assert.strictEqual(typeof QW_GET(object, 1)[2], "object", "Third child is an object.");
+    assert.strictEqual(QW_GET(QW_GET(object, 1)[2], 0), "el3", "Third child has correct object name.");
+    assert.strictEqual(typeof QW_GET(object, 1)[3], "object", "Fourth child is an object.");
+    assert.strictEqual(QW_GET(QW_GET(object, 1)[3], 0), "el4", "Fourth child has correct object name.");
+    assert.strictEqual(typeof QW_GET(object, 1)[4], "object", "Fifth child is an object.");
+    assert.strictEqual(QW_GET(QW_GET(object, 1)[4], 0), "el5", "Fifth child has correct object name.");
+});

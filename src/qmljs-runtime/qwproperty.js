@@ -35,7 +35,8 @@ var QW_PROPERTY,
     QW_GET,
     QW_SET,
     QW_BIND,
-    QWQmlProperty;
+    QWQmlProperty,
+    QWList;
 
 (function() {
 
@@ -129,5 +130,13 @@ QWQmlProperty.prototype.update = function() {
     evaluatingProperty = null;
     this.notify();
 }
+
+// === QWList ===
+
+QWList = function(object) {
+    Object.defineProperty(this, "__object", { configurable: false, enumerable: false, writable: false, value: object });
+}
+QWList.prototype = new Array();
+QWList.prototype.append = Array.prototype.push;
 
 })()
