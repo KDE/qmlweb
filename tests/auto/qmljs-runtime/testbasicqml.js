@@ -103,3 +103,12 @@ QUnit.test("Minimal onSignal handler.", function(assert) {
     assert.strictEqual(typeof object.someSignal, "function", "Signal is a function.");
     object.someSignal(assert);
 });
+
+QUnit.test("Minimal property binding update - Changing a property another property is binded to.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalbindingupdate.qml");
+    var object = component.create();
+    assert.strictEqual(QW_GET(object, 2), 35, "Property value is correct before changing it.");
+    QW_SET(object, 1, 19);
+    assert.strictEqual(QW_GET(object, 2), 133, "Property value is correct after changing it.");
+});
