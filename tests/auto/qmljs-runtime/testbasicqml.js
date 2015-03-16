@@ -87,3 +87,12 @@ QUnit.test("Minimal signal declaration - no use.", function(assert) {
     assert.strictEqual(typeof object.someSignal, "function", "Signal is a function.");
     assert.strictEqual(typeof object.someSignal.connect, "function", "Signal has a connect method.");
 });
+
+QUnit.test("Minimal onSignal handler.", function(assert) {
+    assert.expect(2);
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalonsignalhandler.qml");
+    var object = component.create();
+    assert.strictEqual(typeof object.someSignal, "function", "Signal is a function.");
+    object.someSignal(assert);
+});
