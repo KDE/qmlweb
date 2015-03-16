@@ -112,3 +112,14 @@ QUnit.test("Minimal property binding update - Changing a property another proper
     QW_SET(object, 1, 19);
     assert.strictEqual(QW_GET(object, 2), 133, "Property value is correct after changing it.");
 });
+
+QUnit.test("Binding with id reference - Binding to a property that belongs to another object using its id.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/bindingwithidreference.qml");
+    var object = component.create();
+    assert.strictEqual(QW_GET(QW_GET(object, 3), 1), 15, "Prop3 value is correct before changing Prop2.");
+    assert.strictEqual(QW_GET(object, 1), 10, "Prop1 value is correct before changing Prop2.");
+    QW_SET(object, 2, 19);
+    assert.strictEqual(QW_GET(QW_GET(object, 3), 1), 29, "Prop3 value is correct after changing Prop2.");
+    assert.strictEqual(QW_GET(object, 1), 24, "Prop1 value is correct after changing Prop2.");
+});

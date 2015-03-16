@@ -84,7 +84,7 @@ QW_SET = function(object, propertyIndex, newValue)
     object.__properties[propertyIndex].notify();
 }
 
-QW_BIND = function(object, propertyIndex, bindingFunction)
+QW_BIND = function(object, propertyIndex, bindingFunction, context)
 {
     // We create properties when they are first accessed, to save time and memory, so if there is
     // no property, yet, create it.
@@ -94,7 +94,7 @@ QW_BIND = function(object, propertyIndex, bindingFunction)
     var prop = object.__properties[propertyIndex];
 
     // put down for subsequent evaluation
-    object.__ctx.__pendingBindingEvaluations.push(prop);
+    context.__pendingBindingEvaluations.push(prop);
 
     prop.binding = bindingFunction;
     prop.notify();

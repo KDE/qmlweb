@@ -13,7 +13,7 @@ function __comp(parent) {
         object: __0,
         name: "prop2"
     });
-    QW_BIND(__0, 2, function() { return 7 * QW_GET(__0, 1); });
+    QW_BIND(__0, 2, function() { return 7 * QW_GET(__0, 1); }, __);
 }
 
 __comp;

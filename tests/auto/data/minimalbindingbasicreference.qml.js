@@ -9,7 +9,7 @@ function __comp(parent) {
         name: "extendedName"
     });
     QW_SET(__0, 0, "hello");
-    QW_BIND(__0, 1, function() { return QW_GET(__0, 0) + " world!"; });
+    QW_BIND(__0, 1, function() { return QW_GET(__0, 0) + " world!"; }, __);
 }
 
 __comp;
