@@ -94,7 +94,7 @@ QW_BIND = function(object, propertyIndex, bindingFunction)
     var prop = object.__properties[propertyIndex];
 
     // put down for subsequent evaluation
-    object.constructor.component.__pendingBindingEvaluations.push(prop);
+    object.__ctx.__pendingBindingEvaluations.push(prop);
 
     prop.binding = bindingFunction;
     prop.notify();

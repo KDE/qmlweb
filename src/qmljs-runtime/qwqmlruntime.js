@@ -31,7 +31,8 @@
  */
 
 // exports
-var qw_fetchData;
+var qw_fetchData,
+    qw_evalJS;
 
 (function() {
 
@@ -49,6 +50,14 @@ QW_INHERIT = function(ctor, baseClass)
 }
 
 // === helper functions ===
+
+/**
+ * Eval JavaScript. Used to evaluate modules and compiled QML from
+ * within the same scope.
+ */
+qw_evalJS = function(__src) {
+    return eval(__src);
+}
 
 /**
  * Get URL contents.

@@ -5,6 +5,13 @@ QUnit.test("Minimal - just an object", function(assert) {
     assert.ok(object, "Object exists!" );
 });
 
+QUnit.test("Minimal id test - empty object with an id.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalidtest.qml");
+    var object = component.create();
+    assert.strictEqual(QWQmlEngine.contextForObject(object).nameForObject(object), "grandma", "Object id is correct.");
+});
+
 QUnit.test("Minimal property - object and objectName", function(assert) {
     var engine = new QWQmlEngine();
     var component = new QWQmlComponent(engine, "../data/minimalproperty.qml");

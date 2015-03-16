@@ -28,6 +28,16 @@
  *  SUCH DAMAGE.
  */
 
+function QWContext() {
+    this.__pendingBindingEvaluations = [];
+    this.nameForObject = function(obj) {
+        for (var name in this) {
+            if (this[name] == obj)
+                return name;
+        }
+    }
+}
+
 function QWQmlComponent(engine)
 {
     var fileName = '', parent = null;
@@ -42,19 +52,19 @@ function QWQmlComponent(engine)
 
     this.__pendingBindingEvaluations = [];
 
-    var componentCtor = eval(qw_fetchData([engine.baseUrl + fileName + ".js"]));
-    componentCtor.component = this;
+    var componentCtor = qw_evalJS(qw_fetchData([engine.baseUrl + fileName + ".js"]));
 
     this.create = function(context) {
-        var comp = new componentCtor();
-        while(this.__pendingBindingEvaluations.length) {
-            var property = this.__pendingBindingEvaluations.pop();
+        var object = new componentCtor();
+        object.__ctx.__parentContext = context;
+        while(object.__ctx.__pendingBindingEvaluations.length) {
+            var property = object.__ctx.__pendingBindingEvaluations.pop();
 
             if (!property.binding)
                 continue; // Probably, the binding was overwritten by an explicit value. Ignore.
             property.update();
         }
-        return comp;
+        return object;
     }
 }
 QW_INHERIT(QWQmlComponent, QWObject);

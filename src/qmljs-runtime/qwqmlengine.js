@@ -34,3 +34,13 @@ function QWQmlEngine()
 {
 
 }
+
+QWQmlEngine.contextForObject = function(object) {
+    if (object.__ctx) // If the object is the root of a component, we want to
+        return object.__ctx.__parentContext || object.__ctx; // return the outer context.
+
+    while (!object.__ctx)
+        object = object.__parent;
+
+    return object.__ctx;
+}
