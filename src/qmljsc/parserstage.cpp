@@ -49,6 +49,7 @@ void ParserStage::process(QVariant input)
         error.setLine(parser->errorLineNumber());
         error.setDescription(parser->errorMessage());
         emit errorOccurred(error);
+        return;
     }
 
     QVariant ast = QVariant::fromValue(parser->ast());

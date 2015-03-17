@@ -22,6 +22,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QLinkedList>
 #include <QtCore/QUrl>
+#include <QtCore/QVariant>
 
 #include "error.h"
 

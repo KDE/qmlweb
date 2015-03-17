@@ -40,10 +40,9 @@ public:
 
 public slots:
     void process(QVariant input) override;
+
 };
 
 }
-
-Q_DECLARE_METATYPE(QQmlJS::AST::UiProgram*)
 
 #endif // PARSER_H
