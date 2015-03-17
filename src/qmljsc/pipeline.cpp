@@ -1,5 +1,4 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2015  Jan Marker <jan@jangmarker.de>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,6 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+#include <QtCore/QFile>
+
+#include "pipelinestage.h"
 
 #include "pipeline.h"
 
@@ -35,8 +38,44 @@ QUrl Pipeline::file() const
     return m_file;
 }
 
-void Pipeline::setFile(const QUrl &file)
+void Pipeline::compile(QString& filePath)
 {
-    m_file = file;
+    m_file = filePath;
+
+    QFile file(m_file);
+    bool openSuccessful = file.open(QFile::ReadOnly);
+    if (!openSuccessful) {
+        Error error;
+        error.setFile(file.fileName());
+        error.setDescription(file.errorString());
+        emit errorOccurred(error);
+        return;
+    }
+    QTextStream stream(&file);
+    QString qmlCode = stream.readAll();
+
+    Q_ASSERT(m_pipeline.count() > 0);
+
+    m_pipeline.first()->process(qmlCode);
 }
 
+void Pipeline::appendStage(PipelineStage* stage)
+{
+    Q_ASSERT(stage);
+
+    PipelineStage* lastStage = 0;
+    if (m_pipeline.size() > 0) {
+        lastStage = m_pipeline.last();
+        disconnect(lastStage, SIGNAL(finished(QVariant)), this, SIGNAL(compileFinished(QVariant)));
+    }
+
+    m_pipeline.append(stage);
+    stage->setPipeline(this);
+
+    if (lastStage) {
+        connect(lastStage, SIGNAL(finished(QVariant)), stage, SLOT(process(QVariant)));
+    }
+
+    connect(stage, SIGNAL(finished(QVariant)), this, SIGNAL(compileFinished(QVariant)));
+    connect(stage, SIGNAL(errorOccurred(QmlJSc::Error)), this, SIGNAL(errorOccurred(QmlJSc::Error)));
+}

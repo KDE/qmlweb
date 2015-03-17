@@ -24,6 +24,10 @@
 
 #include "error.h"
 
+#include <private/qqmljsast_p.h>
+
+Q_DECLARE_METATYPE(QQmlJS::AST::UiProgram*)
+
 namespace QmlJSc {
 
 class Pipeline;
@@ -35,7 +39,7 @@ class PipelineStage : public QObject
 public:
   PipelineStage();
 
-  void setPipeline(Pipeline*pipeline);
+  void setPipeline(Pipeline* pipeline);
   Pipeline* pipeline(void);
 
 public slots:
@@ -43,7 +47,7 @@ public slots:
 
 signals:
   void finished(QVariant input);
-  void errorOccurred(Error error);
+  void errorOccurred(QmlJSc::Error error);
 
 private:
   Pipeline* m_pipeline;

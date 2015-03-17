@@ -51,4 +51,6 @@ private:
 
 }
 
+Q_DECLARE_METATYPE(QmlJSc::Error);
+
 #endif // ERROR_H

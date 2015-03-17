@@ -1,5 +1,4 @@
-/* 	
- * <one line to give the program's name and a brief idea of what it does.>
+/*
  * Copyright (C) 2015  Jan Marker <jan@jangmarker.de>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,28 +23,33 @@
 #include <QtCore/QLinkedList>
 #include <QtCore/QUrl>
 
+#include "error.h"
+
 namespace QmlJSc {
 
 class PipelineStage;
 
 class Pipeline : public QObject
 {
-    Q_OBJECT
+ Q_OBJECT
 
 public:
-    Pipeline();
-    ~Pipeline();
+ Pipeline();
+ ~Pipeline();
 
-    void appendStage(PipelineStage *stage);
+ void appendStage(PipelineStage *stage);
 
-    void execute();
+ void compile(QString &file);
 
-    QUrl file() const;
-    void setFile(const QUrl &file);
+ QUrl file() const;
+
+signals:
+ void compileFinished(QVariant output);
+ void errorOccurred(QmlJSc::Error error);
 
 private:
-    QLinkedList<PipelineStage*> m_pipeline;
-    QUrl m_file;
+ QLinkedList<PipelineStage*> m_pipeline;
+ QString m_file;
 };
 
 }

@@ -19,3 +19,4 @@ function(new_test)
 endfunction()
 
 new_test(TEST testparserstage RESOURCES ../data/minimal.qml)
+new_test(TEST testpipeline RESOURCES ../data/minimal.qml)
