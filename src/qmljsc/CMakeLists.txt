@@ -6,6 +6,7 @@ set(libqmljsc_srcs
   parserstage.cpp
   pipeline.cpp
   pipelinestage.cpp
+  prettygeneratorstage.cpp
   symboltable.cpp
 )
 add_library(libqmljsc SHARED ${libqmljsc_srcs})
