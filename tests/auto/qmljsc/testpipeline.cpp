@@ -60,13 +60,11 @@ class TestPipeline : public QObject
 
 public: TestPipeline();
 
-private:
-    MockStage *m_mockStage;
-    QmlJSc::Pipeline* m_pipeline;
-
 private slots:
     void initTestCase();
+    void working_data();
     void working();
+    void error_data();
     void error();
     void cleanupTestCase();
 
@@ -80,23 +78,40 @@ TestPipeline::TestPipeline()
 
 void TestPipeline::initTestCase()
 {
-    m_pipeline = new QmlJSc::Pipeline();
-    m_mockStage = new MockStage();
-
-    m_pipeline->appendStage(m_mockStage);
 }
 
 void TestPipeline::cleanupTestCase()
 {
-    delete m_pipeline;
-    delete m_mockStage;
+}
+
+void TestPipeline::working_data() {
+    QTest::addColumn<QmlJSc::Pipeline*>("pipeline");
+
+    QmlJSc::Pipeline* pipeline;
+    MockStage* mockStage1;
+    MockStage* mockStage2;
+
+    pipeline = new QmlJSc::Pipeline();
+    mockStage1 = new MockStage();
+    mockStage1->setDoError(false);
+    pipeline->appendStage(mockStage1);
+    QTest::newRow("one_okay") << pipeline;
+
+    pipeline = new QmlJSc::Pipeline();
+    mockStage1 = new MockStage();
+    mockStage2 = new MockStage();
+    mockStage1->setDoError(false);
+    mockStage2->setDoError(false);
+    pipeline->appendStage(mockStage1);
+    pipeline->appendStage(mockStage2);
+    QTest::newRow("two_okay") << pipeline;
 }
 
 void TestPipeline::working()
 {
-    m_mockStage->setDoError(false);
+    QFETCH(QmlJSc::Pipeline*, pipeline);
 
-    QSignalSpy finishedSpy(m_pipeline, SIGNAL(compileFinished(QVariant)));
+    QSignalSpy finishedSpy(pipeline, SIGNAL(compileFinished(QVariant)));
 
     QString filePath(":/test/minimal.qml");
     QFile file(filePath);
@@ -104,21 +119,45 @@ void TestPipeline::working()
     QTextStream stream(&file);
     QString fileContent = stream.readAll();
 
-    m_pipeline->compile(filePath);
+    pipeline->compile(filePath);
 
     QCOMPARE(finishedSpy.count(), 1);
     QCOMPARE(finishedSpy.takeFirst().takeFirst().value<QString>(), fileContent);
 }
 
+void TestPipeline::error_data()
+{
+    QTest::addColumn<QmlJSc::Pipeline*>("pipeline");
+
+    QmlJSc::Pipeline* pipeline;
+    MockStage* mockStage1;
+    MockStage* mockStage2;
+
+    pipeline = new QmlJSc::Pipeline();
+    mockStage1 = new MockStage();
+    mockStage1->setDoError(true);
+    pipeline->appendStage(mockStage1);
+    QTest::newRow("one_notokay") << pipeline;
+
+    pipeline = new QmlJSc::Pipeline();
+    mockStage1 = new MockStage();
+    mockStage2 = new MockStage();
+    mockStage1->setDoError(true);
+    mockStage2->setDoError(false);
+    pipeline->appendStage(mockStage1);
+    pipeline->appendStage(mockStage2);
+    QTest::newRow("first_notokay") << pipeline;
+}
+
 void TestPipeline::error()
 {
-    m_mockStage->setDoError(true);
+    QFETCH(QmlJSc::Pipeline*, pipeline);
 
-    QSignalSpy finishedSpy(m_pipeline, &QmlJSc::Pipeline::compileFinished);
-    QSignalSpy errorSpy(m_pipeline, &QmlJSc::Pipeline::errorOccurred);
+    QSignalSpy finishedSpy(pipeline, &QmlJSc::Pipeline::compileFinished);
+    QSignalSpy errorSpy(pipeline, &QmlJSc::Pipeline::errorOccurred);
 
     QString filePath(":/test/minimal.qml");
-    m_pipeline->compile(filePath);
+    pipeline->compile(filePath);
 
     QCOMPARE(finishedSpy.count(), 0);
     QCOMPARE(errorSpy.count(), 1);
@@ -131,7 +170,6 @@ void TestPipeline::error()
     QCOMPARE(error.file(), QUrl("qrc:/test/minimal.qml"));
 
 }
-
 
 QTEST_MAIN(TestPipeline)
 #include "testpipeline.moc"
