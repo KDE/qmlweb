@@ -25,6 +25,8 @@
 
 namespace QmlJSc {
 
+#define qmlJSc QmlJSc::QmlJSc::instance()
+
 class QmlJSc : public QObject
 {
     Q_OBJECT
@@ -32,6 +34,11 @@ class QmlJSc : public QObject
 public:
     explicit QmlJSc(QObject *parent = 0);
     virtual ~QmlJSc();
+
+    static QmlJSc* instance() { return s_self; }
+
+private:
+    static QmlJSc* s_self;
 };
 
 }

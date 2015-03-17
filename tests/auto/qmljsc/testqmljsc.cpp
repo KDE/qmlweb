@@ -1,6 +1,5 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  Jan Marker <jan@jangmarker.de>
+ * Copyright (C) 2015 Jan Marker <jan@jangmarker.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +16,28 @@
  *
  */
 
-#include "qmljsc.h"
+#include <QtTest/QTest>
 
-using namespace QmlJSc;
+#include "../../../src/qmljsc/qmljsc.h"
 
-QmlJSc::QmlJSc* QmlJSc::QmlJSc::s_self = 0;
-
-QmlJSc::QmlJSc::QmlJSc(QObject *parent)
-    : QObject(parent)
+class TestQmlJSc
+    : public QObject
 {
-    Q_ASSERT_X(!s_self, "QmlJSc::QmlJSc", "QmlJSc should only exist once.");
-    s_self = this;
-}
+    Q_OBJECT
 
-QmlJSc::QmlJSc::~QmlJSc()
-{
-    s_self = 0;
-}
+private slots:
+    void singleton() {
+        QmlJSc::QmlJSc* qmljsc = new QmlJSc::QmlJSc();
+        QCOMPARE(QmlJSc::qmlJSc, qmljsc);
+        delete qmljsc;
+    }
+
+    void nullAfterDelete() {
+        QmlJSc::QmlJSc* qmljsc = new QmlJSc::QmlJSc();
+        delete qmljsc;
+        QCOMPARE(QmlJSc::qmlJSc, static_cast<QmlJSc::QmlJSc*>(0));
+    }
+};
+
+QTEST_MAIN(TestQmlJSc)
+#include "testqmljsc.moc"
