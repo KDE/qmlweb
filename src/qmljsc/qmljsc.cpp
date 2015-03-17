@@ -17,14 +17,15 @@
  *
  */
 
-#include "../../../src/qmljsc/qmljsc.h"
+#include "qmljsc.h"
 
-void QmlJSc::()
+using namespace QmlJSc;
+
+QmlJSc::QmlJSc::QmlJSc(QObject *parent)
+    : QObject(parent)
 {
-
 }
 
-void QmlJSc::()
+QmlJSc::QmlJSc::~QmlJSc()
 {
-
 }

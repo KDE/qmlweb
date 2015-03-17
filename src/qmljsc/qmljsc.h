@@ -1,6 +1,7 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2015  Jan Marker <jan@jangmarker.de>
+ * Copyright (C) 2015  Anton Kreuzkamp <akreuzkamp@web.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +21,17 @@
 #ifndef QMLJSC_H
 #define QMLJSC_H
 
+#include <QtCore/QObject>
+
 namespace QmlJSc {
 
-class QmlJSc
+class QmlJSc : public QObject
 {
+    Q_OBJECT
+
+public:
+    explicit QmlJSc(QObject *parent = 0);
+    virtual ~QmlJSc();
 };
 
 }
