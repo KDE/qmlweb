@@ -30,6 +30,7 @@ SymbolTable::SymbolTable(QObject* parent)
     builtInModule->typeToFQIHash.insert("Binding", "QtQml20.Binding");
     builtInModule->typeToFQIHash.insert("Connections", "QtQml20.Connections");
     builtInModule->typeToFQIHash.insert("Timer", "QtQml20.Timer");
+    builtInModule->loaded = true;
     m_modules.insert({"QtQml", 2, 0}, builtInModule);
 }
 
