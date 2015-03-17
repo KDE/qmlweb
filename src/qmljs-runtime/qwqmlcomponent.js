@@ -28,7 +28,8 @@
  *  SUCH DAMAGE.
  */
 
-function QWContext() {
+function QWContext()
+{
     this.__pendingBindingEvaluations = [];
     this.nameForObject = function(obj) {
         for (var name in this) {
@@ -38,24 +39,41 @@ function QWContext() {
     }
 }
 
-function QWQmlComponent(engine)
+QWQmlComponent.__properties = [];
+QW_PROPERTY({ ctor: QWQmlComponent, name: "__componentCtor" });
+function QWQmlComponent()
 {
-    var fileName = '', parent = null;
-    if (typeof arguments[1] == "string") {
-        fileName = arguments[1];
-        if (arguments[2] instanceof Object)
-            parent = arguments[2];
-    } else if (arguments[1] instanceof Object) {
-        parent = arguments[1];
+    QWObject.call(this, arguments[0]); // Uses either parent or engine as parent.
+
+    // Parse Arguments - this is the javascript way of doing function overloads
+    var engine, parent, fileName = '', parent = null;
+    if (arguments[0] instanceof QWObject) {
+        parent = arguments[0];
+    } else {
+        engine = arguments[0];
+        if (typeof arguments[1] == "string") {
+            fileName = arguments[1];
+            if (arguments[2] instanceof Object)
+                parent = arguments[2];
+        } else if (arguments[1] instanceof Object) {
+            parent = arguments[1];
+        }
     }
-    QWObject.call(this, parent);
 
-    this.__pendingBindingEvaluations = [];
+    // Fetch file from url, evaluate and set as __componentCtor.
+    if (fileName != '') {
+        QW_SET(this, 0, qw_evalJS(qw_fetchData([engine.baseUrl + fileName + ".js"])));
+    }
 
-    var componentCtor = qw_evalJS(qw_fetchData([engine.baseUrl + fileName + ".js"]));
+    this.createObject = function(parent)
+    {
+        return this.create(QWQmlEngine.contextForObject(this), parent);
+    }
 
-    this.create = function(context) {
-        var object = new componentCtor();
+    this.create = function(context, parent)
+    {
+        var ctor = QW_GET(this, 0);
+        var object = new ctor(parent);
         object.__ctx.__parentContext = context;
         while(object.__ctx.__pendingBindingEvaluations.length) {
             var property = object.__ctx.__pendingBindingEvaluations.pop();

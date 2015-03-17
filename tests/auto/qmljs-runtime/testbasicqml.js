@@ -123,3 +123,14 @@ QUnit.test("Binding with id reference - Binding to a property that belongs to an
     assert.strictEqual(QW_GET(QW_GET(object, 3), 1), 29, "Prop3 value is correct after changing Prop2.");
     assert.strictEqual(QW_GET(object, 1), 24, "Prop1 value is correct after changing Prop2.");
 });
+
+QUnit.test("Inline component - simplest case", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/simpleinlinecomponent.qml");
+    var object = component.create();
+    assert.ok(QW_GET(object, 2), "comp exists.");
+    assert.ok(QW_GET(object, 2) instanceof QWQmlComponent, "comp is actually a component.");
+    assert.ok(QW_GET(object, 1), "obj exists.");
+    assert.ok(QW_GET(object, 1) instanceof QWObject, "obj is actually a QtObject.");
+    assert.strictEqual(QW_GET(QW_GET(object, 1), 0), "KDE", "obj has the correct Object name.");
+});
