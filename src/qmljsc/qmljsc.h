@@ -25,6 +25,8 @@
 
 namespace QmlJSc {
 
+class SymbolTable;
+
 #define qmlJSc QmlJSc::QmlJSc::instance()
 
 class QmlJSc : public QObject
@@ -36,9 +38,11 @@ public:
     virtual ~QmlJSc();
 
     static QmlJSc* instance() { return s_self; }
+    SymbolTable* symbols() { return m_symbols; }
 
 private:
     static QmlJSc* s_self;
+    SymbolTable* m_symbols;
 };
 
 }

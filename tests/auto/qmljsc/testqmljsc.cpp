@@ -37,6 +37,11 @@ private slots:
         delete qmljsc;
         QCOMPARE(QmlJSc::qmlJSc, static_cast<QmlJSc::QmlJSc*>(0));
     }
+
+    void symbolTable() {
+        QmlJSc::QmlJSc* qmljsc = new QmlJSc::QmlJSc();
+        QVERIFY(qmljsc->symbols());
+    }
 };
 
 QTEST_MAIN(TestQmlJSc)

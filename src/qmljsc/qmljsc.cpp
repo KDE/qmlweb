@@ -17,6 +17,8 @@
  *
  */
 
+#include "symboltable.h"
+
 #include "qmljsc.h"
 
 using namespace QmlJSc;
@@ -25,6 +27,7 @@ QmlJSc::QmlJSc* QmlJSc::QmlJSc::s_self = 0;
 
 QmlJSc::QmlJSc::QmlJSc(QObject *parent)
     : QObject(parent)
+    , m_symbols(new SymbolTable(this))
 {
     Q_ASSERT_X(!s_self, "QmlJSc::QmlJSc", "QmlJSc should only exist once.");
     s_self = this;
