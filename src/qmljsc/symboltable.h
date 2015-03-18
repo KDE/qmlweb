@@ -20,10 +20,15 @@
 #ifndef SYMBOLTABLE_H
 #define SYMBOLTABLE_H
 
+#include "error.h"
+
 #include <QtCore/QObject>
 #include <QtCore/QHash>
 #include <QtCore/QMutex>
 #include <QtCore/QWaitCondition>
+#include <QtCore/QStringList>
+
+class QJSEngine;
 
 namespace QmlJSc {
 
@@ -60,16 +65,25 @@ public:
     explicit SymbolTable(QObject *parent = 0);
     virtual ~SymbolTable();
 
+    void addIncludePath(QString path);
+
     void loadModule(ModuleImport import);
 
     QString findType(ModuleImport module, QString typeName);
     QString findType(ModuleImports modules, QString typeName);
 
+signals:
+    void importError(QmlJSc::Error error);
+
 private slots:
     void doLoadModule(ModuleImport import);
 
 private:
+    void error(ModuleImport import, QString message, Error *reason = 0);
+
     QHash<ModuleImport, ModuleData*> m_modules;
+    QStringList m_includePaths;
+    QJSEngine *m_jsEngine;
 };
 
 }

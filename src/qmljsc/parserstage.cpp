@@ -44,10 +44,9 @@ void ParserStage::process(QVariant input)
 
     bool successfullyParsed = parser->parse();
     if (!successfullyParsed) {
-        Error error;
+        Error error(Error::ParseError, parser->errorMessage());
         error.setColumn(parser->errorColumnNumber());
         error.setLine(parser->errorLineNumber());
-        error.setDescription(parser->errorMessage());
         emit errorOccurred(error);
         return;
     }

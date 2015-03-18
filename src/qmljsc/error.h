@@ -20,6 +20,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+#include <QtCore/QMetaType>
 #include <QtCore/QUrl>
 #include <QtCore/QString>
 
@@ -28,25 +29,58 @@ namespace QmlJSc {
 class Error
 {
 public:
-Error() {};
+    enum Type {
+        UnknownError,
+        ReadFileError,
+        ParseError,
+        ModuleImportError,
+        JSEngineError,
+        SymbolLookupError
+    };
 
- QUrl file() { return m_file; }
- void setFile(QUrl file) { m_file = file; }
+    Error()
+        : m_type(UnknownError)
+        , m_column(-1)
+        , m_line(-1)
+        , m_reason(0)
+    {}
+    Error(Type type, QString description, Error *reason = 0)
+        : m_type(type)
+        , m_description(description)
+        , m_column(-1)
+        , m_line(-1)
+        , m_reason(reason)
+    {}
+    virtual ~Error()
+    {
+        delete m_reason;
+    }
 
- QString description() { return m_description; }
- void setDescription(QString description) { m_description = description; }
+    Type type() const { return m_type; }
+    void setType(Type type) { m_type = type; }
 
- int column() { return m_column; }
- void setColumn(int column) { m_column = column; }
+    QUrl file() const { return m_file; }
+    void setFile(QUrl file) { m_file = file; }
 
- int line() { return m_line; }
- void setLine(int line) { m_line = line; }
+    QString description() const { return m_description; }
+    void setDescription(QString description) { m_description = description; }
+
+    int column() const { return m_column; }
+    void setColumn(int column) { m_column = column; }
+
+    int line() const { return m_line; }
+    void setLine(int line) { m_line = line; }
+
+    Error *reason() const { return m_reason; }
+    void setReason(Error *reason) { m_reason = reason; }
 
 private:
+    Type m_type;
     QUrl m_file;
     QString m_description;
     int m_column;
     int m_line;
+    Error *m_reason;
 };
 
 }

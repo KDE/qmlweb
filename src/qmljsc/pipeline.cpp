@@ -45,9 +45,8 @@ void Pipeline::compile(QString& filePath)
     QFile file(m_file);
     bool openSuccessful = file.open(QFile::ReadOnly);
     if (!openSuccessful) {
-        Error error;
+        Error error(Error::ReadFileError, file.errorString());
         error.setFile(file.fileName());
-        error.setDescription(file.errorString());
         emit errorOccurred(error);
         return;
     }

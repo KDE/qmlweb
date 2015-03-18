@@ -18,8 +18,8 @@ function(new_test)
 
 endfunction()
 
+new_test(TEST testcompiler)
 new_test(TEST testparserstage RESOURCES ../data/minimal.qml)
 new_test(TEST testprettygeneratorstage RESOURCES ../data/minimal.qml ../data/minimal.qml.js)
 new_test(TEST testpipeline RESOURCES ../data/minimal.qml)
-new_test(TEST testsymboltable)
-new_test(TEST testcompiler)
+new_test(TEST testsymboltable RESOURCES ../data/TestModule.0.1.js)

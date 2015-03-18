@@ -24,18 +24,19 @@
 
 #include "../../../src/qmljsc/symboltable.h"
 
-class TestParserStage : public QObject
+class TestSymbolTable : public QObject
 {
     Q_OBJECT
 
 private slots:
     void findBuiltInTypes();
+    void loadModule();
 
 };
 
 using namespace QmlJSc;
 
-void TestParserStage::findBuiltInTypes()
+void TestSymbolTable::findBuiltInTypes()
 {
     SymbolTable symbolTable;
 
@@ -47,6 +48,23 @@ void TestParserStage::findBuiltInTypes()
     QCOMPARE(symbolTable.findType(ModuleImports(), "Inexistent"), QStringLiteral(""));
 }
 
-QTEST_MAIN(TestParserStage)
+void TestSymbolTable::loadModule()
+{
+    SymbolTable symbolTable;
+    const ModuleImport testModuleImport = {"TestModule", 0, 1};
+
+    QSignalSpy spy(&symbolTable, SIGNAL(importError(QmlJSc::Error)));
+
+    symbolTable.addIncludePath(":/test/");
+    symbolTable.loadModule(testModuleImport);
+
+    QCOMPARE(spy.count(), 0);
+    QCOMPARE(symbolTable.findType({testModuleImport}, "Pastry"), QStringLiteral("TestModule01.Pastry"));
+    QCOMPARE(symbolTable.findType({testModuleImport}, "Cake"), QStringLiteral("TestModule01.Cake"));
+    QCOMPARE(symbolTable.findType({testModuleImport}, "Pizza"), QStringLiteral("TestModule01.Pizza"));
+    QCOMPARE(symbolTable.findType({testModuleImport}, "Printer"), QStringLiteral(""));
+}
+
+QTEST_MAIN(TestSymbolTable)
 #include "testsymboltable.moc"
 
