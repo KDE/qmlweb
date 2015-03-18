@@ -1,11 +1,11 @@
 find_package(Qt5 COMPONENTS Core Qml)
 
 set(libqmljsc_srcs
+  compiler.cpp
   error.h
   parserstage.cpp
   pipeline.cpp
   pipelinestage.cpp
-  qmljsc.cpp
   symboltable.cpp
 )
 add_library(libqmljsc SHARED ${libqmljsc_srcs})

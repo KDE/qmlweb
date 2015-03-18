@@ -18,31 +18,31 @@
 
 #include <QtTest/QTest>
 
-#include "../../../src/qmljsc/qmljsc.h"
+#include "../../../src/qmljsc/compiler.h"
 
-class TestQmlJSc
+class TestCompiler
     : public QObject
 {
     Q_OBJECT
 
 private slots:
     void singleton() {
-        QmlJSc::QmlJSc* qmljsc = new QmlJSc::QmlJSc();
-        QCOMPARE(QmlJSc::qmlJSc, qmljsc);
+        QmlJSc::Compiler* qmljsc = new QmlJSc::Compiler();
+        QCOMPARE(compiler, qmljsc);
         delete qmljsc;
     }
 
     void nullAfterDelete() {
-        QmlJSc::QmlJSc* qmljsc = new QmlJSc::QmlJSc();
+        QmlJSc::Compiler* qmljsc = new QmlJSc::Compiler();
         delete qmljsc;
-        QCOMPARE(QmlJSc::qmlJSc, static_cast<QmlJSc::QmlJSc*>(0));
+        QCOMPARE(compiler, static_cast<QmlJSc::Compiler*>(0));
     }
 
     void symbolTable() {
-        QmlJSc::QmlJSc* qmljsc = new QmlJSc::QmlJSc();
+        QmlJSc::Compiler* qmljsc = new QmlJSc::Compiler();
         QVERIFY(qmljsc->symbols());
     }
 };
 
-QTEST_MAIN(TestQmlJSc)
-#include "testqmljsc.moc"
+QTEST_MAIN(TestCompiler)
+#include "testcompiler.moc"

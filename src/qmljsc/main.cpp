@@ -18,12 +18,12 @@
 
 #include <QtCore/QCoreApplication>
 
-#include "qmljsc.h"
+#include "compiler.h"
 
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
   
-  QmlJSc::QmlJSc c;
+  QmlJSc::Compiler c;
   
   return app.exec();
 }

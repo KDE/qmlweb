@@ -19,13 +19,13 @@
 
 #include "symboltable.h"
 
-#include "qmljsc.h"
+#include "compiler.h"
 
 using namespace QmlJSc;
 
-QmlJSc::QmlJSc* QmlJSc::QmlJSc::s_self = 0;
+QmlJSc::Compiler* QmlJSc::Compiler::s_self = 0;
 
-QmlJSc::QmlJSc::QmlJSc(QObject *parent)
+QmlJSc::Compiler::Compiler(QObject *parent)
     : QObject(parent)
     , m_symbols(new SymbolTable(this))
 {
@@ -33,7 +33,7 @@ QmlJSc::QmlJSc::QmlJSc(QObject *parent)
     s_self = this;
 }
 
-QmlJSc::QmlJSc::~QmlJSc()
+QmlJSc::Compiler::~Compiler()
 {
     s_self = 0;
 }

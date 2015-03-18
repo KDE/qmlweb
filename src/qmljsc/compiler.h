@@ -27,21 +27,21 @@ namespace QmlJSc {
 
 class SymbolTable;
 
-#define qmlJSc QmlJSc::QmlJSc::instance()
+#define compiler QmlJSc::Compiler::instance()
 
-class QmlJSc : public QObject
+class Compiler : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit QmlJSc(QObject *parent = 0);
-    virtual ~QmlJSc();
+    explicit Compiler(QObject *parent = 0);
+    virtual ~Compiler();
 
-    static QmlJSc* instance() { return s_self; }
+    static Compiler* instance() { return s_self; }
     SymbolTable* symbols() { return m_symbols; }
 
 private:
-    static QmlJSc* s_self;
+    static Compiler* s_self;
     SymbolTable* m_symbols;
 };
 
