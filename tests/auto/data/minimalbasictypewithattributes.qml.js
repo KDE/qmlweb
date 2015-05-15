@@ -4,19 +4,15 @@ function __comp(parent) {
     var __ = this.__ctx = new QWContext();
     var __0 = this;
 
-    QW_PROPERTY({
-        object: __0,
-        name: "someProp",
+    __0.someProp = new QWProperty({
         initialValue: QmlPseudoModule.color("#ff0088")
     });
-    QW_PROPERTY({
-        object: __0,
-        name: "otherProp",
+    __0.otherProp = new QWProperty({
         initialValue: QmlPseudoModule.color()
     });
-    QW_SETATTR(__0, 2, 0, 0);
-    QW_SETATTR(__0, 2, 1, 110);
-    QW_SETATTR(__0, 2, 2, 0);
+    __0.otherProp.setAttr(0, 0);
+    __0.otherProp.setAttr(1, 110);
+    __0.otherProp.setAttr(2, 0);
 }
 
 __comp;

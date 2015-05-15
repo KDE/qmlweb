@@ -5,26 +5,16 @@ function __comp(parent) {
     var __0, __1;
     __0 = __.main = this;
 
-    QW_PROPERTY({
-        object: __0,
-        name: "prop1"
-    });
-    QW_BIND(__0, 1, function() { return QW_GET(__1, 1) - 5; }, __);
-    QW_PROPERTY({
-        object: __0,
-        name: "prop2",
+    __0.prop1 = new QWProperty({});
+    __0.prop1.bind(function() { return __1.prop3.get() - 5; }, __);
+    __0.prop2 = new QWProperty({
         initialValue: 5
     });
-    QW_PROPERTY({
-        object: __0,
-        name: "child",
+    __0.child = new QWProperty ({
         initialValue: (function() {
             __1 = __.foo = new QtQml20.QtObject(__0);
-            QW_PROPERTY({
-                object: __1,
-                name: "prop3"
-            });
-            QW_BIND(__1, 1, function() { return QW_GET(__0, 2) + 10; }, __);
+            __1.prop3 = new QWProperty({});
+            __1.prop3.bind(function() { return __0.prop2.get() + 10; }, __);
             return __1;
         })()
     });

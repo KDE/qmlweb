@@ -4,16 +4,11 @@ function __comp(parent) {
     var __ = this.__ctx = new QWContext();
     var __0 = this;
 
-    QW_PROPERTY({
-        object: __0,
-        name: "prop1",
+    __0.prop1 = new QWProperty({
         initialValue: 5
     });
-    QW_PROPERTY({
-        object: __0,
-        name: "prop2"
-    });
-    QW_BIND(__0, 2, function() { return 7 * QW_GET(__0, 1); }, __);
+    __0.prop2 = new QWProperty({});
+    __0.prop2.bind(function() { return 7 * __0.prop1.get(); }, __);
 }
 
 __comp;

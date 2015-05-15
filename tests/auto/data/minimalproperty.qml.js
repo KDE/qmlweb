@@ -3,7 +3,7 @@ function __comp(parent) {
     QtQml20.QtObject.call(this, parent);
     var __ = this.__ctx = new QWContext();
 
-    QW_SET(this, 0, "hugo");
+    this.objectName.set("hugo");
 }
 
 __comp;

@@ -4,12 +4,10 @@ function __comp(parent) {
     var __ = this.__ctx = new QWContext();
     var __0 = this;
 
-    QW_PROPERTY({
-        object: __0,
-        name: "child",
+    __0.child = new QWProperty({
         initialValue: (function() {
             var __1 = new QtQml20.QtObject(__0);
-            QW_SET(__1, 0, "childObject");
+            __1.objectName.set("childObject");
             return __1;
         })()
     });

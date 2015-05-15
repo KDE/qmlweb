@@ -31,11 +31,7 @@
 // === pseudo-macros ===
 
 // exports
-var QW_PROPERTY,
-    QW_GET,
-    QW_SET,
-    QW_BIND,
-    QWQmlProperty,
+var QWProperty,
     QWList;
 
 (function() {
@@ -44,95 +40,45 @@ var QW_PROPERTY,
 // the getter of a certain other property for evaluation and is thus dependent on it.
 var evaluatingProperty = null;
 
-QW_PROPERTY = function(data)
-{
-    if (data.object) {
-        data.object.__properties[data.object.__propertyCount] = new QWQmlProperty(data);
-        data.object.__propertyCount++;
-    } else {
-        data.ctor.__properties.push(new QWQmlProperty(data));
-    }
-}
+// === QWProperty ===
 
-QW_GET = function(object, propertyIndex)
-{
-    // We create properties when they are first accessed, to save time and memory, so if there is
-    // no property, yet, create it.
-    if (!object.__properties[propertyIndex]) {
-        object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
-    }
-    var prop = object.__properties[propertyIndex];
-
-    // If this call to QW_GET is due to a property that is dependent on this
-    // one, we need it to take track of changes
-    if (evaluatingProperty && !prop.notify.isConnected(evaluatingProperty, QWQmlProperty.prototype.update)) {
-        prop.notify.connect(evaluatingProperty, QWQmlProperty.prototype.update);
-    }
-
-    return prop.value;
-}
-
-QW_SET = function(object, propertyIndex, newValue)
-{
-    // We create properties when they are first accessed, to save time and memory, so if there is
-    // no property, yet, create it.
-    if (!object.__properties[propertyIndex]) {
-        object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
-    }
-
-    object.__properties[propertyIndex].value = newValue;
-    object.__properties[propertyIndex].notify();
-}
-
-QW_BIND = function(object, propertyIndex, bindingFunction, context)
-{
-    // We create properties when they are first accessed, to save time and memory, so if there is
-    // no property, yet, create it.
-    if (!object.__properties[propertyIndex]) {
-        object.__properties[propertyIndex] = object.constructor.__properties[propertyIndex].clone();
-    }
-    var prop = object.__properties[propertyIndex];
-
-    // put down for subsequent evaluation
-    context.__pendingBindingEvaluations.push(prop);
-
-    prop.binding = bindingFunction;
-    prop.notify();
-}
-
-QW_GETATTR = function(object, propertyIndex, attributeIndex) {
-    return object.__properties[propertyIndex].value[attributeIndex];
-}
-
-QW_SETATTR = function(object, propertyIndex, attributeIndex, newValue) {
-    object.__properties[propertyIndex].value[attributeIndex] = newValue;
-    object.__properties[propertyIndex].notify();
-}
-
-QW_NOTIFYSIG = function(object, propertyIndex) {
-    return object.__properties[propertyIndex].notify;
-}
-
-// === QWQmlProperty ===
-
-QWQmlProperty = function(data)
+QWProperty = function(data)
 {
     this.value = data.initialValue;
-    this.get = data.get;
-    this.set = data.set;
+    this.getter = data.get;
+    this.setter = data.set;
     this.binding = null;
     this.interceptor = null;
     this.notify = QW_SIGNAL({});
 }
 
-QWQmlProperty.prototype.clone = function() {
-    return new QWQmlProperty({
+QWProperty.prototype.clone = function() {
+    return new QWProperty({
         initialValue: this.value,
         get: this.get,
         set: this.set
     })
 }
-QWQmlProperty.prototype.update = function() {
+
+QWProperty.prototype.get = function()
+{
+    // If this call to get is due to a property that is dependent on this
+    // one, we need it to track changes
+    if (evaluatingProperty && !this.notify.isConnected(evaluatingProperty, QWProperty.prototype.update)) {
+        this.notify.connect(evaluatingProperty, QWProperty.prototype.update);
+    }
+
+    return this.value;
+}
+
+QWProperty.prototype.set = function(newValue)
+{
+
+    this.value = newValue;
+    this.notify();
+}
+
+QWProperty.prototype.update = function() {
     if (!this.binding) {
         return;
     }
@@ -141,6 +87,24 @@ QWQmlProperty.prototype.update = function() {
     evaluatingProperty = this;
     this.value = this.binding();
     evaluatingProperty = null;
+    this.notify();
+}
+
+QWProperty.prototype.bind = function(bindingFunction, context)
+{
+    // put down for subsequent evaluation
+    context.__pendingBindingEvaluations.push(this);
+
+    this.binding = bindingFunction;
+    this.notify();
+}
+
+QWProperty.prototype.getAttr = function(attributeIndex) {
+    return this.value[attributeIndex];
+}
+
+QWProperty.prototype.setAttr = function(attributeIndex, newValue) {
+    this.value[attributeIndex] = newValue;
     this.notify();
 }
 

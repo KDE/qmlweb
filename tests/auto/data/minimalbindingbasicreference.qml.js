@@ -4,12 +4,9 @@ function __comp(parent) {
     var __ = this.__ctx = new QWContext();
     var __0 = this;
 
-    QW_PROPERTY({
-        object: __0,
-        name: "extendedName"
-    });
-    QW_SET(__0, 0, "hello");
-    QW_BIND(__0, 1, function() { return QW_GET(__0, 0) + " world!"; }, __);
+    __0.extendedName = new QWProperty({});
+    __0.objectName.set("hello");
+    __0.extendedName.bind(function() { return __0.objectName.get() + " world!"; }, __);
 }
 
 __comp;

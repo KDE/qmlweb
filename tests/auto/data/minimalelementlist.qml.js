@@ -4,34 +4,32 @@ function __comp(parent) {
     var __ = this.__ctx = new QWContext();
     var __0 = this;
 
-    QW_PROPERTY({
-        object: __0,
-        name: "children",
+    __0.children = new QWProperty({
         initialValue: new QWList(__0)
     });
-    QW_GET(__0, 1).append((function() {
+    __0.children.get().append((function() {
             var __1 = new QtQml20.QtObject(__0);
-            QW_SET(__1, 0, "el1");
+            __1.objectName.set("el1");
             return __1;
         })());
-    QW_GET(__0, 1).append((function() {
+    __0.children.get().append((function() {
             var __1 = new QtQml20.QtObject(__0);
-            QW_SET(__1, 0, "el2");
+            __1.objectName.set("el2");
             return __1;
         })());
-    QW_GET(__0, 1).append((function() {
+    __0.children.get().append((function() {
             var __1 = new QtQml20.QtObject(__0);
-            QW_SET(__1, 0, "el3");
+            __1.objectName.set("el3");
             return __1;
         })());
-    QW_GET(__0, 1).append((function() {
+    __0.children.get().append((function() {
             var __1 = new QtQml20.QtObject(__0);
-            QW_SET(__1, 0, "el4");
+            __1.objectName.set("el4");
             return __1;
         })());
-    QW_GET(__0, 1).append((function() {
+    __0.children.get().append((function() {
             var __1 = new QtQml20.QtObject(__0);
-            QW_SET(__1, 0, "el5");
+            __1.objectName.set("el5");
             return __1;
         })());
 }

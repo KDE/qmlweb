@@ -40,7 +40,6 @@ function QWContext()
 }
 
 QWQmlComponent.__properties = [];
-QW_PROPERTY({ ctor: QWQmlComponent, name: "__componentCtor" });
 function QWQmlComponent()
 {
     QWObject.call(this, arguments[0]); // Uses either parent or engine as parent.
@@ -60,9 +59,11 @@ function QWQmlComponent()
         }
     }
 
+    this.__componentCtor = new QWProperty({});
+
     // Fetch file from url, evaluate and set as __componentCtor.
     if (fileName != '') {
-        QW_SET(this, 0, qw_evalJS(qw_fetchData([engine.baseUrl + fileName + ".js"])));
+        this.__componentCtor.set(qw_evalJS(qw_fetchData([engine.baseUrl + fileName + ".js"])));
     }
 
     this.createObject = function(parent)
@@ -72,7 +73,7 @@ function QWQmlComponent()
 
     this.create = function(context, parent)
     {
-        var ctor = QW_GET(this, 0);
+        var ctor = this.__componentCtor.get();
         var object = new ctor(parent);
         object.__ctx.__parentContext = context;
         while(object.__ctx.__pendingBindingEvaluations.length) {

@@ -5,14 +5,9 @@ function __comp(parent) {
     var __0, __1;
     __0 = this;
 
-    QW_PROPERTY({
-        object: __0,
-        name: "obj"
-    });
-    QW_BIND(__0, 1, function() { return QW_GET(__0, 2).createObject(); }, __);
-    QW_PROPERTY({
-        object: __0,
-        name: "comp",
+    __0.obj = new QWProperty({});
+    __0.obj.bind(function() { return __0.comp.get().createObject(); }, __);
+    __0.comp = new QWProperty({
         initialValue: (function() {
             var __1 = new QtQml20.Component(__0);
 
@@ -21,10 +16,10 @@ function __comp(parent) {
                 QtQml20.QtObject.call(this, parent);
                 var __ = this.__ctx = new QWContext();
 
-                QW_SET(this, 0, "KDE");
+                this.objectName.set("KDE");
             }
 
-            QW_SET(__1, 0, __comp);
+            __1.__componentCtor.set(__comp);
 
             return __1;
         })()
