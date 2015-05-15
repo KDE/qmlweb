@@ -35,9 +35,6 @@ function QWObject(parent)
     if (parent && parent.__tidyupList)
         parent.__tidyupList.push(this);
 
-    this.__properties = []; // We create properties when they are first accessed, to save time and memory.
-    this.__propertyCount = this.constructor.__properties.length; // this.__properties.length won't always return the
-                                                                 // correct number of properties we have.
     this.objectName = new QWProperty({ type: "string", initialValue: "" });
 
     // List of things to tidy up when deleting this object.
