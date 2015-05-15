@@ -32,7 +32,8 @@
 
 // exports
 var qw_fetchData,
-    qw_evalJS;
+    qw_evalJS,
+    qw_import;
 
 (function() {
 
@@ -52,8 +53,10 @@ QW_INHERIT = function(ctor, baseClass)
 /**
  * Eval JavaScript. Used to evaluate modules and compiled QML from
  * within the same scope.
+ * @param __src The sources to be evaluated
+ * @param __engine The QWQmlEngine used. This one is only there, to be available in the evaluated code.
  */
-qw_evalJS = function(__src) {
+qw_evalJS = function(__src, __engine) {
     return eval(__src);
 }
 

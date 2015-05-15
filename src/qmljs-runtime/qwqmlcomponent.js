@@ -31,11 +31,11 @@
 function QWContext()
 {
     this.__pendingBindingEvaluations = [];
-    this.nameForObject = function(obj) {
-        for (var name in this) {
-            if (this[name] == obj)
-                return name;
-        }
+}
+QWContext.prototype.nameForObject = function(obj) {
+    for (var name in this) {
+        if (this[name] == obj)
+            return name;
     }
 }
 
@@ -63,7 +63,10 @@ function QWQmlComponent()
 
     // Fetch file from url, evaluate and set as __componentCtor.
     if (fileName != '') {
-        this.__componentCtor.set(qw_evalJS(qw_fetchData([engine.baseUrl + fileName + ".js"])));
+        engine.baseUrl = fileName.split("/");
+        engine.baseUrl[engine.baseUrl.length - 1] = "";
+        engine.baseUrl = engine.baseUrl.join("/");
+        this.__componentCtor.set(qw_evalJS(qw_fetchData([fileName + ".js"]), engine));
     }
 
     this.createObject = function(parent)

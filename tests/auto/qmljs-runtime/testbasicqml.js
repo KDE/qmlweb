@@ -75,6 +75,16 @@ QUnit.test("Minimal element list - one element with a list property containing 5
     assert.strictEqual(object.children.get()[4].objectName.get(), "el5", "Fifth child has correct object name.");
 });
 
+QUnit.test("Minimal module - one element with a type that is imported from a module.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalmodule.qml");
+    var object = component.create();
+    assert.strictEqual(object.bakingTime.get(), 20, "Inherited property is ok.");
+    assert.strictEqual(object.topping.get().length, 4, "They didn't forget a topping in the kitchen (aka own property is ok).");
+    assert.strictEqual(object.topping.get()[2], "tomato slices", "Tomato is still fresh (aka own property is ok).");
+    assert.strictEqual(object.isCalzone.get(), false, "They made it right (aka unset property is ok).");
+});
+
 QUnit.test("Minimal basic type with an attribute.", function(assert) {
     var engine = new QWQmlEngine();
     var component = new QWQmlComponent(engine, "../data/minimalbasictypewithattributes.qml");

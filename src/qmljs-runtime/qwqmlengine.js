@@ -35,6 +35,14 @@ function QWQmlEngine()
 
 }
 
+/**
+* Import QML module.
+*/
+QWQmlEngine.prototype.importModule = function(name, versionMajor, versionMinor)
+{
+    qw_evalJS(name + versionMajor + versionMinor + " = " + qw_fetchData([this.baseUrl + name + "." + versionMajor + "." + versionMinor + ".js"]), this);
+}
+
 QWQmlEngine.contextForObject = function(object) {
     if (object.__ctx) // If the object is the root of a component, we want to
         return object.__ctx.__parentContext || object.__ctx; // return the outer context.
