@@ -79,6 +79,18 @@ QUnit.test("Minimal module - one element with a type that is imported from a mod
     var engine = new QWQmlEngine();
     var component = new QWQmlComponent(engine, "../data/minimalmodule.qml");
     var object = component.create();
+    assert.ok(window.__qmljsTestModuleDefined, "Module is defined.");
+    assert.strictEqual(object.bakingTime.get(), 20, "Inherited property is ok.");
+    assert.strictEqual(object.topping.get().length, 4, "They didn't forget a topping in the kitchen (aka own property is ok).");
+    assert.strictEqual(object.topping.get()[2], "tomato slices", "Tomato is still fresh (aka own property is ok).");
+    assert.strictEqual(object.isCalzone.get(), false, "They made it right (aka unset property is ok).");
+});
+
+QUnit.test("Minimal module - ensure that modules aren't loaded twice.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/minimalmodule.qml");
+    var object = component.create();
+    assert.ok(window.__qmljsTestModuleDefined, "Module is defined.");
     assert.strictEqual(object.bakingTime.get(), 20, "Inherited property is ok.");
     assert.strictEqual(object.topping.get().length, 4, "They didn't forget a topping in the kitchen (aka own property is ok).");
     assert.strictEqual(object.topping.get()[2], "tomato slices", "Tomato is still fresh (aka own property is ok).");

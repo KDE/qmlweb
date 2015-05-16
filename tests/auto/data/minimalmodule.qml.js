@@ -1,4 +1,4 @@
-__engine.importModule("TestModule", 0, 1);
+var TestModule01 = __engine.importModule("TestModule", 0, 1);
 
 QW_INHERIT(__comp, TestModule01.Pizza);
 function __comp(parent) {

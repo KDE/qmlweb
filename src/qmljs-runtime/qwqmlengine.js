@@ -40,10 +40,18 @@ function QWQmlEngine()
 */
 QWQmlEngine.prototype.importModule = function(name, versionMajor, versionMinor)
 {
-    qw_evalJS(name + versionMajor + versionMinor + " = " + qw_fetchData([this.baseUrl + name + "." + versionMajor + "." + versionMinor + ".js"]), this);
+    var modulePrefix = name + versionMajor + versionMinor;
+    if (modulePrefix in QWQmlEngine.__loadedModules)
+        return QWQmlEngine.__loadedModules[modulePrefix];
+
+    var module = qw_evalJS(qw_fetchData([this.baseUrl + name + "." + versionMajor + "." + versionMinor + ".js"]), this);
+    QWQmlEngine.__loadedModules[modulePrefix] = module;
+    return module;
 }
 
-QWQmlEngine.contextForObject = function(object) {
+QWQmlEngine.__loadedModules = {}; // static
+
+QWQmlEngine.contextForObject = function(object) { // static
     if (object.__ctx) // If the object is the root of a component, we want to
         return object.__ctx.__parentContext || object.__ctx; // return the outer context.
 

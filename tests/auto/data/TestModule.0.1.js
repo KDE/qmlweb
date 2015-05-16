@@ -1,6 +1,10 @@
 (function() {
     QW_INHERIT(Pastry, QWObject);
 
+    if (window.__qmljsTestModuleDefined)
+        throw "TestModule defined twice.";
+    window.__qmljsTestModuleDefined = true;
+
     function Oven(parent)
     {
         QWObject.call(this, parent);
