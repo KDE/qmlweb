@@ -89,9 +89,26 @@ QWQmlEngine.prototype.fetchJSResource = function(url)
     return resource;
 }
 
+/**
+ * Fetches a JavaScript resource file and evaluates it.
+ *
+ * This function is for shared JavaScript resources.
+ */
+QWQmlEngine.prototype.importSharedJS = function(url)
+{
+    var resourceName = url.split('/')[0]; // FIXME: use the last, instead of the first part.
+    if (resourceName in QWQmlEngine.__loadedJSSharedResources)
+        return QWQmlEngine.__loadedJSSharedResources[resourceName];
+
+    var module = qw_evalJS(qw_fetchData([this.baseUrl + url]), this);
+    QWQmlEngine.__loadedJSSharedResources[resourceName] = module;
+    return module;
+}
+
 QWQmlEngine.__loadedModules = {}; // static
 QWQmlEngine.__loadedFiles = {}; // static
 QWQmlEngine.__loadedJSResources = {}; // static
+QWQmlEngine.__loadedJSSharedResources = {}; // static
 
 QWQmlEngine.contextForObject = function(object) { // static
     if (object.__ctx) // If the object is the root of a component, we want to

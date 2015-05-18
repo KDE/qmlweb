@@ -179,3 +179,13 @@ QUnit.test("Javascript resource - code-behind implementation resource", function
     object.increase();
     assert.strictEqual(object.x.get(), 12, "Can access JS methods and JS methods can access QML objects.");
 });
+
+QUnit.test("Javascript resource - Shared Javascript resource", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/imports/jsimport-shared.qml");
+    var object = component.create();
+    assert.strictEqual(object.x.get(), 7, "Can access JS properties.");
+    object.increase();
+    assert.strictEqual(object.x.get(), 12, "Can access JS methods.");
+    assert.ok(object.ok.get(), "JS methods can't access QML objects.");
+});
