@@ -36,8 +36,8 @@ function QWQmlEngine()
 }
 
 /**
-* Import QML module.
-*/
+ * Import QML module.
+ */
 QWQmlEngine.prototype.importModule = function(name, versionMajor, versionMinor)
 {
     var modulePrefix = name + versionMajor + versionMinor;
@@ -49,7 +49,29 @@ QWQmlEngine.prototype.importModule = function(name, versionMajor, versionMinor)
     return module;
 }
 
+/**
+ * Loads the component files given and adds them to local namespace.
+ */
+QWQmlEngine.prototype.loadLocal = function(urls)
+{
+    var namespace = {};
+    for (var i in urls) {
+        var url = urls[i];
+        var componentName = url.slice(0, -4);
+        if (componentName in QWQmlEngine.__loadedFiles) {
+            namespace[componentName] = QWQmlEngine.__loadedFiles[componentName];
+            continue;
+        }
+
+        var component = qw_evalJS(qw_fetchData([this.baseUrl + url + ".js"]), this);
+        QWQmlEngine.__loadedFiles[componentName] = component;
+        namespace[componentName] = component;
+    }
+    return namespace;
+}
+
 QWQmlEngine.__loadedModules = {}; // static
+QWQmlEngine.__loadedFiles = {}; // static
 
 QWQmlEngine.contextForObject = function(object) { // static
     if (object.__ctx) // If the object is the root of a component, we want to

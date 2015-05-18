@@ -156,3 +156,17 @@ QUnit.test("Inline component - simplest case", function(assert) {
     assert.ok(object.obj.get() instanceof QWObject, "obj is actually a QtObject.");
     assert.strictEqual(object.obj.get().objectName.get(), "KDE", "obj has the correct Object name.");
 });
+
+QUnit.test("File component - simplest case", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/simplefilecomponent.qml");
+    var object = component.create();
+    assert.ok(object.obj.get(), "obj exists.");
+    assert.ok(object.obj.get() instanceof QWObject, "obj is actually a QtObject.");
+    assert.strictEqual(object.obj.get().objectName.get(), "hugo", "obj has the correct Object name.");
+
+    // Ensure that files aren't loaded twice - will throw an exception, if it is.
+    var engine = new QWQmlEngine();
+    var component2 = new QWQmlComponent(engine, "../data/simplefilecomponent.qml");
+    var object2 = component.create();
+});
