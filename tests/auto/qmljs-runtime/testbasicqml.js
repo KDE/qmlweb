@@ -1,34 +1,34 @@
 QUnit.test("Minimal - just an object", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimal.qml");
+    var component = new QWQmlComponent(engine, "../data/minimal/minimal.qml");
     var object = component.create();
     assert.ok(object, "Object exists!" );
 });
 
 QUnit.test("Minimal id test - empty object with an id.", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalidtest.qml");
+    var component = new QWQmlComponent(engine, "../data/minimal/minimalidtest.qml");
     var object = component.create();
     assert.strictEqual(QWQmlEngine.contextForObject(object).nameForObject(object), "grandma", "Object id is correct.");
 });
 
 QUnit.test("Minimal property - object and objectName", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalproperty.qml");
+    var component = new QWQmlComponent(engine, "../data/properties/minimalproperty.qml");
     var object = component.create();
     assert.strictEqual(object.objectName.get(), "hugo", "Object name is correct.");
 });
 
 QUnit.test("Minimal property declaration - object and a self declared property", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalpropertydeclaration.qml");
+    var component = new QWQmlComponent(engine, "../data/properties/minimalpropertydeclaration.qml");
     var object = component.create();
     assert.strictEqual(object.test.get(), "hello world!", "Property value is correct.");
 });
 
 QUnit.test("Minimal function declaration - object and a self declared function", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalfunction.qml");
+    var component = new QWQmlComponent(engine, "../data/minimal/minimalfunction.qml");
     var object = component.create();
     assert.strictEqual(typeof object.heyo, "function", "Function is valid.");
     assert.strictEqual(object.heyo(2), 42, "Function return value is correct.");
@@ -36,14 +36,14 @@ QUnit.test("Minimal function declaration - object and a self declared function",
 
 QUnit.test("Minimal binding - without reference to any non-constant value", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalbindingwithoutreference.qml");
+    var component = new QWQmlComponent(engine, "../data/bindings/minimalbindingwithoutreference.qml");
     var object = component.create();
     assert.strictEqual(object.objectName.get(), "300", "Property    value is correct.");
 });
 
 QUnit.test("Minimal binding with a reference to an own property", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalbindingbasicreference.qml");
+    var component = new QWQmlComponent(engine, "../data/bindings/minimalbindingbasicreference.qml");
     var object = component.create();
     assert.strictEqual(object.objectName.get(), "hello", "Object name is correct.");
     assert.strictEqual(object.extendedName.get(), "hello world!", "Property value is correct.");
@@ -51,7 +51,7 @@ QUnit.test("Minimal binding with a reference to an own property", function(asser
 
 QUnit.test("Minimal element property - one element with a property that is an element itself (child element).", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalelementproperty.qml");
+    var component = new QWQmlComponent(engine, "../data/properties/minimalelementproperty.qml");
     var object = component.create();
     assert.strictEqual(typeof object.child.get(), "object", "Child is an object.");
     assert.strictEqual(object.child.get().objectName.get(), "childObject", "Child has correct object name.");
@@ -59,7 +59,7 @@ QUnit.test("Minimal element property - one element with a property that is an el
 
 QUnit.test("Minimal element list - one element with a list property containing 5 child elements.", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalelementlist.qml");
+    var component = new QWQmlComponent(engine, "../data/properties/minimalelementlist.qml");
     var object = component.create();
     assert.ok(object.children.get() instanceof QWList, "Children list is a QWList.");
     assert.ok(object.children.get() instanceof Array, "Children list is an Array.");
@@ -77,7 +77,7 @@ QUnit.test("Minimal element list - one element with a list property containing 5
 
 QUnit.test("Minimal module - one element with a type that is imported from a module.", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalmodule.qml");
+    var component = new QWQmlComponent(engine, "../data/imports/minimalmodule.qml");
     var object = component.create();
     assert.ok(window.__qmljsTestModuleDefined, "Module is defined.");
     assert.strictEqual(object.bakingTime.get(), 20, "Inherited property is ok.");
@@ -88,7 +88,7 @@ QUnit.test("Minimal module - one element with a type that is imported from a mod
 
 QUnit.test("Minimal module - ensure that modules aren't loaded twice.", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalmodule.qml");
+    var component = new QWQmlComponent(engine, "../data/imports/minimalmodule.qml");
     var object = component.create();
     assert.ok(window.__qmljsTestModuleDefined, "Module is defined.");
     assert.strictEqual(object.bakingTime.get(), 20, "Inherited property is ok.");
@@ -99,7 +99,7 @@ QUnit.test("Minimal module - ensure that modules aren't loaded twice.", function
 
 QUnit.test("Minimal basic type with an attribute.", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalbasictypewithattributes.qml");
+    var component = new QWQmlComponent(engine, "../data/properties/minimalbasictypewithattributes.qml");
     var object = component.create();
     assert.strictEqual(object.someProp.getAttr(0), 255, "Attribute r has the correct value.");
     assert.strictEqual(object.someProp.getAttr(1), 0, "Attribute g has the correct value.");
@@ -111,7 +111,7 @@ QUnit.test("Minimal basic type with an attribute.", function(assert) {
 
 QUnit.test("Minimal signal declaration - no use.", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalsignaldeclaration.qml");
+    var component = new QWQmlComponent(engine, "../data/signals/minimalsignaldeclaration.qml");
     var object = component.create();
     assert.strictEqual(typeof object.someSignal, "function", "Signal is a function.");
     assert.strictEqual(typeof object.someSignal.connect, "function", "Signal has a connect method.");
@@ -120,7 +120,7 @@ QUnit.test("Minimal signal declaration - no use.", function(assert) {
 QUnit.test("Minimal onSignal handler.", function(assert) {
     assert.expect(2);
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalonsignalhandler.qml");
+    var component = new QWQmlComponent(engine, "../data/signals/minimalonsignalhandler.qml");
     var object = component.create();
     assert.strictEqual(typeof object.someSignal, "function", "Signal is a function.");
     object.someSignal(assert);
@@ -128,7 +128,7 @@ QUnit.test("Minimal onSignal handler.", function(assert) {
 
 QUnit.test("Minimal property binding update - Changing a property another property is binded to.", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/minimalbindingupdate.qml");
+    var component = new QWQmlComponent(engine, "../data/bindings/minimalbindingupdate.qml");
     var object = component.create();
     assert.strictEqual(object.prop2.get(), 35, "Property value is correct before changing it.");
     object.prop1.set(19);
@@ -137,7 +137,7 @@ QUnit.test("Minimal property binding update - Changing a property another proper
 
 QUnit.test("Binding with id reference - Binding to a property that belongs to another object using its id.", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/bindingwithidreference.qml");
+    var component = new QWQmlComponent(engine, "../data/bindings/bindingwithidreference.qml");
     var object = component.create();
     assert.strictEqual(object.child.get().prop3.get(), 15, "Prop3 value is correct before changing Prop2.");
     assert.strictEqual(object.prop1.get(), 10, "Prop1 value is correct before changing Prop2.");
@@ -148,7 +148,7 @@ QUnit.test("Binding with id reference - Binding to a property that belongs to an
 
 QUnit.test("Inline component - simplest case", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/simpleinlinecomponent.qml");
+    var component = new QWQmlComponent(engine, "../data/components/simpleinlinecomponent.qml");
     var object = component.create();
     assert.ok(object.comp.get(), "comp exists.");
     assert.ok(object.comp.get() instanceof QWQmlComponent, "comp is actually a component.");
@@ -159,7 +159,7 @@ QUnit.test("Inline component - simplest case", function(assert) {
 
 QUnit.test("File component - simplest case", function(assert) {
     var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/simplefilecomponent.qml");
+    var component = new QWQmlComponent(engine, "../data/components/simplefilecomponent.qml");
     var object = component.create();
     assert.ok(object.obj.get(), "obj exists.");
     assert.ok(object.obj.get() instanceof QWObject, "obj is actually a QtObject.");
