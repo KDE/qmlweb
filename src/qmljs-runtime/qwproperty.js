@@ -50,6 +50,9 @@ QWProperty = function(data)
     this.binding = null;
     this.interceptor = null;
     this.notify = QW_SIGNAL({});
+
+    if (data.bind)
+        this.bind(data.bind, data.ctx);
 }
 
 QWProperty.prototype.clone = function() {

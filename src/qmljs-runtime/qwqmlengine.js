@@ -70,8 +70,28 @@ QWQmlEngine.prototype.loadLocal = function(urls)
     return namespace;
 }
 
+/**
+ * Fetches JavaScript resource files and returns the code.
+ * This function does not evaluate the code, as it needs to be evaluated in the
+ * same context as the importing qml file itself.
+ *
+ * This function is for code-behind implementation resources.
+ */
+QWQmlEngine.prototype.fetchJSResource = function(url)
+{
+    var resourceName = url.split('/')[0]; // FIXME: use the last, instead of the first part.
+    if (resourceName in QWQmlEngine.__loadedJSResources) {
+        return QWQmlEngine.__loadedJSResources[resourceName];
+    }
+
+    var resource = qw_fetchData([this.baseUrl + url]);
+    QWQmlEngine.__loadedFiles[resourceName] = resource;
+    return resource;
+}
+
 QWQmlEngine.__loadedModules = {}; // static
 QWQmlEngine.__loadedFiles = {}; // static
+QWQmlEngine.__loadedJSResources = {}; // static
 
 QWQmlEngine.contextForObject = function(object) { // static
     if (object.__ctx) // If the object is the root of a component, we want to

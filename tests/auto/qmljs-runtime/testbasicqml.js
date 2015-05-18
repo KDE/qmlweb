@@ -170,3 +170,12 @@ QUnit.test("File component - simplest case", function(assert) {
     var component2 = new QWQmlComponent(engine, "../data/simplefilecomponent.qml");
     var object2 = component.create();
 });
+
+QUnit.test("Javascript resource - code-behind implementation resource", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/imports/jsimport-codebehindimplementation.qml");
+    var object = component.create();
+    assert.strictEqual(object.x.get(), 7, "Can access JS properties.");
+    object.increase();
+    assert.strictEqual(object.x.get(), 12, "Can access JS methods and JS methods can access QML objects.");
+});
