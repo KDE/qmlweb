@@ -28,14 +28,40 @@
  *  SUCH DAMAGE.
  */
 
-function QWContext()
+function QWContext(rootObject)
 {
+    this.__childContexts = [];
     this.__pendingBindingEvaluations = [];
+
+    var other;
+    if (other = rootObject.__ctx) { // the other context is an inner context and will thus become a child context.
+        other.__parentContext = this;
+        this.__childContexts.push(other);
+    } else if (other = QWQmlEngine.contextForObject(rootObject)) { // the other context is the outer context.
+        this.__parentContext = other;
+        other.__childContexts.push(this);
+    }
+
+    rootObject.__ctx = this;
 }
-QWContext.prototype.nameForObject = function(obj) {
+QWContext.prototype.nameForObject = function(obj)
+{
     for (var name in this) {
         if (this[name] == obj)
             return name;
+    }
+}
+QWContext.prototype.__evaluatePendingBindings = function()
+{
+    for (var i in this.__childContexts) {
+        this.__childContexts[i].__evaluatePendingBindings();
+    }
+    while(this.__pendingBindingEvaluations.length) {
+        var property = this.__pendingBindingEvaluations.pop();
+
+        if (!property.binding)
+            continue; // Probably, the binding was overwritten by an explicit value. Ignore.
+        property.update();
     }
 }
 
@@ -79,13 +105,7 @@ function QWQmlComponent()
         var ctor = this.__componentCtor.get();
         var object = new ctor(parent);
         object.__ctx.__parentContext = context;
-        while(object.__ctx.__pendingBindingEvaluations.length) {
-            var property = object.__ctx.__pendingBindingEvaluations.pop();
-
-            if (!property.binding)
-                continue; // Probably, the binding was overwritten by an explicit value. Ignore.
-            property.update();
-        }
+        object.__ctx.__evaluatePendingBindings();
         return object;
     }
 }

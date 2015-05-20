@@ -38,8 +38,10 @@ function QWObject(parent)
     this.objectName = new QWProperty({ type: "string", initialValue: "" });
 
     // List of things to tidy up when deleting this object.
-    if (!this.__tidyupList)
-        this.__tidyupList = [];
+    this.__tidyupList = [];
+    // Qml context of this object (null doesn't mean, there's no context,
+    // just that this object isn't the root of the context)
+    this.__ctx = null;
 }
 
 QWObject.delete = function(obj)

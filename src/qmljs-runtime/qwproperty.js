@@ -76,8 +76,8 @@ QWProperty.prototype.get = function()
 
 QWProperty.prototype.set = function(newValue)
 {
-
     this.value = newValue;
+    this.binding = null;
     this.notify();
 }
 

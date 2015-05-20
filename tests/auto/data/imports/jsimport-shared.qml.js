@@ -3,7 +3,7 @@ var JS = __engine.importSharedJS("shared.compiled.js");
 QW_INHERIT(__comp, QtQml20.QtObject);
 function __comp(parent) {
     QtQml20.QtObject.call(this, parent);
-    var __ = this.__ctx = new QWContext();
+    var __ = new QWContext(this);
     var __0 = __.karl = this;
 
     __0.x = new QWProperty({

@@ -167,7 +167,7 @@ QUnit.test("File component - simplest case", function(assert) {
 
     // Ensure that files aren't loaded twice - will throw an exception, if it is.
     var engine = new QWQmlEngine();
-    var component2 = new QWQmlComponent(engine, "../data/simplefilecomponent.qml");
+    var component2 = new QWQmlComponent(engine, "../data/components/simplefilecomponent.qml");
     var object2 = component.create();
 });
 
@@ -188,4 +188,41 @@ QUnit.test("Javascript resource - Shared Javascript resource", function(assert) 
     object.increase();
     assert.strictEqual(object.x.get(), 12, "Can access JS methods.");
     assert.ok(object.ok.get(), "JS methods can't access QML objects.");
+});
+
+QUnit.test("Components - overriding properties", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/components/overridingproperties.qml");
+    var object = component.create();
+    assert.strictEqual(object.obj.get().message.get(), "I don't have a message, I'm only a dummy text.", "Unoverriden simple value is ok.");
+    assert.strictEqual(object.obj.get().closing.get(), "Bye, karl!", "Unoverriden binding is ok.");
+    assert.strictEqual(object.obj.get().objectName.get(), "karl", "Overriding simple value with simple value was successful.");
+    assert.strictEqual(object.obj.get().greeting.get(), "Hey, guys!", "Binding was overridden by simple value, successfully.");
+    assert.strictEqual(object.obj.get().x.get(), 20, "Simple value was overridden by binding, successfully.");
+    assert.strictEqual(object.obj.get().y.get(), 60, "Overriding binding with binding was successful.");
+});
+
+QUnit.test("Components - overriding properties, root object only", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/components/overridingproperties2.qml");
+    var object = component.create();
+    assert.strictEqual(object.message.get(), "I don't have a message, I'm only a dummy text.", "Unoverriden simple value is ok.");
+    assert.strictEqual(object.closing.get(), "Bye, karl!", "Unoverriden binding is ok.");
+    assert.strictEqual(object.objectName.get(), "karl", "Overriding simple value with simple value was successful.");
+    assert.strictEqual(object.greeting.get(), "Hey, guys!", "Binding was overridden by simple value, successfully.");
+    assert.strictEqual(object.x.get(), 20, "Simple value was overridden by binding, successfully.");
+    assert.strictEqual(object.y.get(), 60, "Overriding binding with binding was successful.");
+});
+
+QUnit.test("Components - nested components", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/components/nestedcomponents.qml");
+    var object = component.create();
+    assert.strictEqual(object.message.get(), "I don't have a message, I'm only a dummy text.", "Unoverriden simple value is ok.");
+    assert.strictEqual(object.closing.get(), "Bye, Hans!", "Unoverriden binding is ok.");
+    assert.strictEqual(object.objectName.get(), "Hans", "Overriding simple value with simple value in middle component was successful.");
+    assert.strictEqual(object.greeting.get(), "Hey, guys!", "Binding was overridden by simple value, successfully.");
+    assert.strictEqual(object.x.get(), 20, "Simple value was overridden by binding, successfully.");
+    assert.strictEqual(object.y.get(), 60, "Overriding binding with binding was successful.");
+    assert.strictEqual(object.z.get(), 80, "Binding in middle component was successful.");
 });

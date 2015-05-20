@@ -32,7 +32,7 @@ const QString TEMPLATE_COMPONENT_HEAD = QStringLiteral(
     "%1(%2, %3);\n" \
     "function %2(parent) {\n" \
     "    %3.call(this, parent);\n" \
-    "    var __ = this.__ctx = new %4();\n" \
+    "    var __ = new %4(this);\n" \
 );
 const QString TEMPLATE_COMPONENT_FOOT = QStringLiteral(
     "\n\n" \
