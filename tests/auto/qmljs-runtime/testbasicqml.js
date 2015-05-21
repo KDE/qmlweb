@@ -226,3 +226,11 @@ QUnit.test("Components - nested components", function(assert) {
     assert.strictEqual(object.y.get(), 60, "Overriding binding with binding was successful.");
     assert.strictEqual(object.z.get(), 80, "Binding in middle component was successful.");
 });
+
+QUnit.test("Component.onCompleted", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/builtin-qml-api/oncompleted.qml");
+    var object = component.create();
+    assert.strictEqual(object.innerOnCompletedCount.get(), 1, "onCompleted was called (once).");
+    assert.strictEqual(object.outerOnCompletedCount.get(), 1, "onCompleted was called (once).");
+});

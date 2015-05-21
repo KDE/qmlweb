@@ -49,7 +49,7 @@ QWProperty = function(data)
     this.setter = data.set;
     this.binding = null;
     this.interceptor = null;
-    this.notify = QW_SIGNAL({});
+    this.notify = QWSignal();
 
     if (data.bind)
         this.bind(data.bind, data.ctx);
@@ -96,7 +96,7 @@ QWProperty.prototype.update = function() {
 QWProperty.prototype.bind = function(bindingFunction, context)
 {
     // put down for subsequent evaluation
-    context.__pendingBindingEvaluations.push(this);
+    context.pendingBindingEvaluations.push(this);
 
     this.binding = bindingFunction;
     this.notify();

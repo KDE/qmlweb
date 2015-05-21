@@ -37,16 +37,17 @@
  *               currently ignored.
  * @param options Options that allow finetuning of the signal.
  */
-function QW_SIGNAL(data)
+function QWSignal(params, options)
 {
+    options = options || {};
     var connectedSlots = [];
-    var obj = data.object;
+    var obj = options.obj
 
     var signal = function() {
         for (var i in connectedSlots)
             connectedSlots[i].slot.apply(connectedSlots[i].thisObj, arguments);
     };
-    signal.parameters = data.params || [];
+    signal.parameters = params || [];
     signal.connect = function() {
         if (arguments.length == 1)
             connectedSlots.push({thisObj: window, slot: arguments[0]});
@@ -61,8 +62,8 @@ function QW_SIGNAL(data)
         }
 
         // Notify object of connect
-        if (obj && obj.__connectNotify) {
-            obj.__connectNotify(data);
+        if (options.obj && options.obj.__connectNotify) {
+            options.obj.__connectNotify(options);
         }
     }
     signal.disconnect = function() {
@@ -83,8 +84,8 @@ function QW_SIGNAL(data)
         }
 
         // Notify object of disconnect
-        if (obj && obj.__disconnectNotify) {
-            obj.__disconnectNotify(data);
+        if (options.obj && options.obj.__disconnectNotify) {
+            options.obj.__disconnectNotify(options);
         }
     }
     signal.isConnected = function() {
@@ -100,9 +101,5 @@ function QW_SIGNAL(data)
         }
         return false;
     }
-    if (data.name) {
-        data.object[data.name] = signal;
-    }
-
     return signal;
 }

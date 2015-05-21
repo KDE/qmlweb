@@ -3,9 +3,7 @@ function __comp(parent) {
     QtQml20.QtObject.call(this, parent);
     var __ = new QWContext(this);
 
-    QW_SIGNAL({ object: this,
-                name: "someSignal"
-              });
+    this.someSignal = QWSignal();
 }
 
 __comp;

@@ -30,16 +30,19 @@
 
 function QWContext(rootObject)
 {
-    this.__childContexts = [];
-    this.__pendingBindingEvaluations = [];
+    this.parent = null;
+    this.children = [];
+    this.pendingBindingEvaluations = [];
+    // List of the uses of Component attached property in this context
+    this.componentAttached = [];
 
     var other;
     if (other = rootObject.__ctx) { // the other context is an inner context and will thus become a child context.
-        other.__parentContext = this;
-        this.__childContexts.push(other);
+        other.parent = this;
+        this.children.push(other);
     } else if (other = QWQmlEngine.contextForObject(rootObject)) { // the other context is the outer context.
-        this.__parentContext = other;
-        other.__childContexts.push(this);
+        this.parent = other;
+        other.children.push(this);
     }
 
     rootObject.__ctx = this;
@@ -51,21 +54,37 @@ QWContext.prototype.nameForObject = function(obj)
             return name;
     }
 }
-QWContext.prototype.__evaluatePendingBindings = function()
+QWContext.prototype.evaluatePendingBindings = function()
 {
-    for (var i in this.__childContexts) {
-        this.__childContexts[i].__evaluatePendingBindings();
+    for (var i in this.children) {
+        this.children[i].evaluatePendingBindings();
     }
-    while(this.__pendingBindingEvaluations.length) {
-        var property = this.__pendingBindingEvaluations.pop();
+    while(this.pendingBindingEvaluations.length) {
+        var property = this.pendingBindingEvaluations.pop();
 
         if (!property.binding)
             continue; // Probably, the binding was overwritten by an explicit value. Ignore.
         property.update();
     }
 }
+/**
+ * Finalizes initialization of the context, including child contexts (recursively).
+ *
+ * Basically, it means calling Component.onCompleted handlers.
+ */
+QWContext.prototype.finalizeInit = function()
+{
+    for (var i in this.children) {
+        this.children[i].finalizeInit();
+    }
+    for(var i in this.componentAttached) {
+        var attached = this.componentAttached[i];
 
-QWQmlComponent.__properties = [];
+        attached.completed();
+    }
+}
+
+QW_INHERIT(QWQmlComponent, QWObject);
 function QWQmlComponent()
 {
     QWObject.call(this, arguments[0]); // Uses either parent or engine as parent.
@@ -104,9 +123,18 @@ function QWQmlComponent()
     {
         var ctor = this.__componentCtor.get();
         var object = new ctor(parent);
-        object.__ctx.__parentContext = context;
-        object.__ctx.__evaluatePendingBindings();
+        object.__ctx.parent = context;
+        object.__ctx.evaluatePendingBindings();
+        object.__ctx.finalizeInit();
         return object;
     }
 }
-QW_INHERIT(QWQmlComponent, QWObject);
+
+function QWQmlComponentAttached(object) {
+    this.completed = QWSignal();
+    QWQmlEngine.contextForObject(object).componentAttached.push(this);
+}
+QWQmlComponent.qmlAttachedProperties = function(object) // static
+{
+    return new QWQmlComponentAttached(object);
+}
