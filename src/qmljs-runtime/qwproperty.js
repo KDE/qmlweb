@@ -70,7 +70,7 @@ QWProperty = function(data)
     if (data.bind)
         this.bind(data.bind, data.ctx);
 
-    if (data.type && data.initialValue === undefined) {
+    if (data.type && !("initialValue" in data)) {
         switch (data.type) {
             case Boolean:
             case Number:
@@ -102,12 +102,20 @@ QWProperty.prototype.get = function()
         this.notify.connect(evaluatingProperty, QWProperty.prototype.update);
     }
 
-    return this.value;
+    if (this.getter) {
+        return this.getter()
+    } else {
+        return this.value;
+    }
 }
 
 QWProperty.prototype.set = function(newValue)
 {
-    this.value = newValue;
+    if (this.setter) {
+        this.setter(newValue);
+    } else {
+        this.value = newValue;
+    }
     this.binding = null;
     this.notify();
 }

@@ -125,6 +125,18 @@ QUnit.test("Minimal basic type with an attribute.", function(assert) {
     assert.strictEqual(object.otherProp.getAttr(2), 0, "Second property's b has the correct value.");
 });
 
+QUnit.test("Properties with getters and setters.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/properties/gettersetterfunctions.qml");
+    var object = component.create();
+    assert.strictEqual(object.width.get(), 35, "Simple value is ok.");
+    assert.strictEqual(object.height.get(), 35, "Getter works. :)");
+    object.height.set(40);
+    assert.strictEqual(object.height.get(), 41, "Setter works. :)"); // Yes, the 41 is intended
+    object.height.set(undefined);
+    assert.strictEqual(object.height.get(), 35, "Getter and Setter work, even after resetting value. :)"); // Yes, the 41 is intended
+});
+
 QUnit.test("Minimal signal declaration - no use.", function(assert) {
     var engine = new QWQmlEngine();
     var component = new QWQmlComponent(engine, "../data/signals/minimalsignaldeclaration.qml");
