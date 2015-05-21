@@ -234,3 +234,12 @@ QUnit.test("Component.onCompleted", function(assert) {
     assert.strictEqual(object.innerOnCompletedCount.get(), 1, "onCompleted was called (once).");
     assert.strictEqual(object.outerOnCompletedCount.get(), 1, "onCompleted was called (once).");
 });
+
+QUnit.test("Accessing outer context", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/components/accessoutercontext.qml");
+    var object = component.create();
+    assert.strictEqual(object.comp.get().c.get(), 424, "Accessing properties was successful.");
+    assert.strictEqual(object.comp.get().profession.get(), "Builder", "Accessing ids works :)");
+    assert.strictEqual(object.b.get(), 232, "Writing outer property was successful.");
+});

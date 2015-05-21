@@ -33,8 +33,11 @@ function QWContext(rootObject)
     this.parent = null;
     this.children = [];
     this.pendingBindingEvaluations = [];
+    this.rootObject = rootObject;
     // List of the uses of Component attached property in this context
     this.componentAttached = [];
+    // Hash of objects in this context that have an id, key is the id.
+    this.id = {};
 
     var other;
     if (other = rootObject.__ctx) { // the other context is an inner context and will thus become a child context.
@@ -47,13 +50,15 @@ function QWContext(rootObject)
 
     rootObject.__ctx = this;
 }
+
 QWContext.prototype.nameForObject = function(obj)
 {
-    for (var name in this) {
-        if (this[name] == obj)
+    for (var name in this.id) {
+        if (this.id[name] == obj)
             return name;
     }
 }
+
 QWContext.prototype.evaluatePendingBindings = function()
 {
     for (var i in this.children) {
@@ -67,6 +72,7 @@ QWContext.prototype.evaluatePendingBindings = function()
         property.update();
     }
 }
+
 /**
  * Finalizes initialization of the context, including child contexts (recursively).
  *
@@ -82,4 +88,45 @@ QWContext.prototype.finalizeInit = function()
 
         attached.completed();
     }
+}
+
+/**
+ * Finds objects or properties by name in this context or parent contexts.
+ *
+ * If @p name refers to a property, it will return the value directly, as
+ * returned by QWProperty.get().
+ */
+QWContext.prototype.find = function(name)
+{
+    var ctx = this;
+    while (ctx) {
+        if (name in ctx.id) {
+            return ctx.id[name];
+        } else if (name in ctx.rootObject) {
+            return ctx.rootObject[name].get();
+        }
+        ctx = ctx.parent;
+    }
+
+    throw new ReferenceError("Can't find '" + name + "'.");
+}
+
+/**
+ * Finds objects or properties by name in this context or parent contexts
+ * and assigns @p newVal to them.
+ */
+QWContext.prototype.findAndSet = function(name, newVal)
+{
+    var ctx = this;
+    while (ctx) {
+        if (name in ctx.id) {
+            throw new TypeError("'" + name + "' refers to an id and thus isn't writable.");
+        } else if (name in ctx.rootObject) {
+            ctx.rootObject[name].set(newVal);
+            return;
+        }
+        ctx = ctx.parent;
+    }
+
+    throw new ReferenceError("Can't find '" + name + "'.");
 }
