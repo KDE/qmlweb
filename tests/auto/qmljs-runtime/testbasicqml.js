@@ -75,6 +75,22 @@ QUnit.test("Minimal element list - one element with a list property containing 5
     assert.strictEqual(object.children.get()[4].objectName.get(), "el5", "Fifth child has correct object name.");
 });
 
+QUnit.test("Uninitialized properties.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/properties/uninitializedproperties.qml");
+    var object = component.create();
+    assert.strictEqual(object.a.get(), false, "Bool is correctly initialized.");
+    assert.strictEqual(object.b.get(), 0.0, "Double is correctly initialized.");
+    assert.strictEqual(object.c.get(), 0, "Int is correctly initialized.");
+    assert.strictEqual(object.d.get(), 0.0, "Real is correctly initialized.");
+    assert.strictEqual(object.e.get(), "", "String is correctly initialized.");
+    assert.strictEqual(object.f.get(), "", "Url is correctly initialized.");
+    assert.strictEqual(object.g.get(), undefined, "Var is correctly initialized.");
+    assert.ok(object.h.get() instanceof QWObject, "QtObject is correctly initialized.");
+    assert.ok(object.i.get() instanceof QWQmlComponent, "Component is correctly initialized.");
+    assert.ok(object.j.get() instanceof QWList, "List is correctly initialized.");
+});
+
 QUnit.test("Minimal module - one element with a type that is imported from a module.", function(assert) {
     var engine = new QWQmlEngine();
     var component = new QWQmlComponent(engine, "../data/imports/minimalmodule.qml");

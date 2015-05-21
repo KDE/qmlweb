@@ -9,7 +9,7 @@
     {
         QWObject.call(this, parent);
 
-        this.temperature = new QWProperty({ type: "int", initialValue: 20 });
+        this.temperature = new QWProperty({ type: QWInt, initialValue: 20 });
         this.content = new QWProperty({ type: "list<Pastry>", initialValue: new QWList() });
     }
 
@@ -17,7 +17,7 @@
     {
         QWObject.call(this, parent);
 
-        this.bakingTime = new QWProperty({ type: "int" });
+        this.bakingTime = new QWProperty({ type: QWInt });
     }
 
     QW_INHERIT(Cake, Pastry);
@@ -32,8 +32,8 @@
     {
         Pastry.call(this, parent);
 
-        this.isCalzone = new QWProperty({ type: "bool", initialValue: false });
-        this.topping = new QWProperty({ type: "var", initialValue: ["tomato sauce", "mozzarella"] });
+        this.isCalzone = new QWProperty({ type: Boolean, initialValue: false });
+        this.topping = new QWProperty({ type: QWVar, initialValue: ["tomato sauce", "mozzarella"] });
     }
 
     return {

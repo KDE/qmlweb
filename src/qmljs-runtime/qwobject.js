@@ -35,7 +35,7 @@ function QWObject(parent)
     if (parent && parent.__tidyupList)
         parent.__tidyupList.push(this);
 
-    this.objectName = new QWProperty({ type: "string", initialValue: "" });
+    this.objectName = new QWProperty({ type: String, initialValue: "" });
 
     // List of things to tidy up when deleting this object.
     this.__tidyupList = [];

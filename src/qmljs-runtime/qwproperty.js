@@ -34,6 +34,22 @@
 var QWProperty,
     QWList;
 
+function QWInt(val)
+{
+    return val|0;
+}
+function QWUrl(val)
+{
+    if (val)
+        return String(val);
+    else
+        return String();
+}
+function QWVar(val)
+{
+    return val;
+}
+
 (function() {
 
 // Property that is currently beeing evaluated. Used to get the information, which property called
@@ -53,6 +69,21 @@ QWProperty = function(data)
 
     if (data.bind)
         this.bind(data.bind, data.ctx);
+
+    if (data.type && data.initialValue === undefined) {
+        switch (data.type) {
+            case Boolean:
+            case Number:
+            case QWInt:
+            case String:
+            case QWUrl:
+            case QWVar:
+                this.value = data.type();
+                break;
+            default:
+                this.value = new data.type();
+        }
+    }
 }
 
 QWProperty.prototype.clone = function() {
