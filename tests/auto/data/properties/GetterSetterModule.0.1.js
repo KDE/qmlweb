@@ -1,6 +1,5 @@
 (function() {
     QW_INHERIT(Rect, QWObject);
-
     function Rect(parent)
     {
         QWObject.call(this, parent);
@@ -19,7 +18,20 @@
         });
     }
 
+    QW_INHERIT(MyInterceptor, QWObject);
+    function MyInterceptor(parent)
+    {
+        QWObject.call(this, parent);
+
+        parent.width.interceptor = this;
+    }
+    MyInterceptor.prototype.write = function(newVal)
+    {
+        this.__parent.width.set(2 * newVal, QWProperty.BypassInterceptor);
+    }
+
     return {
-        Rect: Rect
+        Rect: Rect,
+        TheInterceptor: MyInterceptor
     }
 })();

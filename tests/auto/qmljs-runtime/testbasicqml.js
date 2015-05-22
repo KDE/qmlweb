@@ -137,6 +137,15 @@ QUnit.test("Properties with getters and setters.", function(assert) {
     assert.strictEqual(object.height.get(), 35, "Getter and Setter work, even after resetting value. :)"); // Yes, the 41 is intended
 });
 
+QUnit.test("Propertiy value interceptors.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/properties/interceptor.qml");
+    var object = component.create();
+    assert.strictEqual(object.width.get(), 35, "Value is ok at first.");
+    object.width.set(20);
+    assert.strictEqual(object.width.get(), 40, "Value is ok afterwards.");
+});
+
 QUnit.test("Minimal signal declaration - no use.", function(assert) {
     var engine = new QWQmlEngine();
     var component = new QWQmlComponent(engine, "../data/signals/minimalsignaldeclaration.qml");

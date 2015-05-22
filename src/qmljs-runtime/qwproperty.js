@@ -86,6 +86,10 @@ QWProperty = function(data)
     }
 }
 
+// kindof enum "WriteFlag"
+QWProperty.BypassInterceptor = 0x01;
+QWProperty.DontRemoveBinding = 0x02;
+
 QWProperty.prototype.clone = function() {
     return new QWProperty({
         initialValue: this.value,
@@ -109,8 +113,13 @@ QWProperty.prototype.get = function()
     }
 }
 
-QWProperty.prototype.set = function(newValue)
+QWProperty.prototype.set = function(newValue, flags)
 {
+    if (this.interceptor && !(flags & QWProperty.BypassInterceptor)) {
+        this.interceptor.write(newValue);
+        return;
+    }
+
     if (this.setter) {
         this.setter(newValue);
     } else {
