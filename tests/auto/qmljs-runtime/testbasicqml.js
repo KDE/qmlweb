@@ -125,27 +125,6 @@ QUnit.test("Minimal basic type with an attribute.", function(assert) {
     assert.strictEqual(object.otherProp.getAttr(2), 0, "Second property's b has the correct value.");
 });
 
-QUnit.test("Properties with getters and setters.", function(assert) {
-    var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/properties/gettersetterfunctions.qml");
-    var object = component.create();
-    assert.strictEqual(object.width.get(), 35, "Simple value is ok.");
-    assert.strictEqual(object.height.get(), 35, "Getter works. :)");
-    object.height.set(40);
-    assert.strictEqual(object.height.get(), 41, "Setter works. :)"); // Yes, the 41 is intended
-    object.height.set(undefined);
-    assert.strictEqual(object.height.get(), 35, "Getter and Setter work, even after resetting value. :)"); // Yes, the 41 is intended
-});
-
-QUnit.test("Propertiy value interceptors.", function(assert) {
-    var engine = new QWQmlEngine();
-    var component = new QWQmlComponent(engine, "../data/properties/interceptor.qml");
-    var object = component.create();
-    assert.strictEqual(object.width.get(), 35, "Value is ok at first.");
-    object.width.set(20);
-    assert.strictEqual(object.width.get(), 40, "Value is ok afterwards.");
-});
-
 QUnit.test("Minimal signal declaration - no use.", function(assert) {
     var engine = new QWQmlEngine();
     var component = new QWQmlComponent(engine, "../data/signals/minimalsignaldeclaration.qml");
@@ -279,4 +258,25 @@ QUnit.test("Accessing outer context", function(assert) {
     assert.strictEqual(object.comp.get().c.get(), 424, "Accessing properties was successful.");
     assert.strictEqual(object.comp.get().profession.get(), "Builder", "Accessing ids works :)");
     assert.strictEqual(object.b.get(), 232, "Writing outer property was successful.");
+});
+
+QUnit.test("Properties with getters and setters.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/module-api/gettersetterfunctions.qml");
+    var object = component.create();
+    assert.strictEqual(object.width.get(), 35, "Simple value is ok.");
+    assert.strictEqual(object.height.get(), 35, "Getter works. :)");
+    object.height.set(40);
+    assert.strictEqual(object.height.get(), 41, "Setter works. :)"); // Yes, the 41 is intended
+    object.height.set(undefined);
+    assert.strictEqual(object.height.get(), 35, "Getter and Setter work, even after resetting value. :)"); // Yes, the 41 is intended
+});
+
+QUnit.test("Propertiy value interceptors.", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/module-api/interceptor.qml");
+    var object = component.create();
+    assert.strictEqual(object.width.get(), 35, "Value is ok at first.");
+    object.width.set(20);
+    assert.strictEqual(object.width.get(), 40, "Value is ok afterwards.");
 });
