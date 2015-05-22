@@ -125,7 +125,11 @@ QWProperty.prototype.set = function(newValue, flags)
     } else {
         this.value = newValue;
     }
-    this.binding = null;
+
+    if (!(flags & QWProperty.DontRemoveBinding)) {
+        this.binding = null;
+    }
+
     this.notify();
 }
 

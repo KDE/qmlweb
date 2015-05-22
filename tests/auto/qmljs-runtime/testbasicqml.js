@@ -280,3 +280,14 @@ QUnit.test("Propertiy value interceptors.", function(assert) {
     object.width.set(20);
     assert.strictEqual(object.width.get(), 40, "Value is ok afterwards.");
 });
+
+QUnit.test("Property write: Don't remove binding (aka. write flags).", function(assert) {
+    var engine = new QWQmlEngine();
+    var component = new QWQmlComponent(engine, "../data/module-api/writeflags.qml");
+    var object = component.create();
+    assert.strictEqual(object.b.get(), 35, "Value is ok at first.");
+    object.b.set(20, QWProperty.DontRemoveBinding);
+    assert.strictEqual(object.b.get(), 20, "Value correctly overridden.");
+    object.a.set(10);
+    assert.strictEqual(object.b.get(), 10, "Value is correctly reset.");
+});
