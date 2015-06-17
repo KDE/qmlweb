@@ -23,9 +23,69 @@
 
 using namespace QmlJSc;
 
+ShortSymbolName::ShortSymbolName(char first)
+    : QString(first)
+{}
+
+ShortSymbolName::ShortSymbolName(QString first)
+    : QString(first)
+{}
+
+ShortSymbolName &ShortSymbolName::operator++()
+{
+    Q_ASSERT(!isEmpty());
+
+    iterator i = end();
+    i--;
+
+    char borrow = 1;
+
+    while (i != begin()) {
+        if ((*i) == '9') {
+            *i = 'A';
+            borrow = 0;
+            break;
+        } else if ((*i) == 'Z') {
+            *i = 'a';
+            borrow = 0;
+            break;
+        } else if ((*i) == 'z') {
+            // We need to add a borrow of 1 to the previous digit
+            *i = '0';
+            i--;
+            borrow = 1;
+            continue;
+        } else {
+            *i = i->toLatin1() + 1;
+            borrow = 0;
+            break;
+        }
+    }
+
+    if (borrow == 1) {
+        if (*i <= 'Z') { // the first letter is a capital one, so it should remain so.
+            if (*i == 'Z') { // We need to prepend a new digit
+                *i = '0';
+                prepend('A');
+            } else {
+                *i = i->toLatin1() + 1;
+            }
+        } else { // the first letter is a small one, so it should remain so.
+            if (*i == 'z') { // We need to prepend a new digit
+                *i = '0';
+                prepend('a');
+            } else {
+                *i = i->toLatin1() + 1;
+            }
+        }
+    }
+
+    return *this;
+}
+
 SymbolTable::SymbolTable(QObject* parent)
     : QObject(parent)
-    , m_prefixCount(0)
+    , m_prefix('A' - 1) // we want the prefix to be 'A' after the first preincrement
 {
 }
 
@@ -39,13 +99,13 @@ void SymbolTable::loadModule(ModuleImport import)
         return;
 
     if (Module *module = Module::loadedModules.value(import)) {
-        m_modules.insert(import, { module, getNewPrefix(true) });
+        m_modules.insert(import, { module, ++m_prefix });
         return;
     }
 
     Module *module = new Module(import);
     Module::loadedModules.insert(import, module);
-    m_modules.insert(import, { module, getNewPrefix(true) });
+    m_modules.insert(import, { module, ++m_prefix });
 
     connect(module, SIGNAL(importError(QmlJSc::Error)), this, SIGNAL(importError(QmlJSc::Error)));
 
@@ -85,20 +145,6 @@ const SymbolTable::ModuleData *SymbolTable::moduleForType(const QString &typeNam
         }
     }
     return moduleData;
-}
-
-QString SymbolTable::getNewPrefix(bool capital)
-{
-    QString prefix;
-    int number = ++m_prefixCount;
-
-    do {
-        number -= 1;
-        prefix.prepend((capital ? 'A' : 'a') + (number % 26));
-        number = number / 26;
-    } while(number > 0);
-
-    return prefix;
 }
 
 // QString SymbolTable::findType(ModuleImport module, QString typeName)

@@ -52,6 +52,27 @@ inline uint qHash(const ModuleImport &key, uint seed)
 
 typedef QList<ModuleImport> ModuleImports;
 
+/**
+ * This class represents a minified symbol name like "a", "b", "aa", "A8",...
+ *
+ * Initialize it with the first character you want to use as symbol name MINUS
+ * ONE, as you normally will use the preincrement operator before accessing it.
+ * If you won't, feel free to initialize it with the first symbol name directly,
+ * of course.
+ *
+ * To get the next valid symbol name, use the preincrement operator.
+ *
+ * This is a subclass of QString, so you can just use it as a string.
+ */
+class ShortSymbolName : public QString
+{
+public:
+    ShortSymbolName(char first);
+    ShortSymbolName(QString first);
+
+    ShortSymbolName &operator++();
+};
+
 class SymbolTable : public QObject
 {
     Q_OBJECT
@@ -79,10 +100,9 @@ private slots:
 
 private:
     const ModuleData *moduleForType(const QString &typeName);
-    QString getNewPrefix(bool capital = false);
 
     QHash<ModuleImport, ModuleData> m_modules;
-    int m_prefixCount;
+    ShortSymbolName m_prefix;
 };
 
 }
