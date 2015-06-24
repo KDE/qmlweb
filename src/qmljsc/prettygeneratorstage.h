@@ -43,7 +43,7 @@ public:
  void postVisit(QQmlJS::AST::Node*) override;
 
 public slots:
- void process(QVariant) override;
+ void process(QQmlJS::AST::UiProgram*) override;
 
 private:
  int m_levelSpaceCount = 4;

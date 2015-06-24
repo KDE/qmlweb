@@ -45,7 +45,7 @@ public:
  QUrl file() const;
 
 signals:
- void compileFinished(QVariant output);
+ void compileFinished(QString output);
  void errorOccurred(QmlJSc::Error error);
 
 private:

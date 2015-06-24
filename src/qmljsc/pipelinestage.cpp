@@ -32,3 +32,8 @@ void PipelineStage::setPipeline(Pipeline* pipeline) {
 Pipeline* PipelineStage::pipeline() {
     return m_pipeline;
 }
+
+void PipelineStage::failBecauseOfWrongType() {
+    Q_STATIC_ASSERT_X(1, "The type is not supported by this stage, is the stage order correct?");
+}
+

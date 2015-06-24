@@ -45,7 +45,7 @@ void TestParserStage::working()
     QTextStream minimalTestFileStream(&minimalTestFile);
     QString minimalTestQml = minimalTestFileStream.readAll();
 
-    QSignalSpy spy(&stage, SIGNAL(finished(QVariant)));
+    QSignalSpy spy(&stage, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
     stage.process(minimalTestQml);
 
     QCOMPARE(spy.count(), 1);

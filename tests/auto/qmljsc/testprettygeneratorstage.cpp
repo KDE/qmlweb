@@ -71,7 +71,7 @@ void TestPrettyGeneratorStage::printout()
     pipeline->appendStage(new QmlJSc::ParserStage());
     pipeline->appendStage(new QmlJSc::PrettyGeneratorStage());
 
-    QSignalSpy pipelineFinished(pipeline, SIGNAL(compileFinished(QVariant)));
+    QSignalSpy pipelineFinished(pipeline, SIGNAL(compileFinished(QString)));
 
     pipeline->compile(qmlFileUrl);
 

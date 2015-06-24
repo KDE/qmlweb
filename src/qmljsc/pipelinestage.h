@@ -42,12 +42,24 @@ public:
   void setPipeline(Pipeline* pipeline);
   Pipeline* pipeline(void);
 
+  void connectToSuccessor(PipelineStage *successor) {
+    connect(this, SIGNAL(finished(QString)), successor, SLOT(process(QString)));
+    connect(this, SIGNAL(finished(QQmlJS::AST::UiProgram*)), successor, SLOT(process(QQmlJS::AST::UiProgram*)));
+  }
+
 public slots:
-  virtual void process(QVariant input) = 0;
+  virtual void process(QString) { failBecauseOfWrongType(); };
+  virtual void process(QQmlJS::AST::UiProgram*) { failBecauseOfWrongType(); };
 
 signals:
-  void finished(QVariant input);
+  void finished(QString);
+  void finished(QQmlJS::AST::UiProgram*);
+
+signals:
   void errorOccurred(QmlJSc::Error error);
+
+private:
+  void failBecauseOfWrongType();
 
 private:
   Pipeline* m_pipeline;

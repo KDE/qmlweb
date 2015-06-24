@@ -46,9 +46,8 @@ PrettyGeneratorStage::PrettyGeneratorStage() : m_output()
     m_output.setString(new QString());
 }
 
-void PrettyGeneratorStage::process(QVariant input)
+void PrettyGeneratorStage::process(QQmlJS::AST::UiProgram* ast)
 {
-    QQmlJS::AST::UiProgram* ast = input.value<QQmlJS::AST::UiProgram*>();
     Q_ASSERT(ast);
 
     ast->accept(this);

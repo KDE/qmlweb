@@ -39,7 +39,7 @@ public:
     ~ParserStage();
 
 public slots:
-    void process(QVariant input) override;
+    void process(QString input) override;
 
 };
 

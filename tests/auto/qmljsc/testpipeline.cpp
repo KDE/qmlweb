@@ -37,7 +37,7 @@ class MockStage : public QmlJSc::PipelineStage {
         bool doError() { return m_doError; }
 
     public slots:
-        void process(QVariant input) {
+        void process(QString input) {
             if (doError()) {
                 QmlJSc::Error error;
                 error.setColumn(1);
@@ -111,7 +111,7 @@ void TestPipeline::working()
 {
     QFETCH(QmlJSc::Pipeline*, pipeline);
 
-    QSignalSpy finishedSpy(pipeline, SIGNAL(compileFinished(QVariant)));
+    QSignalSpy finishedSpy(pipeline, SIGNAL(compileFinished(QString)));
 
     QString filePath(":/test/minimal.qml");
     QFile file(filePath);

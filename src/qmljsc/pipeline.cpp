@@ -65,16 +65,16 @@ void Pipeline::appendStage(PipelineStage* stage)
     PipelineStage* lastStage = 0;
     if (m_pipeline.size() > 0) {
         lastStage = m_pipeline.last();
-        disconnect(lastStage, SIGNAL(finished(QVariant)), this, SIGNAL(compileFinished(QVariant)));
+        disconnect(lastStage, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
     }
 
     m_pipeline.append(stage);
     stage->setPipeline(this);
 
     if (lastStage) {
-        connect(lastStage, SIGNAL(finished(QVariant)), stage, SLOT(process(QVariant)));
+        lastStage->connectToSuccessor(stage);
     }
 
-    connect(stage, SIGNAL(finished(QVariant)), this, SIGNAL(compileFinished(QVariant)));
+    connect(stage, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
     connect(stage, SIGNAL(errorOccurred(QmlJSc::Error)), this, SIGNAL(errorOccurred(QmlJSc::Error)));
 }

@@ -29,16 +29,12 @@ ParserStage::~ParserStage()
 
 }
 
-void ParserStage::process(QVariant input)
+void ParserStage::process(QString input)
 {
-    Q_ASSERT(input.canConvert<QString>());
-
-    QString inputString = input.value<QString>();
-
     QQmlJS::Engine* engine = new QQmlJS::Engine();
     QQmlJS::Lexer* lexer = new QQmlJS::Lexer(engine);
 
-    lexer->setCode(inputString, 1, true);
+    lexer->setCode(input, 1, true);
 
     QQmlJS::Parser* parser = new QQmlJS::Parser(engine);
 
@@ -51,7 +47,5 @@ void ParserStage::process(QVariant input)
         return;
     }
 
-    QVariant ast = QVariant::fromValue(parser->ast());
-
-    emit finished(ast);
+    emit finished(parser->ast());
 }
