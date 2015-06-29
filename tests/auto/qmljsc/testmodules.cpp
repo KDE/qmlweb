@@ -150,5 +150,5 @@ void TestSymbolTable::testShortSymbolName()
 }
 
 QTEST_MAIN(TestSymbolTable)
-#include "testsymboltable.moc"
+#include "testmodules.moc"
 
