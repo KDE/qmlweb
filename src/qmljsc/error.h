@@ -25,9 +25,11 @@
 #include <QtCore/QString>
 #include <QtCore/QSharedPointer>
 
+#include <exception>
+
 namespace QmlJSc {
 
-class Error
+class Error : public std::exception
 {
 public:
     enum Type {
@@ -72,6 +74,8 @@ public:
 
     Error *reason() const { return m_reason.data(); }
     void setReason(Error *reason) { m_reason.reset(reason); }
+
+    virtual const char* what() { return description().toLocal8Bit(); }
 
 private:
     Type m_type;
