@@ -34,6 +34,7 @@ class TestParserStage : public QObject
 
 private slots:
     void working();
+    void not_working();
 
 };
 
@@ -46,7 +47,12 @@ void TestParserStage::working()
     QString minimalTestQml = minimalTestFileStream.readAll();
 
     QSignalSpy spy(&stage, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
-    stage.process(minimalTestQml);
+
+    try {
+        stage.process(minimalTestQml);
+    } catch (QmlJSc::Error error) {
+        QFAIL("no error should occur");
+    }
 
     QCOMPARE(spy.count(), 1);
 
@@ -67,6 +73,23 @@ void TestParserStage::working()
     QQmlJS::AST::UiObjectDefinition* memberObjectDefinition = reinterpret_cast<QQmlJS::AST::UiObjectDefinition*>(ast->members->member);
     QCOMPARE(QString().append(memberObjectDefinition->qualifiedTypeNameId->name), QStringLiteral("QtObject"));
 
+}
+
+void TestParserStage::not_working()
+{
+    QmlJSc::ParserStage stage;
+    QString invalidQml = "not valid QML";
+
+    QSignalSpy spy(&stage, SIGNAL(finished(QVariant)));
+
+    try {
+        stage.process(invalidQml);
+        QFAIL("an parse error should have been thrown");
+    } catch (QmlJSc::Error error) {
+        QCOMPARE(error.type(), QmlJSc::Error::ParseError);
+    }
+
+    QCOMPARE(spy.count(), 0);
 }
 
 QTEST_MAIN(TestParserStage)

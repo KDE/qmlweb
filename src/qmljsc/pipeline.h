@@ -46,7 +46,6 @@ public:
 
 signals:
  void compileFinished(QString output);
- void errorOccurred(QmlJSc::Error error);
 
 private:
  QLinkedList<PipelineStage*> m_pipeline;

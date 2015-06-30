@@ -43,8 +43,7 @@ void ParserStage::process(QString input)
         Error error(Error::ParseError, parser->errorMessage());
         error.setColumn(parser->errorColumnNumber());
         error.setLine(parser->errorLineNumber());
-        emit errorOccurred(error);
-        return;
+        throw error;
     }
 
     emit finished(parser->ast());
