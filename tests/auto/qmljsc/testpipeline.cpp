@@ -65,7 +65,7 @@ private slots:
     void working();
     void error_data();
     void error();
-    void error_wrong_file();
+    void error_non_existent_file();
     void cleanupTestCase();
 
 };
@@ -171,9 +171,9 @@ void TestPipeline::error()
 
 }
 
-void TestPipeline::error_wrong_file() {
+void TestPipeline::error_non_existent_file() {
     QmlJSc::Pipeline* pipeline = new QmlJSc::Pipeline();
-    QString pathToAtlantis = QStringLiteral(":/test/atlantis.qml");
+    QString pathToAtlantis = QStringLiteral(":/test/atlantis.qml"); // does not exist
 
     QSignalSpy finishedSpy(pipeline, &QmlJSc::Pipeline::compileFinished);
 
