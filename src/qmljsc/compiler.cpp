@@ -38,3 +38,13 @@ QmlJSc::Compiler::~Compiler()
 {
     s_self = 0;
 }
+
+void Compiler::addIncludePath(QString path)
+{
+    m_includePaths << path;
+}
+
+const QStringList &Compiler::includePaths()
+{
+    return m_includePaths;
+}

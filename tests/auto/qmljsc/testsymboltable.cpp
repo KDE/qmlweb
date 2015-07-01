@@ -24,6 +24,7 @@
 
 #include <QtCore/QDebug>
 
+#include "../../../src/qmljsc/compiler.h"
 #include "../../../src/qmljsc/symboltable.h"
 
 class TestSymbolTable : public QObject
@@ -31,41 +32,36 @@ class TestSymbolTable : public QObject
     Q_OBJECT
 
 private slots:
-    void findBuiltInTypes();
     void loadModule();
 
 };
 
 using namespace QmlJSc;
 
-void TestSymbolTable::findBuiltInTypes()
-{
-    SymbolTable symbolTable;
-
-    QCOMPARE(symbolTable.findType(ModuleImports(), "QtObject"), QStringLiteral("QtQml20.QtObject"));
-    QCOMPARE(symbolTable.findType(ModuleImports(), "Component"), QStringLiteral("QtQml20.Component"));
-    QCOMPARE(symbolTable.findType(ModuleImports(), "Timer"), QStringLiteral("QtQml20.Timer"));
-    QCOMPARE(symbolTable.findType(ModuleImports(), "Connections"), QStringLiteral("QtQml20.Connections"));
-    QCOMPARE(symbolTable.findType(ModuleImports(), "Binding"), QStringLiteral("QtQml20.Binding"));
-    QCOMPARE(symbolTable.findType(ModuleImports(), "Inexistent"), QStringLiteral(""));
-}
-
 void TestSymbolTable::loadModule()
 {
+    Compiler c;
+
     SymbolTable symbolTable;
     const ModuleImport testModuleImport = {"TestModule", 0, 1};
 
     QSignalSpy spy(&symbolTable, SIGNAL(importError(QmlJSc::Error)));
 
-    symbolTable.addIncludePath(":/test/");
+    compiler->addIncludePath(":/test/");
     symbolTable.loadModule(testModuleImport);
 
-// Symbol table is broken due to a change of module API.
-//     QCOMPARE(spy.count(), 0);
-//     QCOMPARE(symbolTable.findType({testModuleImport}, "Pastry"), QStringLiteral("TestModule01.Pastry"));
-//     QCOMPARE(symbolTable.findType({testModuleImport}, "Cake"), QStringLiteral("TestModule01.Cake"));
-//     QCOMPARE(symbolTable.findType({testModuleImport}, "Pizza"), QStringLiteral("TestModule01.Pizza"));
-//     QCOMPARE(symbolTable.findType({testModuleImport}, "Printer"), QStringLiteral(""));
+    if (spy.count()) {
+        QList<QVariant> arguments = spy.takeFirst();
+        qDebug() << arguments.at(0).value<QmlJSc::Error>().what();
+    }
+    QCOMPARE(spy.count(), 0);
+    QVERIFY(symbolTable.type("Pastry"));
+    QCOMPARE(symbolTable.fullyQualifiedName("Pastry"), QStringLiteral("A.Pastry"));
+    QVERIFY(symbolTable.type("Cake"));
+    QCOMPARE(symbolTable.fullyQualifiedName("Cake"), QStringLiteral("A.Cake"));
+    QVERIFY(symbolTable.type("Pizza"));
+    QCOMPARE(symbolTable.fullyQualifiedName("Pizza"), QStringLiteral("A.Pizza"));
+    QVERIFY(!symbolTable.type("Printer"));
 }
 
 QTEST_MAIN(TestSymbolTable)

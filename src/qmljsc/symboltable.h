@@ -29,8 +29,6 @@
 #include <QtCore/QWaitCondition>
 #include <QtCore/QStringList>
 
-class QJSEngine;
-
 namespace QmlJSc {
 
 struct ModuleImport {
@@ -44,17 +42,13 @@ struct ModuleImport {
     }
 };
 
+class Module;
+struct Type;
+
 inline uint qHash(const ModuleImport &key, uint seed)
 {
     return qHash(key.name, seed) ^ key.versionMajor ^ key.versionMinor;
 }
-
-struct ModuleData {
-    QHash<QString, QString> typeToFQIHash;
-    bool loaded;
-    QWaitCondition waitForLoaded;
-    QMutex loadMutex;
-};
 
 typedef QList<ModuleImport> ModuleImports;
 
@@ -62,29 +56,33 @@ class SymbolTable : public QObject
 {
     Q_OBJECT
 
+    struct ModuleData {
+        Module *module;
+        QString localPrefix;
+    };
+
 public:
     explicit SymbolTable(QObject *parent = 0);
     virtual ~SymbolTable();
 
-    void addIncludePath(QString path);
-
     void loadModule(ModuleImport import);
 
-    QString findType(ModuleImport module, QString typeName);
-    QString findType(ModuleImports modules, QString typeName);
+    Type* type(const QString &typeName);
+    QString fullyQualifiedName(const QString &typeName);
 
 signals:
     void importError(QmlJSc::Error error);
+    void symbolLookupError(QmlJSc::Error error);
 
 private slots:
     void doLoadModule(ModuleImport import);
 
 private:
-    void error(ModuleImport import, QString message, Error *reason = 0);
+    const ModuleData *moduleForType(const QString &typeName);
+    QString getNewPrefix(bool capital = false);
 
-    QHash<ModuleImport, ModuleData*> m_modules;
-    QStringList m_includePaths;
-    QJSEngine *m_jsEngine;
+    QHash<ModuleImport, ModuleData> m_modules;
+    int m_prefixCount;
 };
 
 }

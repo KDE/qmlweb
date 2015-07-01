@@ -62,7 +62,7 @@ void PrettyGeneratorPass::process(IR::Component* immediateRepresentation)
 
 void PrettyGeneratorPass::visit(IR::Component* component) {
     const QString objectIdentifier = component->super()->name();
-    const QString objectFqi = m_symbols->findType(ModuleImports(), objectIdentifier);
+    const QString objectFqi = m_symbols->fullyQualifiedName(objectIdentifier);
 
     m_output << TEMPLATE_COMPONENT_HEAD
                         .arg(RUNTIME_INHERIT)
