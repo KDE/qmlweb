@@ -23,6 +23,7 @@
 #include <QtCore/QMetaType>
 #include <QtCore/QUrl>
 #include <QtCore/QString>
+#include <QtCore/QSharedPointer>
 
 namespace QmlJSc {
 
@@ -52,9 +53,7 @@ public:
         , m_reason(reason)
     {}
     virtual ~Error()
-    {
-        delete m_reason;
-    }
+    {}
 
     Type type() const { return m_type; }
     void setType(Type type) { m_type = type; }
@@ -71,8 +70,8 @@ public:
     int line() const { return m_line; }
     void setLine(int line) { m_line = line; }
 
-    Error *reason() const { return m_reason; }
-    void setReason(Error *reason) { m_reason = reason; }
+    Error *reason() const { return m_reason.data(); }
+    void setReason(Error *reason) { m_reason.reset(reason); }
 
 private:
     Type m_type;
@@ -80,7 +79,7 @@ private:
     QString m_description;
     int m_column;
     int m_line;
-    Error *m_reason;
+    QSharedPointer<Error> m_reason;
 };
 
 }
