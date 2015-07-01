@@ -25,6 +25,7 @@
 #include <QtCore/QUrl>
 #include <QtCore/QString>
 #include <QtCore/QSharedPointer>
+#include <QtCore/QDebug>
 
 #include <exception>
 
@@ -38,7 +39,6 @@ public:
         ReadFileError,
         ParseError,
         ModuleImportError,
-        JSEngineError,
         SymbolLookupError
     };
 
@@ -76,7 +76,7 @@ public:
     Error *reason() const { return m_reason.data(); }
     void setReason(Error *reason) { m_reason.reset(reason); }
 
-    virtual const char* what() { return description().toLocal8Bit(); }
+    virtual const char* what() const noexcept;
 
 private:
     Type m_type;
@@ -88,6 +88,8 @@ private:
 };
 
 }
+
+QDebug operator<<(QDebug dbg, const QmlJSc::Error &error);
 
 Q_DECLARE_METATYPE(QmlJSc::Error);
 
