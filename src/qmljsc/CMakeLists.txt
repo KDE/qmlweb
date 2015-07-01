@@ -8,6 +8,12 @@ set(libqmljsc_srcs
   pipelinestage.cpp
   prettygeneratorstage.cpp
   symboltable.cpp
+
+  ir/symbol.cpp
+  ir/type.cpp
+  ir/class.cpp
+  ir/object.cpp
+  ir/component.cpp
 )
 add_library(libqmljsc SHARED ${libqmljsc_srcs})
 qt5_use_modules(libqmljsc Core Qml)
