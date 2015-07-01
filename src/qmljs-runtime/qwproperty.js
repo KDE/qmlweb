@@ -28,8 +28,6 @@
  *  SUCH DAMAGE.
  */
 
-// === pseudo-macros ===
-
 // exports
 var QWProperty,
     QWList;
