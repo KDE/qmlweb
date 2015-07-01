@@ -55,9 +55,6 @@ signals:
   void finished(QString);
   void finished(QQmlJS::AST::UiProgram*);
 
-signals:
-  void errorOccurred(QmlJSc::Error error);
-
 private:
   void failBecauseOfWrongType();
 

@@ -47,8 +47,7 @@ void Pipeline::compile(QString& filePath)
     if (!openSuccessful) {
         Error error(Error::ReadFileError, file.errorString());
         error.setFile(file.fileName());
-        emit errorOccurred(error);
-        return;
+        throw error;
     }
     QTextStream stream(&file);
     QString qmlCode = stream.readAll();
@@ -76,5 +75,4 @@ void Pipeline::appendStage(PipelineStage* stage)
     }
 
     connect(stage, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
-    connect(stage, SIGNAL(errorOccurred(QmlJSc::Error)), this, SIGNAL(errorOccurred(QmlJSc::Error)));
 }

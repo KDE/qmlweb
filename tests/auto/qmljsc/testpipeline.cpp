@@ -44,8 +44,7 @@ class MockStage : public QmlJSc::PipelineStage {
                 error.setLine(1);
                 error.setDescription("description");
                 error.setFile(QUrl("qrc:/test/minimal.qml"));
-                emit errorOccurred(error);
-                return;
+                throw error;
             }
             emit finished(input);
         }
@@ -66,6 +65,7 @@ private slots:
     void working();
     void error_data();
     void error();
+    void error_non_existent_file();
     void cleanupTestCase();
 
 };
@@ -154,22 +154,40 @@ void TestPipeline::error()
     QFETCH(QmlJSc::Pipeline*, pipeline);
 
     QSignalSpy finishedSpy(pipeline, &QmlJSc::Pipeline::compileFinished);
-    QSignalSpy errorSpy(pipeline, &QmlJSc::Pipeline::errorOccurred);
 
     QString filePath(":/test/minimal.qml");
-    pipeline->compile(filePath);
+
+    try {
+        pipeline->compile(filePath);
+        QFAIL("no exception thrown");
+    } catch (QmlJSc::Error& error) {
+        QCOMPARE(error.column(), 1);
+        QCOMPARE(error.line(), 1);
+        QCOMPARE(error.description(), QStringLiteral("description"));
+        QCOMPARE(error.file(), QUrl("qrc:/test/minimal.qml"));
+    }
 
     QCOMPARE(finishedSpy.count(), 0);
-    QCOMPARE(errorSpy.count(), 1);
 
-    QmlJSc::Error error = errorSpy.takeFirst().takeFirst().value<QmlJSc::Error>();
+}
 
-    QCOMPARE(error.column(), 1);
-    QCOMPARE(error.line(), 1);
-    QCOMPARE(error.description(), QStringLiteral("description"));
-    QCOMPARE(error.file(), QUrl("qrc:/test/minimal.qml"));
+void TestPipeline::error_non_existent_file() {
+    QmlJSc::Pipeline* pipeline = new QmlJSc::Pipeline();
+    QString pathToAtlantis = QStringLiteral(":/test/atlantis.qml"); // does not exist
+
+    QSignalSpy finishedSpy(pipeline, &QmlJSc::Pipeline::compileFinished);
+
+    try {
+        pipeline->compile(pathToAtlantis);
+        QFAIL("no exception thrown");
+    } catch (QmlJSc::Error& error) {
+        QCOMPARE(error.type(), QmlJSc::Error::ReadFileError);
+    }
+
+    QCOMPARE(finishedSpy.count(), 0);
 
 }
 
 QTEST_MAIN(TestPipeline)
 #include "testpipeline.moc"
+
