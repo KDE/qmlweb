@@ -2,7 +2,7 @@ find_package(Qt5 COMPONENTS Core Qml)
 
 set(libqmljsc_srcs
   compiler.cpp
-  error.h
+  error.cpp
   compilerpipeline.cpp
   compilerpass.cpp
   symboltable.cpp
