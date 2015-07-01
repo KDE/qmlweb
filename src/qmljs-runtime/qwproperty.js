@@ -31,8 +31,6 @@
  *
  */
 
-// === pseudo-macros ===
-
 // exports
 var QWProperty,
     QWList;
