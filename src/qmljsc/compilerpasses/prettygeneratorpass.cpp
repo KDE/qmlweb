@@ -66,7 +66,7 @@ bool PrettyGeneratorPass::visit(QQmlJS::AST::UiObjectDefinition* objectDefinitio
 {
     if (m_componentRoot) {
         const QString objectIdentifier = objectDefinition->qualifiedTypeNameId->name.toString();
-        const QString objectFqi = m_symbols->findType(ModuleImports(), objectIdentifier);
+        const QString objectFqi = m_symbols->fullyQualifiedName(objectIdentifier);
 
         m_output << TEMPLATE_COMPONENT_HEAD.arg(RUNTIME_INHERIT)
                                            .arg("__comp")

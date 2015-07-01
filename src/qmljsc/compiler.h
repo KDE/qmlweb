@@ -22,6 +22,7 @@
 #define QMLJSC_H
 
 #include <QtCore/QObject>
+#include <QStringList>
 
 namespace QmlJSc {
 
@@ -39,8 +40,12 @@ public:
 
     static Compiler* instance() { return s_self; }
 
+    void addIncludePath(QString path);
+    const QStringList &includePaths();
+
 private:
     static Compiler* s_self;
+    QStringList m_includePaths;
 };
 
 }

@@ -20,12 +20,12 @@
         this.bakingTime = new QWProperty({ type: QWInt });
     }
 
-    QW_INHERIT(Cake, Pastry);
-    function Cake(parent)
+    var Cake = function(parent)
     {
         Pastry.call(this, parent);
 
     }
+    QW_INHERIT(Cake, Pastry);
 
     QW_INHERIT(Cake, Pastry);
     function Pizza(parent)

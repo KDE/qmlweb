@@ -6,6 +6,7 @@ set(libqmljsc_srcs
   compilerpipeline.cpp
   compilerpass.cpp
   symboltable.cpp
+  module.cpp
 
   ir/ir.cpp
 
