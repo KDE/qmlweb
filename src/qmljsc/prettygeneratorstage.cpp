@@ -72,6 +72,7 @@ bool PrettyGeneratorStage::visit(QQmlJS::AST::UiObjectDefinition* objectDefiniti
 
         m_componentRoot = false;
     }
+    return true;
 }
 
 

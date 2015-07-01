@@ -35,6 +35,7 @@ using namespace QmlJSc;
 
 static QV4::ReturnedValue NOOP(QV4::CallContext *)
 {
+    return QV4::ReturnedValue();
 }
 
 SymbolTable::SymbolTable(QObject* parent)
