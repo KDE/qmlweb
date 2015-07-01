@@ -50,7 +50,7 @@ void TestParserStage::working()
 
     try {
         stage.process(minimalTestQml);
-    } catch (QmlJSc::Error error) {
+    } catch (QmlJSc::Error& error) {
         QFAIL("no error should occur");
     }
 
@@ -85,7 +85,7 @@ void TestParserStage::not_working()
     try {
         stage.process(invalidQml);
         QFAIL("an parse error should have been thrown");
-    } catch (QmlJSc::Error error) {
+    } catch (QmlJSc::Error& error) {
         QCOMPARE(error.type(), QmlJSc::Error::ParseError);
     }
 

@@ -160,7 +160,7 @@ void TestPipeline::error()
     try {
         pipeline->compile(filePath);
         QFAIL("no exception thrown");
-    } catch (QmlJSc::Error error) {
+    } catch (QmlJSc::Error& error) {
         QCOMPARE(error.column(), 1);
         QCOMPARE(error.line(), 1);
         QCOMPARE(error.description(), QStringLiteral("description"));
@@ -180,7 +180,7 @@ void TestPipeline::error_wrong_file() {
     try {
         pipeline->compile(pathToAtlantis);
         QFAIL("no exception thrown");
-    } catch (QmlJSc::Error error) {
+    } catch (QmlJSc::Error& error) {
         QCOMPARE(error.type(), QmlJSc::Error::ReadFileError);
     }
 
