@@ -25,6 +25,8 @@
 // Qt
 #include <QtCore/QDir>
 #include <QtCore/QTextStream>
+#include <QtCore/QThread>
+#include <QtCore/QThreadPool>
 
 // Qt private
 #include <private/qqmljsengine_p.h>
@@ -34,23 +36,59 @@
 using namespace QmlJSc;
 using namespace QQmlJS::AST;
 
-QHash<ModuleImport, Module*> Module::loadedModules;
+QHash<ModuleImport, Module*> ModuleLoader::s_loadedModules;
 
 Module::Module(ModuleImport import, QObject *parent)
-    : QObject(parent)
-    , m_parseData({0})
-    , m_import(import)
+    : m_import(import)
     , m_status(Loading)
 {
 }
 
-void Module::doLoad()
+Module *ModuleLoader::loadModule(QmlJSc::ModuleImport import, QObject *parent)
+{
+    if (Module *module = s_loadedModules.value(import)) {
+        return module;
+    }
+
+    Module *module = new Module(import, parent);
+    s_loadedModules.insert(import, module);
+    ModuleLoader *loader = new ModuleLoader(module); // will delete itself when done
+
+    QThreadPool::globalInstance()->start(loader);
+
+    return module;
+}
+
+
+ModuleLoader::ModuleLoader(Module *module)
+    : QRunnable()
+    , Visitor()
+    , m_module(module)
+    , m_functionDepth(0)
+{
+}
+
+ModuleLoader::~ModuleLoader()
+{
+}
+
+void ModuleLoader::run()
+{
+    try {
+        doLoad();
+    } catch (const Error &e) {
+        m_module->m_status = Module::ErrorState;
+        m_module->m_waitCondition.wakeAll();
+    }
+}
+
+void ModuleLoader::doLoad()
 {
     // === Load Module File ===
     QFile moduleFile;
-    const QString moduleFileName = QStringLiteral("%1.%2.%3.js").arg(m_import.name)
-                                                                .arg(m_import.versionMajor)
-                                                                .arg(m_import.versionMinor);
+    const QString moduleFileName = QStringLiteral("%1.%2.%3.js").arg(m_module->m_import.name)
+                                                                .arg(m_module->m_import.versionMajor)
+                                                                .arg(m_module->m_import.versionMinor);
 
     // For now we only support local files.
     const QStringList &includePaths = compiler->includePaths();
@@ -63,8 +101,7 @@ void Module::doLoad()
     }
 
     if (!moduleFile.exists()) {
-        error(QStringLiteral("Could not find file %1 in path.").arg(moduleFileName));
-        return;
+        throw Error(Error::ModuleImportError, QStringLiteral("Could not find file %1 in path.").arg(moduleFileName));
     }
 
     // Read file
@@ -93,46 +130,49 @@ void Module::doLoad()
         Error *err = new Error(Error::ParseError, parser->errorMessage());
         err->setColumn(parser->errorColumnNumber());
         err->setLine(parser->errorLineNumber());
-        error(QStringLiteral("Error while processing module %1 %2.%3")
-                        .arg(m_import.name).arg(m_import.versionMajor).arg(m_import.versionMinor), err);
-        return;
+        throw Error(Error::ModuleImportError,
+                    QStringLiteral("Error while processing module %1 %2.%3")
+                        .arg(m_module->m_import.name)
+                        .arg(m_module->m_import.versionMajor)
+                        .arg(m_module->m_import.versionMinor),
+                    err);
     }
 
     parser->rootNode()->accept(this);
 
     finalizeParse();
 
-    m_status = Successful;
-    m_waitCondition.wakeAll(); // Wake up threads, that wait to access this module.
+    m_module->m_status = Module::Successful;
+    m_module->m_waitCondition.wakeAll(); // Wake up threads, that wait to access this module.
 }
 
-bool Module::visit(QQmlJS::AST::FunctionDeclaration* func)
+bool ModuleLoader::visit(QQmlJS::AST::FunctionDeclaration* func)
 {
-    m_parseData.functionDepth++;
-    if (m_parseData.functionDepth == 2)
-        m_parseData.currentFunction = func->name;
+    m_functionDepth++;
+    if (m_functionDepth == 2)
+        m_currentFunction = func->name;
     return true;
 }
-void Module::endVisit(QQmlJS::AST::FunctionDeclaration* func)
+void ModuleLoader::endVisit(QQmlJS::AST::FunctionDeclaration* func)
 {
-    m_parseData.functionDepth--;
-    if (m_parseData.functionDepth == 1)
-        m_parseData.currentFunction.clear();
+    m_functionDepth--;
+    if (m_functionDepth == 1)
+        m_currentFunction.clear();
 }
 
-bool Module::visit(QQmlJS::AST::FunctionExpression* func)
+bool ModuleLoader::visit(QQmlJS::AST::FunctionExpression* func)
 {
-    m_parseData.functionDepth++;
+    m_functionDepth++;
     return true;
 }
-void Module::endVisit(QQmlJS::AST::FunctionExpression* func)
+void ModuleLoader::endVisit(QQmlJS::AST::FunctionExpression* func)
 {
-    m_parseData.functionDepth--;
+    m_functionDepth--;
 }
 
-bool Module::visit(QQmlJS::AST::ReturnStatement *returnStatement)
+bool ModuleLoader::visit(QQmlJS::AST::ReturnStatement *returnStatement)
 {
-    if (m_parseData.functionDepth != 1)
+    if (m_functionDepth != 1)
         return false;
 
     ObjectLiteral *returnLiteral = cast<ObjectLiteral*>(returnStatement->expression);
@@ -155,25 +195,23 @@ bool Module::visit(QQmlJS::AST::ReturnStatement *returnStatement)
             continue;
         }
 
-        m_parseData.typesToFunctionsMap.insert(nameAndValue->name->asString(), functionId->name);
+        m_typesToFunctionsMap.insert(nameAndValue->name->asString(), functionId->name);
         assignment = assignment->next;
     }
 
     return true;
 }
 
-void Module::finalizeParse()
+void ModuleLoader::finalizeParse()
 {
-    for (auto i = m_parseData.typesToFunctionsMap.constBegin(); i != m_parseData.typesToFunctionsMap.constEnd(); i++) {
+    for (auto i = m_typesToFunctionsMap.constBegin(); i != m_typesToFunctionsMap.constEnd(); i++) {
         // the typesToFunctionsMap contains the most basic information, namely
         // which types exist. The key in this hash is the name of the type, the
         // value is the name of the function that defines it.
         Type *type = new Type();
         type->name = i.key();
-        m_types.insert(i.key(), type);
+        m_module->m_types.insert(i.key(), type);
     }
-
-    m_parseData = {0}; // reset parse data
 }
 
 Module::Status Module::status()
@@ -187,6 +225,11 @@ const QString &Module::name()
     return m_import.name;
 }
 
+Type *Module::type(QString name)
+{
+    waitForLoaded();
+    return m_types.value(name);
+}
 
 void Module::waitForLoaded()
 {
@@ -197,11 +240,3 @@ void Module::waitForLoaded()
     m_waitCondition.wait(&m_loadMutex);
     m_loadMutex.unlock();
 }
-
-void Module::error(QString message, Error *reason)
-{
-    m_status = ErrorState;
-    m_waitCondition.wakeAll();
-    emit importError({ Error::ModuleImportError, message, reason });
-}
-
