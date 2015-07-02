@@ -63,7 +63,7 @@ private:
     void endVisit(QQmlJS::AST::FunctionExpression*) override;
     bool visit(QQmlJS::AST::FunctionDeclaration*) override;
     void endVisit(QQmlJS::AST::FunctionDeclaration*) override;
-    bool visit(QQmlJS::AST::ReturnStatement *returnStatement) override;
+    bool visit(QQmlJS::AST::CallExpression *call) override;
 
     void finalizeParse();
 
@@ -74,6 +74,7 @@ private:
     QStringRef m_currentFunction;
     QHash<QString, QVector<QString>> m_functionProperties;
     QHash<QString, QStringRef> m_typesToFunctionsMap;
+    QString m_moduleFileName;
 };
 
 } // namespace QMLJSc
