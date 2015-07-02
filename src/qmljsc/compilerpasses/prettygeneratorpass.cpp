@@ -23,8 +23,9 @@
 #include "compiler.h"
 #include "compilerpipeline.h"
 
+#include "ir/file.h"
+
 #include "prettygeneratorpass.h"
-#include "symboltable.h"
 
 using namespace QmlJSc;
 
@@ -43,9 +44,8 @@ const QString TEMPLATE_COMPONENT_FOOT = QStringLiteral(
 );
 
 
-PrettyGeneratorPass::PrettyGeneratorPass(SymbolTable* symbolTable)
-        : m_symbols(symbolTable)
-        , m_output()
+PrettyGeneratorPass::PrettyGeneratorPass()
+        : m_output()
 {
     m_componentRoot = false;
     m_output.setString(new QString());
@@ -61,8 +61,9 @@ void PrettyGeneratorPass::process(IR::Component* immediateRepresentation)
 }
 
 void PrettyGeneratorPass::visit(IR::Component* component) {
+    IR::File file;
     const QString objectIdentifier = component->super()->name();
-    const QString objectFqi = m_symbols->fullyQualifiedName(objectIdentifier);
+    const QString objectFqi = file.fullyQualifiedName(objectIdentifier);
 
     m_output << TEMPLATE_COMPONENT_HEAD
                         .arg(RUNTIME_INHERIT)

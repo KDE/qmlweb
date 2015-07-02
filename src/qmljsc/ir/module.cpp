@@ -19,8 +19,8 @@
 
 // Own
 #include "module.h"
-#include "compiler.h"
-#include "error.h"
+#include "../compiler.h"
+#include "../error.h"
 
 // Qt
 #include <QtCore/QDir>
@@ -34,18 +34,20 @@
 #include <private/qqmljsparser_p.h>
 
 using namespace QmlJSc;
+using namespace QmlJSc::IR;
 using namespace QQmlJS::AST;
 
-QHash<ModuleImport, Module*> ModuleLoader::s_loadedModules;
+QHash<ImportDescription, Module*> ModuleLoader::s_loadedModules;
 
-Module::Module(ModuleImport import, QObject *parent)
+Module::Module(ImportDescription import, QObject *parent)
     : m_import(import)
     , m_status(Loading)
 {
 }
 
-Module *ModuleLoader::loadModule(QmlJSc::ModuleImport import, QObject *parent)
+Module *ModuleLoader::loadModule(ImportDescription import, QObject *parent)
 {
+    Q_ASSERT(import.kind == ImportDescription::Kind_ModuleImport);
     if (Module *module = s_loadedModules.value(import)) {
         return module;
     }
@@ -209,7 +211,7 @@ void ModuleLoader::finalizeParse()
         // which types exist. The key in this hash is the name of the type, the
         // value is the name of the function that defines it.
         Type *type = new Type();
-        type->name = i.key();
+        type->setName(i.key());
         m_module->m_types.insert(i.key(), type);
     }
 }

@@ -27,8 +27,6 @@
 
 namespace QmlJSc {
 
-class SymbolTable;
-
 #define compiler QmlJSc::Compiler::instance()
 
 class Compiler : public QObject

@@ -18,12 +18,13 @@
  *
  */
 
-#include "symboltable.h"
-#include "compiler.h"
-#include "compiler.h"
+#include "file.h"
 #include "module.h"
+#include "../error.h"
+#include "../compiler.h"
 
 using namespace QmlJSc;
+using namespace QmlJSc::IR;
 
 ShortSymbolName::ShortSymbolName(char first)
     : QString(first)
@@ -85,28 +86,31 @@ ShortSymbolName &ShortSymbolName::operator++()
     return *this;
 }
 
-SymbolTable::SymbolTable(QObject* parent)
-    : QObject(parent)
-    , m_prefix('A' - 1) // we want the prefix to be 'A' after the first preincrement
+File::File()
+    : m_prefix('A' - 1) // we want the prefix to be 'A' after the first preincrement
 {
 }
 
-SymbolTable::~SymbolTable()
+File::~File()
 {
 }
 
-void SymbolTable::loadModule(ModuleImport import)
+void File::addImport(ImportDescription import)
 {
-    if (m_modules.contains(import))
-        return;
+    switch (import.kind) {
+        case ImportDescription::Kind_ModuleImport:
+        if (m_modules.contains(import))
+            return;
 
-    m_modules.insert(import, {
-        ModuleLoader::loadModule(import, compiler),
-        ++m_prefix
-    });
+        m_modules.insert(import, {
+            ModuleLoader::loadModule(import, compiler),
+            ++m_prefix
+        });
+        break;
+    }
 }
 
-Type *SymbolTable::type(const QString &typeName)
+Type *File::type(const QString &typeName)
 {
     const ModuleData *data = moduleForType(typeName);
     if (data && data->module)
@@ -115,12 +119,12 @@ Type *SymbolTable::type(const QString &typeName)
     return 0;
 }
 
-QString SymbolTable::fullyQualifiedName(const QString &typeName)
+QString File::fullyQualifiedName(const QString &typeName)
 {
     return QStringLiteral("%1.%2").arg(moduleForType(typeName)->localPrefix, typeName);
 }
 
-const SymbolTable::ModuleData *SymbolTable::moduleForType(const QString &typeName)
+const File::ModuleData *File::moduleForType(const QString &typeName)
 {
     Type *foundType = 0;
     const ModuleData *moduleData = 0;
@@ -128,7 +132,7 @@ const SymbolTable::ModuleData *SymbolTable::moduleForType(const QString &typeNam
         if (Type * type = i->module->type(typeName)) {
             if (foundType) {
                 throw Error(
-                            Error::SymbolLookupError,
+                            QmlJSc::Error::SymbolLookupError,
                             QString("Ambitious type name. Type %1 was defined by module %2 and %3.")
                                 .arg(typeName, moduleData->module->name(), i->module->name())
                            );
@@ -140,39 +144,4 @@ const SymbolTable::ModuleData *SymbolTable::moduleForType(const QString &typeNam
         }
     }
     return moduleData;
-}
-
-// QString SymbolTable::findType(ModuleImport module, QString typeName)
-// {
-//     if (!m_modules.contains(module))
-//         return QString();
-//
-//     Module *data = m_modules.value(module);
-//     if (data->status() == Module::Loading) { // Wait for data to be available.
-//         data->waitForLoaded();
-//
-//         if (data->status() == Module::ErrorState) // If an error occurred, the module won't exist anymore
-//             return QString();
-//     }
-//
-// //     return data->typeToFQIHash.value(typeName);
-// }
-//
-// QString SymbolTable::findType(ModuleImports modules, QString typeName)
-// {
-//     if (!modules.contains({"QtQml", 2, 0})) {
-//         modules.append({"QtQml", 2, 0});
-//     }
-//     foreach (ModuleImport module, modules) {
-//         QString result = findType(module, typeName);
-//         if (!result.isEmpty()) {
-//             return result;
-//         }
-//     }
-//     return QString();
-// }
-
-void SymbolTable::doLoadModule(ModuleImport import)
-{
-
 }

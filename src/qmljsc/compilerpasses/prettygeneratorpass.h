@@ -22,8 +22,6 @@
 #define PRETTYGENERATORSTAGE_H
 
 
-#include "../symboltable.h"
-
 #include "../ir/visitor.h"
 #include "../compilerpass.h"
 
@@ -35,7 +33,7 @@ class PrettyGeneratorPass : public CompilerPass, public IR::Visitor
  Q_OBJECT
 
 public:
- PrettyGeneratorPass(SymbolTable* symbolTable);
+ PrettyGeneratorPass();
 
  virtual void visit(IR::Component* component) override;
  virtual void endVisit(IR::Component* component) override;
@@ -47,8 +45,6 @@ private:
  int m_levelSpaceCount = 4;
  QTextStream m_output;
  bool m_componentRoot;
-
- SymbolTable* m_symbols;
 
 };
 

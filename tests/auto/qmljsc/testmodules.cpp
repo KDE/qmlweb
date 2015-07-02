@@ -25,7 +25,7 @@
 #include <QtCore/QDebug>
 
 #include "../../../src/qmljsc/compiler.h"
-#include "../../../src/qmljsc/symboltable.h"
+#include "../../../src/qmljsc/ir/file.h"
 
 class TestSymbolTable : public QObject
 {
@@ -38,24 +38,25 @@ private slots:
 };
 
 using namespace QmlJSc;
+using namespace QmlJSc::IR;
 
 void TestSymbolTable::loadModule()
 {
     Compiler c;
 
-    SymbolTable symbolTable;
-    const ModuleImport testModuleImport = {"TestModule", 0, 1};
+    IR::File file;
+    const ImportDescription testImportDescription = {ImportDescription::Kind_ModuleImport, "TestModule", 0, 1};
 
     compiler->addIncludePath(":/test/");
-    symbolTable.loadModule(testModuleImport);
+    file.addImport(testImportDescription);
 
-    QVERIFY(symbolTable.type("Pastry"));
-    QCOMPARE(symbolTable.fullyQualifiedName("Pastry"), QStringLiteral("A.Pastry"));
-    QVERIFY(symbolTable.type("Cake"));
-    QCOMPARE(symbolTable.fullyQualifiedName("Cake"), QStringLiteral("A.Cake"));
-    QVERIFY(symbolTable.type("Pizza"));
-    QCOMPARE(symbolTable.fullyQualifiedName("Pizza"), QStringLiteral("A.Pizza"));
-    QVERIFY(!symbolTable.type("Printer"));
+    QVERIFY(file.type("Pastry"));
+    QCOMPARE(file.fullyQualifiedName("Pastry"), QStringLiteral("A.Pastry"));
+    QVERIFY(file.type("Cake"));
+    QCOMPARE(file.fullyQualifiedName("Cake"), QStringLiteral("A.Cake"));
+    QVERIFY(file.type("Pizza"));
+    QCOMPARE(file.fullyQualifiedName("Pizza"), QStringLiteral("A.Pizza"));
+    QVERIFY(!file.type("Printer"));
 }
 
 void TestSymbolTable::testShortSymbolName()

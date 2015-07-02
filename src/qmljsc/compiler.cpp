@@ -19,8 +19,6 @@
  *
  */
 
-#include "symboltable.h"
-
 #include "compiler.h"
 
 using namespace QmlJSc;
