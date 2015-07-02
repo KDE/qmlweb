@@ -36,9 +36,9 @@
         this.topping = new QWProperty({ type: QWVar, initialValue: ["tomato sauce", "mozzarella"] });
     }
 
-    return {
+    __engine.registerModule({
         Pastry: Pastry,
         Cake: Cake,
         Pizza: Pizza
-    }
+    });
 })();
