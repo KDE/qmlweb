@@ -25,6 +25,7 @@
 #include <QtCore/QDebug>
 
 #include "../../../src/qmljsc/compiler.h"
+#include "../../../src/qmljsc/moduleloader.h"
 #include "../../../src/qmljsc/ir/file.h"
 
 class TestSymbolTable : public QObject
@@ -48,7 +49,7 @@ void TestSymbolTable::loadModule()
     const ImportDescription testImportDescription = {ImportDescription::Kind_ModuleImport, "TestModule", 0, 1};
 
     compiler->addIncludePath(":/test/");
-    file.addImport(testImportDescription);
+    file.addModule(ModuleLoader::loadModule(testImportDescription));
 
     QVERIFY(file.type("Pastry"));
     QCOMPARE(file.fullyQualifiedName("Pastry"), QStringLiteral("A.Pastry"));

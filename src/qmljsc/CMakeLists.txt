@@ -5,6 +5,7 @@ set(libqmljsc_srcs
   error.cpp
   compilerpipeline.cpp
   compilerpass.cpp
+  moduleloader.cpp
 
   ir/ir.cpp
   ir/module.cpp
