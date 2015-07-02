@@ -30,8 +30,8 @@
         this.__parent.width.set(2 * newVal, QWProperty.BypassInterceptor);
     }
 
-    return {
+    __engine.registerModule({
         Rect: Rect,
         TheInterceptor: MyInterceptor
-    }
+    });
 })();

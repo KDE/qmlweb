@@ -32,7 +32,7 @@ QWQmlEngine.prototype.baseUrl = "";
 
 function QWQmlEngine()
 {
-
+    this.__pendingModule = null;
 }
 
 /**
@@ -44,9 +44,21 @@ QWQmlEngine.prototype.importModule = function(name, versionMajor, versionMinor)
     if (modulePrefix in QWQmlEngine.__loadedModules)
         return QWQmlEngine.__loadedModules[modulePrefix];
 
-    var module = qw_evalJS(qw_fetchData([this.baseUrl + name + "." + versionMajor + "." + versionMinor + ".js"]), this);
-    QWQmlEngine.__loadedModules[modulePrefix] = module;
-    return module;
+    qw_evalJS(qw_fetchData([this.baseUrl + name + "." + versionMajor + "." + versionMinor + ".js"]), this);
+    if (!this.__pendingModule) {
+        throw "Can't load module: No valid module registered.";
+    }
+    QWQmlEngine.__loadedModules[modulePrefix] = this.__pendingModule;
+    this.__pendingModule = null;
+    return QWQmlEngine.__loadedModules[modulePrefix];
+}
+
+QWQmlEngine.prototype.registerModule = function(module)
+{
+    if (this.__pendingModule) {
+        throw "Can't load module: A module may call registerModule only once.";
+    }
+    this.__pendingModule = module;
 }
 
 /**
