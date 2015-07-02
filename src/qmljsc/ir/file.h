@@ -85,13 +85,15 @@ class File
     struct ModuleData {
         Module *module;
         QString localPrefix;
+
+        bool operator==(const ModuleData &other) const;
     };
 
 public:
     explicit File();
     virtual ~File();
 
-    void addImport(ImportDescription import);
+    void addModule(Module *module);
 
     Type* type(const QString &typeName);
     QString fullyQualifiedName(const QString &typeName);
@@ -99,13 +101,10 @@ public:
     Component *rootObject();
     void setRootObject(Component *root);
 
-private slots:
-    void doLoadModule(ImportDescription import);
-
 private:
-    const ModuleData *moduleForType(const QString &typeName);
+    const ModuleData *moduleForType(const QString &typeName) const;
 
-    QHash<ImportDescription, ModuleData> m_modules;
+    QVector<ModuleData> m_modules;
     ShortSymbolName m_prefix;
     Component *m_rootObject;
 };

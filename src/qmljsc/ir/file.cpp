@@ -85,6 +85,11 @@ ShortSymbolName &ShortSymbolName::operator++()
     return *this;
 }
 
+bool File::ModuleData::operator==(const File::ModuleData& other) const
+{
+    return module == other.module;
+}
+
 File::File()
     : m_prefix('A' - 1) // we want the prefix to be 'A' after the first preincrement
 {
@@ -94,19 +99,15 @@ File::~File()
 {
 }
 
-void File::addImport(ImportDescription import)
+void File::addModule(Module *module)
 {
-    switch (import.kind) {
-        case ImportDescription::Kind_ModuleImport:
-        if (m_modules.contains(import))
-            return;
+    if (m_modules.contains({ module, QString() }))
+        return;
 
-        m_modules.insert(import, {
-            ModuleLoader::loadModule(import, compiler),
-            ++m_prefix
-        });
-        break;
-    }
+    m_modules.append({
+        module,
+        ++m_prefix
+    });
 }
 
 Type *File::type(const QString &typeName)
@@ -123,22 +124,22 @@ QString File::fullyQualifiedName(const QString &typeName)
     return QStringLiteral("%1.%2").arg(moduleForType(typeName)->localPrefix, typeName);
 }
 
-const File::ModuleData *File::moduleForType(const QString &typeName)
+const File::ModuleData *File::moduleForType(const QString &typeName) const
 {
     Type *foundType = 0;
     const ModuleData *moduleData = 0;
-    for (auto i = m_modules.constBegin(); i != m_modules.constEnd(); i++) {
-        if (Type * type = i->module->type(typeName)) {
+    foreach (const ModuleData &data, m_modules) {
+        if (Type * type = data.module->type(typeName)) {
             if (foundType) {
                 throw Error(
                             QmlJSc::Error::SymbolLookupError,
                             QString("Ambitious type name. Type %1 was defined by module %2 and %3.")
-                                .arg(typeName, moduleData->module->name(), i->module->name())
+                                .arg(typeName, moduleData->module->name(), data.module->name())
                            );
                 return 0;
             } else {
                 foundType = type;
-                moduleData = &(*i);
+                moduleData = &data;
             }
         }
     }

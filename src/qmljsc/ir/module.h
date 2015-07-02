@@ -17,19 +17,15 @@
  *
  */
 
-#ifndef MODULELOADER_H
-#define MODULELOADER_H
-
-//Qt
-#include <QtCore/QRunnable>
-
-// private Qt
-#include <private/qqmljsastvisitor_p.h>
-#include <private/qqmljsast_p.h>
+#ifndef MODULE_H
+#define MODULE_H
 
 #include "file.h"
 
 namespace QmlJSc {
+
+class ModuleLoader;
+
 namespace IR {
 
 /**
@@ -64,39 +60,10 @@ private:
     QWaitCondition m_waitCondition;
     QMutex m_loadMutex;
 
-    friend class ModuleLoader;
-};
-
-class ModuleLoader : public QRunnable, public QQmlJS::AST::Visitor
-{
-public:
-    static Module *loadModule(ImportDescription import, QObject *parent = 0);
-
-    void run() override;
-
-private:
-    ModuleLoader(Module *module);
-    virtual ~ModuleLoader();
-
-    void doLoad();
-    bool visit(QQmlJS::AST::FunctionExpression*) override;
-    void endVisit(QQmlJS::AST::FunctionExpression*) override;
-    bool visit(QQmlJS::AST::FunctionDeclaration*) override;
-    void endVisit(QQmlJS::AST::FunctionDeclaration*) override;
-    bool visit(QQmlJS::AST::ReturnStatement *returnStatement) override;
-
-    void finalizeParse();
-
-    static QHash<ImportDescription, Module*> s_loadedModules;
-
-    Module *m_module;
-    int m_functionDepth;
-    QStringRef m_currentFunction;
-    QHash<QString, QVector<QString>> m_functionProperties;
-    QHash<QString, QStringRef> m_typesToFunctionsMap;
+    friend class QmlJSc::ModuleLoader;
 };
 
 } // namespace IR
 } // namespace QMLJSc
 
-#endif // MODULELOADER_H
+#endif // MODULE_H
