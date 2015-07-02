@@ -82,7 +82,7 @@ void ModuleLoader::doLoad()
 {
     // === Load Module File ===
     QFile moduleFile;
-    const QString moduleFileName = QStringLiteral("%1.%2.%3.js").arg(m_module->m_import.name)
+    m_moduleFileName = QStringLiteral("%1.%2.%3.js").arg(m_module->m_import.name)
                                                                 .arg(m_module->m_import.versionMajor)
                                                                 .arg(m_module->m_import.versionMinor);
 
@@ -90,14 +90,14 @@ void ModuleLoader::doLoad()
     const QStringList &includePaths = compiler->includePaths();
     foreach (QString includePath, includePaths) {
         QDir includeDir(includePath);
-        if (includeDir.exists(moduleFileName)) {
-            moduleFile.setFileName(includeDir.absoluteFilePath(moduleFileName));
+        if (includeDir.exists(m_moduleFileName)) {
+            moduleFile.setFileName(includeDir.absoluteFilePath(m_moduleFileName));
             break;
         }
     }
 
     if (!moduleFile.exists()) {
-        throw Error(Error::ModuleImportError, QStringLiteral("Could not find file %1 in path.").arg(moduleFileName));
+        throw Error(Error::ModuleImportError, QStringLiteral("Could not find file %1 in path.").arg(m_moduleFileName));
     }
 
     // Read file
@@ -134,7 +134,13 @@ void ModuleLoader::doLoad()
                     err);
     }
 
-    parser->rootNode()->accept(this);
+    QQmlJS::AST::Program *ast = cast<Program*>(parser->rootNode());
+
+    ast->accept(this);
+
+    QQmlJS::AST::SourceElements *funcBodyElements = cast<FunctionExpression*>(cast<NestedExpression*>(cast<CallExpression*>(cast<ExpressionStatement*>(cast<StatementSourceElement*>(ast->elements->element)->statement)->expression)->base)->expression)->body->elements;
+
+    QQmlJS::AST::CallExpression *call = cast<CallExpression*>(cast<ExpressionStatement*>(cast<StatementSourceElement*>(funcBodyElements->next->next->next->next->next->next->next->next->next->element)->statement)->expression);
 
     finalizeParse();
 
@@ -166,29 +172,58 @@ void ModuleLoader::endVisit(QQmlJS::AST::FunctionExpression* func)
     m_functionDepth--;
 }
 
-bool ModuleLoader::visit(QQmlJS::AST::ReturnStatement *returnStatement)
+bool ModuleLoader::visit(CallExpression *call)
 {
-    if (m_functionDepth != 1)
-        return false;
+    FieldMemberExpression *base = cast<FieldMemberExpression *>(call->base);
+    if (!base || base->name != QStringLiteral("registerModule")) {
+        return true;
+    }
 
-    ObjectLiteral *returnLiteral = cast<ObjectLiteral*>(returnStatement->expression);
-    if (!returnLiteral)
-        return false;
+    IdentifierExpression *probablyEngine = cast<IdentifierExpression *>(base->base);
+    if (!probablyEngine || probablyEngine->name != QStringLiteral("__engine")) {
+        return true;
+    }
 
-    PropertyAssignmentList *assignment = returnLiteral->properties;
+    // Ok, apparently, it's the __engine.registerModule expression, we're looking for.
+    // If now still some assumtion fails, throw an error.
+
+    if (!call->arguments) {
+        Error error(Error::ModuleImportError, "Malformed registerModule call: No argument provided.");
+        error.setFile(m_moduleFileName);
+        error.setLine(call->lparenToken.startLine);
+        error.setColumn(call->lparenToken.startColumn);
+        throw error;
+    }
+
+    ObjectLiteral *moduleInfoLiteral = cast<ObjectLiteral *>(call->arguments->expression);
+    if (!moduleInfoLiteral) {
+        Error error(Error::ModuleImportError, "Malformed registerModule call: Wrong argument type provided. Expected Object Literal.");
+        error.setFile(m_moduleFileName);
+        error.setLine(call->lparenToken.startLine);
+        error.setColumn(call->lparenToken.startColumn);
+        throw error;
+    }
+
+    PropertyAssignmentList *assignment = moduleInfoLiteral->properties;
 
     while(assignment) {
         PropertyNameAndValue *nameAndValue = cast<PropertyNameAndValue*>(assignment->assignment);
 
         if (!nameAndValue) {
-            qWarning() << "Ignoring invalid type specification.";
-            continue;
+            Error error(Error::ModuleImportError, "Malformed registerModule call: Invalid type specification.");
+            error.setFile(m_moduleFileName);
+            error.setLine(assignment->assignment->firstSourceLocation().startLine);
+            error.setColumn(assignment->assignment->firstSourceLocation().startColumn);
+            throw error;
         }
 
         IdentifierExpression *functionId = cast<IdentifierExpression*>(nameAndValue->value);
         if (!functionId) {
-            qWarning() << "Can't recognize function identifier. Please use a simple identifier as value on type object.";
-            continue;
+            Error error(Error::ModuleImportError, "Malformed registerModule call: Can't recognize function identifier. Please use a simple identifier as value on type object.");
+            error.setFile(m_moduleFileName);
+            error.setLine(nameAndValue->value->firstSourceLocation().startLine);
+            error.setColumn(nameAndValue->value->firstSourceLocation().startColumn);
+            throw error;
         }
 
         m_typesToFunctionsMap.insert(nameAndValue->name->asString(), functionId->name);
