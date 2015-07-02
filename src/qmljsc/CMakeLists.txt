@@ -5,10 +5,10 @@ set(libqmljsc_srcs
   error.cpp
   compilerpipeline.cpp
   compilerpass.cpp
-  symboltable.cpp
-  module.cpp
 
   ir/ir.cpp
+  ir/module.cpp
+  ir/file.cpp
 
   compilerpasses/parserpass.cpp
   compilerpasses/prettygeneratorpass.cpp

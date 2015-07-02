@@ -67,10 +67,9 @@ void TestPrettyGeneratorPass::printout()
     QTextStream jsFileStream(&jsFile);
     QString jsFileContent = jsFileStream.readAll();
 
-    QmlJSc::SymbolTable symbolTable;
     QmlJSc::CompilerPipeline pipeline;
     pipeline.appendCompilerPass(new QmlJSc::ParserPass());
-    pipeline.appendCompilerPass(new QmlJSc::PrettyGeneratorPass(&symbolTable));
+    pipeline.appendCompilerPass(new QmlJSc::PrettyGeneratorPass());
 
     QSignalSpy pipelineFinished(&pipeline, SIGNAL(compileFinished(QString)));
 

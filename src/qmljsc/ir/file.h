@@ -17,10 +17,10 @@
  *
  */
 
-#ifndef SYMBOLTABLE_H
-#define SYMBOLTABLE_H
+#ifndef FILE_H
+#define FILE_H
 
-#include "error.h"
+#include "ir.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QHash>
@@ -29,13 +29,21 @@
 #include <QtCore/QStringList>
 
 namespace QmlJSc {
+namespace IR {
 
-struct ModuleImport {
+struct ImportDescription {
+    enum Kind {
+        Kind_ModuleImport,
+        Kind_FileImport,
+        Kind_DirectoryImport
+    };
+
+    Kind kind;
     QString name;
     int versionMajor;
     int versionMinor;
 
-    inline bool operator==(const ModuleImport& other) const
+    inline bool operator==(const ImportDescription& other) const
     {
         return name == other.name && versionMajor == other.versionMajor && versionMinor == other.versionMinor;
     }
@@ -44,12 +52,12 @@ struct ModuleImport {
 class Module;
 struct Type;
 
-inline uint qHash(const ModuleImport &key, uint seed)
+inline uint qHash(const ImportDescription &key, uint seed)
 {
     return qHash(key.name, seed) ^ key.versionMajor ^ key.versionMinor;
 }
 
-typedef QList<ModuleImport> ModuleImports;
+typedef QList<ImportDescription> ImportDescriptions;
 
 /**
  * This class represents a minified symbol name like "a", "b", "aa", "A8",...
@@ -72,36 +80,39 @@ public:
     ShortSymbolName &operator++();
 };
 
-class SymbolTable : public QObject
+class File
 {
-    Q_OBJECT
-
     struct ModuleData {
         Module *module;
         QString localPrefix;
     };
 
 public:
-    explicit SymbolTable(QObject *parent = 0);
-    virtual ~SymbolTable();
+    explicit File();
+    virtual ~File();
 
-    void loadModule(ModuleImport import);
+    void addImport(ImportDescription import);
 
     Type* type(const QString &typeName);
     QString fullyQualifiedName(const QString &typeName);
 
+    Component *rootObject();
+    void setRootObject(Component *root);
+
 private slots:
-    void doLoadModule(ModuleImport import);
+    void doLoadModule(ImportDescription import);
 
 private:
     const ModuleData *moduleForType(const QString &typeName);
 
-    QHash<ModuleImport, ModuleData> m_modules;
+    QHash<ImportDescription, ModuleData> m_modules;
     ShortSymbolName m_prefix;
+    Component *m_rootObject;
 };
 
-}
+} // namespace IR
+} // namespace QMLJSc
 
-Q_DECLARE_METATYPE(QmlJSc::ModuleImport);
+Q_DECLARE_METATYPE(QmlJSc::IR::ImportDescription);
 
-#endif // SYMBOLTABLE_H
+#endif // FILE_H

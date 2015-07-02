@@ -27,13 +27,10 @@
 #include <private/qqmljsastvisitor_p.h>
 #include <private/qqmljsast_p.h>
 
-#include "symboltable.h"
+#include "file.h"
 
 namespace QmlJSc {
-
-struct Type {
-    QString name;
-};
+namespace IR {
 
 /**
  * This class provides API representing a Qml.js module and allows to learn
@@ -51,7 +48,7 @@ public:
         ErrorState
     };
 
-    explicit Module(ModuleImport import, QObject *parent = 0);
+    explicit Module(ImportDescription import, QObject *parent = 0);
 
     Status status();
     void waitForLoaded();
@@ -62,7 +59,7 @@ public:
 
 private:
     QHash<QString, Type*> m_types;
-    ModuleImport m_import;
+    ImportDescription m_import;
     Status m_status;
     QWaitCondition m_waitCondition;
     QMutex m_loadMutex;
@@ -73,7 +70,7 @@ private:
 class ModuleLoader : public QRunnable, public QQmlJS::AST::Visitor
 {
 public:
-    static Module *loadModule(ModuleImport import, QObject *parent = 0);
+    static Module *loadModule(ImportDescription import, QObject *parent = 0);
 
     void run() override;
 
@@ -90,7 +87,7 @@ private:
 
     void finalizeParse();
 
-    static QHash<ModuleImport, Module*> s_loadedModules;
+    static QHash<ImportDescription, Module*> s_loadedModules;
 
     Module *m_module;
     int m_functionDepth;
@@ -99,6 +96,7 @@ private:
     QHash<QString, QStringRef> m_typesToFunctionsMap;
 };
 
-}
+} // namespace IR
+} // namespace QMLJSc
 
 #endif // MODULELOADER_H
