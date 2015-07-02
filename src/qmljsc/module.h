@@ -20,7 +20,10 @@
 #ifndef MODULELOADER_H
 #define MODULELOADER_H
 
-// #include <hashtable.h>
+//Qt
+#include <QtCore/QRunnable>
+
+// private Qt
 #include <private/qqmljsastvisitor_p.h>
 #include <private/qqmljsast_p.h>
 
@@ -39,10 +42,8 @@ struct Type {
  * Therefore it parses the javascript source of the module and analyses it for
  * class definitions, properties, methods, etc.
  */
-class Module : public QObject, public QQmlJS::AST::Visitor
+class Module
 {
-    Q_OBJECT
-
 public:
     enum Status {
         Loading,
@@ -50,51 +51,52 @@ public:
         ErrorState
     };
 
-    static QHash<ModuleImport, Module*> loadedModules;
-
     explicit Module(ModuleImport import, QObject *parent = 0);
 
     Status status();
     void waitForLoaded();
 
-    inline Type *type(QString name)
-    {
-        waitForLoaded();
-        return m_types.value(name);
-    }
+    Type *type(QString name);
 
     const QString &name();
 
-public slots:
-    void doLoad();
-
-signals:
-    void importError(QmlJSc::Error error);
-
-
-
-
 private:
-    bool visit(QQmlJS::AST::FunctionExpression*) override;
-    void endVisit(QQmlJS::AST::FunctionExpression*) override;
-    bool visit(QQmlJS::AST::FunctionDeclaration*) override;
-    void endVisit(QQmlJS::AST::FunctionDeclaration*) override;
-    bool visit(QQmlJS::AST::ReturnStatement *returnStatement);
-    void error(QString message, Error *reason = 0);
-    void finalizeParse();
-
-    struct {
-        int functionDepth;
-        QStringRef currentFunction;
-        QHash<QString, QVector<QString>> functionProperties;
-        QHash<QString, QStringRef> typesToFunctionsMap;
-    } m_parseData;
-
     QHash<QString, Type*> m_types;
     ModuleImport m_import;
     Status m_status;
     QWaitCondition m_waitCondition;
     QMutex m_loadMutex;
+
+    friend class ModuleLoader;
+};
+
+class ModuleLoader : public QRunnable, public QQmlJS::AST::Visitor
+{
+public:
+    static Module *loadModule(ModuleImport import, QObject *parent = 0);
+
+    void run() override;
+
+private:
+    ModuleLoader(Module *module);
+    virtual ~ModuleLoader();
+
+    void doLoad();
+    bool visit(QQmlJS::AST::FunctionExpression*) override;
+    void endVisit(QQmlJS::AST::FunctionExpression*) override;
+    bool visit(QQmlJS::AST::FunctionDeclaration*) override;
+    void endVisit(QQmlJS::AST::FunctionDeclaration*) override;
+    bool visit(QQmlJS::AST::ReturnStatement *returnStatement) override;
+
+    void finalizeParse();
+
+    static QHash<ModuleImport, Module*> s_loadedModules;
+
+    Module *m_module;
+    int m_functionDepth;
+    QStringRef m_currentFunction;
+    QHash<QString, QVector<QString>> m_functionProperties;
+    QHash<QString, QStringRef> m_typesToFunctionsMap;
 };
 
 }

@@ -46,16 +46,9 @@ void TestSymbolTable::loadModule()
     SymbolTable symbolTable;
     const ModuleImport testModuleImport = {"TestModule", 0, 1};
 
-    QSignalSpy spy(&symbolTable, SIGNAL(importError(QmlJSc::Error)));
-
     compiler->addIncludePath(":/test/");
     symbolTable.loadModule(testModuleImport);
 
-    if (spy.count()) {
-        QList<QVariant> arguments = spy.takeFirst();
-        qDebug() << arguments.at(0).value<QmlJSc::Error>().what();
-    }
-    QCOMPARE(spy.count(), 0);
     QVERIFY(symbolTable.type("Pastry"));
     QCOMPARE(symbolTable.fullyQualifiedName("Pastry"), QStringLiteral("A.Pastry"));
     QVERIFY(symbolTable.type("Cake"));

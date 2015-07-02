@@ -91,10 +91,6 @@ public:
     Type* type(const QString &typeName);
     QString fullyQualifiedName(const QString &typeName);
 
-signals:
-    void importError(QmlJSc::Error error);
-    void symbolLookupError(QmlJSc::Error error);
-
 private slots:
     void doLoadModule(ModuleImport import);
 

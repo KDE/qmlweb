@@ -19,6 +19,8 @@
  */
 
 #include "symboltable.h"
+#include "compiler.h"
+#include "compiler.h"
 #include "module.h"
 
 using namespace QmlJSc;
@@ -98,18 +100,10 @@ void SymbolTable::loadModule(ModuleImport import)
     if (m_modules.contains(import))
         return;
 
-    if (Module *module = Module::loadedModules.value(import)) {
-        m_modules.insert(import, { module, ++m_prefix });
-        return;
-    }
-
-    Module *module = new Module(import);
-    Module::loadedModules.insert(import, module);
-    m_modules.insert(import, { module, ++m_prefix });
-
-    connect(module, SIGNAL(importError(QmlJSc::Error)), this, SIGNAL(importError(QmlJSc::Error)));
-
-    QMetaObject::invokeMethod(module, "doLoad");
+    m_modules.insert(import, {
+        ModuleLoader::loadModule(import, compiler),
+        ++m_prefix
+    });
 }
 
 Type *SymbolTable::type(const QString &typeName)
@@ -133,10 +127,11 @@ const SymbolTable::ModuleData *SymbolTable::moduleForType(const QString &typeNam
     for (auto i = m_modules.constBegin(); i != m_modules.constEnd(); i++) {
         if (Type * type = i->module->type(typeName)) {
             if (foundType) {
-                emit symbolLookupError({ Error::SymbolLookupError,
-                                         QString("Ambitious type name. Type %1 was defined by module %2 and %3.")
-                                                .arg(typeName, moduleData->module->name(), i->module->name())
-                                       });
+                throw Error(
+                            Error::SymbolLookupError,
+                            QString("Ambitious type name. Type %1 was defined by module %2 and %3.")
+                                .arg(typeName, moduleData->module->name(), i->module->name())
+                           );
                 return 0;
             } else {
                 foundType = type;
