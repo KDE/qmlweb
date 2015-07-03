@@ -78,11 +78,7 @@ struct Property : public Symbol {
     bool constant :1;
     bool dummy :6;
 
-    virtual void accept(Visitor *visitor) {
-        visitor->visit(this);
-        acceptChild((Node*) objectValue, visitor);
-        visitor->endVisit(this);
-    }
+    virtual void accept(Visitor *visitor);
 };
 
 struct Parameter {
@@ -98,10 +94,7 @@ struct Method : public Symbol {
     Type *returnType;
     QString name;
 
-    virtual void accept(Visitor *visitor) {
-        visitor->visit(this);
-        visitor->endVisit(this);
-    }
+    virtual void accept(Visitor *visitor);
 };
 
 struct Signal : public Symbol {
@@ -110,10 +103,7 @@ struct Signal : public Symbol {
     QString name;
     QVector<Parameter> parameters;
 
-    virtual void accept(Visitor *visitor) {
-        visitor->visit(this);
-        visitor->endVisit(this);
-    }
+    virtual void accept(Visitor *visitor);
 };
 
 } // namespace IR

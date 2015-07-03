@@ -17,6 +17,8 @@
  *
  */
 
+#include "object.h"
+
 #include "symbol.h"
 
 using namespace QmlJSc::IR;
@@ -47,6 +49,14 @@ Property::Property(Type *type, QString name)
     kind = Symbol::Kind_Property;
 }
 
+void Property::accept(Visitor *visitor) {
+    visitor->visit(this);
+    if (objectValue) {
+        objectValue->accept(visitor);
+    }
+    visitor->endVisit(this);
+}
+
 Method::Method()
     : returnType(0)
 {
@@ -67,6 +77,11 @@ Method::Method(Type *returnType, QString name)
     kind = Symbol::Kind_Method;
 }
 
+void Method::accept(Visitor *visitor) {
+    visitor->visit(this);
+    visitor->endVisit(this);
+}
+
 Signal::Signal()
 {
     kind = Symbol::Kind_Signal;
@@ -78,3 +93,7 @@ Signal::Signal(QString name)
     kind = Symbol::Kind_Signal;
 }
 
+void Signal::accept(Visitor *visitor) {
+    visitor->visit(this);
+    visitor->endVisit(this);
+}

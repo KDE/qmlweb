@@ -28,11 +28,6 @@ class Node {
 
 public:
     virtual void accept(Visitor *visitor) = 0;
-    static void acceptChild(Node *node, Visitor *visitor) {
-        if (node) {
-            node->accept(visitor);
-        }
-    }
 
 };
 

@@ -42,40 +42,22 @@ class Component;
 
 struct ValueAssignment : public Node {
 
-    ValueAssignment()
-            : property(0)
-            , objectValue(0)
-            , jsValue(0)
-    { }
+    ValueAssignment();
 
-    ValueAssignment(Property *property, Object *objectValue, QQmlJS::AST::ExpressionNode *jsValue)
-            : property(property)
-            , objectValue(objectValue)
-            , jsValue(jsValue)
-    { }
+    ValueAssignment(Property *property, Object *objectValue, QQmlJS::AST::ExpressionNode *jsValue);
 
     Property *property;
     Object *objectValue;
     QQmlJS::AST::ExpressionNode *jsValue;
 
-    virtual void accept(Visitor *visitor) {
-        visitor->visit(this);
-        acceptChild((Node*) objectValue, visitor);
-        visitor->endVisit(this);
-    }
+    virtual void accept(Visitor *visitor);
 };
 
 struct BindingAssignment : public Node {
 
-    BindingAssignment()
-            : property(0)
-            , binding(0)
-    { }
+    BindingAssignment();
 
-    BindingAssignment(Property *property, QQmlJS::AST::ExpressionNode *binding)
-            : property(property)
-            , binding(binding)
-    { }
+    BindingAssignment(Property *property, QQmlJS::AST::ExpressionNode *binding);
 
     Property *property;
     QQmlJS::AST::ExpressionNode *binding;

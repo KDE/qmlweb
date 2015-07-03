@@ -39,10 +39,44 @@ QVector<BindingAssignment> &Object::bindingAssignments()
     return m_bindingAssignments;
 }
 
+ValueAssignment::ValueAssignment()
+        : property(0)
+        , objectValue(0)
+        , jsValue(0)
+{
+}
+
+ValueAssignment::ValueAssignment(Property *property, Object *objectValue, QQmlJS::AST::ExpressionNode *jsValue)
+        : property(property)
+        , objectValue(objectValue)
+        , jsValue(jsValue)
+{
+}
+
 ValueAssignment *Object::addValueAssignment()
 {
     m_valueAssignments.append(ValueAssignment());
     return &m_valueAssignments.last();
+}
+
+void ValueAssignment::accept(Visitor *visitor) {
+    visitor->visit(this);
+    if (objectValue) {
+        objectValue->accept(visitor);
+    }
+    visitor->endVisit(this);
+}
+
+BindingAssignment::BindingAssignment(Property *property, QQmlJS::AST::ExpressionNode *binding)
+        : property(0)
+        , binding(0)
+{
+}
+
+BindingAssignment::BindingAssignment()
+        : property(property)
+        , binding(binding)
+{
 }
 
 BindingAssignment *Object::addBindingAssignment()
