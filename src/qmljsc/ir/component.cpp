@@ -37,3 +37,17 @@ Object *Component::object(const QString &id)
     }
     return 0;
 }
+
+void Component::accept(Visitor *visitor) {
+    visitor->visit(this);
+    visitChildren(visitor);
+    visitor->endVisit(this);
+}
+
+void Component::visitChildren(Visitor *visitor) {
+    Object::visitChildren(visitor);
+
+    for (auto i = m_ids.begin(); i != m_ids.end(); i++) {
+        i.value()->accept(visitor);
+    }
+}

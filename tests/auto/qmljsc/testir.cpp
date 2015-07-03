@@ -295,7 +295,7 @@ void TestIR::testAsSymbolTable()
     QVERIFY(ottomanEmpire.member("capital") != state.member("capital"));
 }
 
-class TestVisitor : public Object::Visitor
+class TestVisitor : public Visitor
 {
 public:
     TestVisitor()
@@ -310,10 +310,24 @@ public:
         , lastValueAssigned(0)
     {}
 
+    virtual void visit(Type *type) {
+        currentDepth++;
+    }
     virtual void visit(Object *object)
     {
         currentDepth++;
         objectsVisited++;
+    }
+    virtual void visit(Component *component) {
+        currentDepth++;
+        objectsVisited++;
+    }
+    virtual void visit(Class *_class) {
+        currentDepth++;
+        objectsVisited++;
+    }
+    virtual void visit(Symbol *symbol) {
+        currentDepth++;
     }
     virtual void visit(Property *property)
     {
@@ -343,7 +357,21 @@ public:
         bindingAssignmentsVisited++;
     }
 
+    virtual void endVisit(Type *type)
+    {
+        currentDepth--;
+    }
     virtual void endVisit(Object *object)
+    {
+        currentDepth--;
+    }
+    virtual void endVisit(Component *component) {
+        currentDepth--;
+    }
+    virtual void endVisit(Class *_class) {
+        currentDepth--;
+    }
+    virtual void endVisit(Symbol *symbol)
     {
         currentDepth--;
     }

@@ -24,6 +24,9 @@
 #include <QVector>
 #include <QString>
 
+#include "node.h"
+#include "visitor.h"
+
 namespace QQmlJS {
     namespace AST {
         class ExpressionNode;
@@ -33,10 +36,12 @@ namespace QQmlJS {
 namespace QmlJSc {
 namespace IR {
 
+class Node;
+
 class Type;
 class Object;
 
-struct Symbol {
+struct Symbol : public Node {
     enum Kind {
         Kind_Invalid,
         Kind_Property,
@@ -52,6 +57,11 @@ struct Symbol {
         return 0;
     }
     Kind kind;
+
+    virtual void accept(Visitor *visitor) {
+        visitor->visit(this);
+        visitor->endVisit(this);
+    }
 };
 
 struct Property : public Symbol {
@@ -67,6 +77,12 @@ struct Property : public Symbol {
     bool readOnly :1;
     bool constant :1;
     bool dummy :6;
+
+    virtual void accept(Visitor *visitor) {
+        visitor->visit(this);
+        acceptChild((Node*) objectValue, visitor);
+        visitor->endVisit(this);
+    }
 };
 
 struct Parameter {
@@ -81,6 +97,11 @@ struct Method : public Symbol {
 
     Type *returnType;
     QString name;
+
+    virtual void accept(Visitor *visitor) {
+        visitor->visit(this);
+        visitor->endVisit(this);
+    }
 };
 
 struct Signal : public Symbol {
@@ -88,6 +109,11 @@ struct Signal : public Symbol {
     Signal(QString name);
     QString name;
     QVector<Parameter> parameters;
+
+    virtual void accept(Visitor *visitor) {
+        visitor->visit(this);
+        visitor->endVisit(this);
+    }
 };
 
 } // namespace IR

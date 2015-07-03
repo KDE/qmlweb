@@ -17,6 +17,8 @@
  *
  */
 
+#include "visitor.h"
+
 #include "type.h"
 
 using namespace QmlJSc::IR;
@@ -104,4 +106,22 @@ Symbol *Type::member(const QString &name)
         return m_super->member(name);
     }
     return 0;
+}
+
+void Type::accept(Visitor *visitor) {
+    visitor->visit(this);
+    visitChildren(visitor);
+    visitor->endVisit(this);
+}
+
+void Type::visitChildren(Visitor *visitor) {
+    for (auto i = m_properties.begin(); i != m_properties.end(); i++) {
+        i.value().accept(visitor);
+    }
+    for (auto i = m_methods.begin(); i != m_methods.end(); i++) {
+        i.value().accept(visitor);
+    }
+    for (auto i = m_signals.begin(); i != m_signals.end(); i++) {
+        i.value().accept(visitor);
+    }
 }

@@ -17,6 +17,8 @@
  *
  */
 
+#include "visitor.h"
+
 #include "object.h"
 
 using namespace QmlJSc::IR;
@@ -49,34 +51,20 @@ BindingAssignment *Object::addBindingAssignment()
     return &m_bindingAssignments.last();
 }
 
-void Object::accept(Object::Visitor *visitor)
+void Object::accept(Visitor *visitor)
 {
     visitor->visit(this);
-    for (auto i = m_properties.begin(); i != m_properties.end(); i++) {
-        visitor->visit(&i.value());
-        if (i->objectValue) {
-            i->objectValue->accept(visitor);
-        }
-        visitor->endVisit(&i.value());
-    }
-    for (auto i = m_methods.begin(); i != m_methods.end(); i++) {
-        visitor->visit(&i.value());
-        visitor->endVisit(&i.value());
-    }
-    for (auto i = m_signals.begin(); i != m_signals.end(); i++) {
-        visitor->visit(&i.value());
-        visitor->endVisit(&i.value());
-    }
+    visitChildren(visitor);
+    visitor->endVisit(this);
+}
+
+void Object::visitChildren(Visitor *visitor) {
+    Type::visitChildren(visitor);
+
     for (auto i = m_valueAssignments.begin(); i != m_valueAssignments.end(); i++) {
-        visitor->visit(i);
-        if (i->objectValue) {
-            i->objectValue->accept(visitor);
-        }
-        visitor->endVisit(i);
+        i->accept(visitor);
     }
     for (auto i = m_bindingAssignments.begin(); i != m_bindingAssignments.end(); i++) {
-        visitor->visit(i);
-        visitor->endVisit(i);
+        i->accept(visitor);
     }
-    visitor->endVisit(this);
 }

@@ -30,6 +30,8 @@ class Class : public Type
 public:
     Class();
 
+    virtual void accept(Visitor *visitor);
+
 private:
     Type *m_attached;
 

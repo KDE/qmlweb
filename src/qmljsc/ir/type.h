@@ -20,6 +20,8 @@
 #ifndef TYPE_H
 #define TYPE_H
 
+#include "node.h"
+
 #include "symbol.h"
 
 namespace QQmlJS {
@@ -38,7 +40,7 @@ namespace IR {
  * Type hereby refers to (built in) basic types, types provided by modules and
  * components as well as any objects defined in QML.
  */
-class Type
+class Type : public Node
 {
 public:
     enum Kind {
@@ -64,6 +66,8 @@ public:
 
     void setName(const QString &name);
 
+    virtual void accept(Visitor *visitor);
+
 protected:
     Kind m_kind;
 
@@ -72,6 +76,8 @@ protected:
     QHash<QString, Property> m_properties;
     QHash<QString, Method> m_methods;
     QHash<QString, Signal> m_signals;
+
+    virtual void visitChildren(Visitor *visitor);
 
     /**
      * pointer to the super class or in case of objects the class of the object

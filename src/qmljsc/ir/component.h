@@ -32,6 +32,9 @@ public:
 
     Object *object(const QString &id);
 
+    virtual void accept(Visitor *visitor);
+    virtual void visitChildren(Visitor *visitor);
+
 private:
     QHash<QString, Object*> m_ids;
 

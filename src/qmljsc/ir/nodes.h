@@ -1,6 +1,5 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015 Anton Kreuzkamp <akreuzkamp@web.de>
+ * Copyright (C) 2015  Jan Marker <jan@jangmarker.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,18 +16,15 @@
  *
  */
 
+#ifndef QMLWEB_NODES_H
+#define QMLWEB_NODES_H
+
+#include "node.h"
+
 #include "class.h"
+#include "component.h"
+#include "object.h"
+#include "symbol.h"
+#include "type.h"
 
-using namespace QmlJSc::IR;
-
-Class::Class()
-    : Type()
-{
-    m_kind = Type::Kind_Class;
-}
-
-
-void Class::accept(Visitor *visitor) {
-    visitor->visit(this);
-    visitor->endVisit(this);
-}
+#endif //QMLWEB_NODES_H

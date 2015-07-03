@@ -20,6 +20,8 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include "visitor.h"
+
 #include "type.h"
 
 namespace QQmlJS {
@@ -31,39 +33,62 @@ namespace QQmlJS {
 namespace QmlJSc {
 namespace IR {
 
+class Node;
+
 class Object;
 class Component;
 
-struct ValueAssignment {
+
+
+struct ValueAssignment : public Node {
+
+    ValueAssignment()
+            : property(0)
+            , objectValue(0)
+            , jsValue(0)
+    { }
+
+    ValueAssignment(Property *property, Object *objectValue, QQmlJS::AST::ExpressionNode *jsValue)
+            : property(property)
+            , objectValue(objectValue)
+            , jsValue(jsValue)
+    { }
+
     Property *property;
     Object *objectValue;
     QQmlJS::AST::ExpressionNode *jsValue;
+
+    virtual void accept(Visitor *visitor) {
+        visitor->visit(this);
+        acceptChild((Node*) objectValue, visitor);
+        visitor->endVisit(this);
+    }
 };
 
-struct BindingAssignment {
+struct BindingAssignment : public Node {
+
+    BindingAssignment()
+            : property(0)
+            , binding(0)
+    { }
+
+    BindingAssignment(Property *property, QQmlJS::AST::ExpressionNode *binding)
+            : property(property)
+            , binding(binding)
+    { }
+
     Property *property;
     QQmlJS::AST::ExpressionNode *binding;
+
+    virtual void accept(Visitor *visitor) {
+        visitor->visit(this);
+        visitor->endVisit(this);
+    }
 };
 
 class Object : public Type
 {
 public:
-    class Visitor {
-    public:
-        virtual void visit(Object *object) {}
-        virtual void visit(Property *property) {}
-        virtual void visit(Method *method) {}
-        virtual void visit(Signal *signal) {}
-        virtual void visit(ValueAssignment *valueAssignment) {}
-        virtual void visit(BindingAssignment *bindingAssignment) {}
-
-        virtual void endVisit(Object *object) {}
-        virtual void endVisit(Property *property) {}
-        virtual void endVisit(Method *method) {}
-        virtual void endVisit(Signal *signal) {}
-        virtual void endVisit(ValueAssignment *valueAssignment) {}
-        virtual void endVisit(BindingAssignment *bindingAssignment) {}
-    };
 
     Object();
 
@@ -73,11 +98,14 @@ public:
     ValueAssignment *addValueAssignment();
     BindingAssignment *addBindingAssignment();
 
-    void accept(Visitor *visitor);
+
+    virtual void accept(Visitor *visitor);
 
 protected:
     QVector<ValueAssignment> m_valueAssignments;
     QVector<BindingAssignment> m_bindingAssignments;
+
+    virtual void visitChildren(Visitor *visitor);
 
     /**
      * Refers to the component that contains this object.
