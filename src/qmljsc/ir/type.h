@@ -20,9 +20,13 @@
 #ifndef TYPE_H
 #define TYPE_H
 
+#include <QHash>
+
 #include "node.h"
 
-#include "symbol.h"
+#include "property.h"
+#include "method.h"
+#include "signal.h"
 
 namespace QQmlJS {
     namespace AST {
@@ -43,14 +47,6 @@ namespace IR {
 class Type : public Node
 {
 public:
-    enum Kind {
-        Kind_BasicType,
-        Kind_List,
-        Kind_Class,
-        Kind_Component,
-        Kind_Object,
-    };
-
     Type();
 
     Kind kind();
@@ -58,7 +54,7 @@ public:
     Property *property(const QString &name);
     Method *method(const QString &name);
     Signal *signal(const QString &name);
-    Symbol *member(const QString &name);
+    Node *member(const QString &name);
 
     Property *addProperty(const QString &name);
     Method *addMethod(const QString &name);

@@ -22,7 +22,7 @@
 
 #include <QHash>
 #include <QVector>
-#include <QString>
+
 
 #include "node.h"
 #include "visitor.h"

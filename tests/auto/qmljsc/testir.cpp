@@ -26,6 +26,7 @@
 #include "../../../src/qmljsc/ir/type.h"
 #include "../../../src/qmljsc/ir/class.h"
 #include "../../../src/qmljsc/ir/object.h"
+#include "../../../src/qmljsc/ir/property.h"
 
 // Qt private
 #include <private/qqmljsast_p.h>
@@ -285,13 +286,13 @@ void TestIR::testAdd()
 void TestIR::testAsSymbolTable()
 {
     QVERIFY(ottomanEmpire.member("name"));
-    QCOMPARE(ottomanEmpire.member("name")->kind, Symbol::Kind_Property);
+    QCOMPARE(ottomanEmpire.member("name")->kind, Node::Kind_Property);
     QVERIFY(ottomanEmpire.member("visit"));
-    QCOMPARE(ottomanEmpire.member("visit")->kind, Symbol::Kind_Method);
+    QCOMPARE(ottomanEmpire.member("visit")->kind, Node::Kind_Method);
     QVERIFY(ottomanEmpire.member("warStarted"));
-    QCOMPARE(ottomanEmpire.member("warStarted")->kind, Symbol::Kind_Signal);
-    QCOMPARE(state.member("capital")->kind, Symbol::Kind_Property);
-    QCOMPARE(ottomanEmpire.member("capital")->kind, Symbol::Kind_Method);
+    QCOMPARE(ottomanEmpire.member("warStarted")->kind, Node::Kind_Signal);
+    QCOMPARE(state.member("capital")->kind, Node::Kind_Property);
+    QCOMPARE(ottomanEmpire.member("capital")->kind, Node::Kind_Method);
     QVERIFY(ottomanEmpire.member("capital") != state.member("capital"));
 }
 

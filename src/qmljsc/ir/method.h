@@ -16,44 +16,31 @@
  *
  */
 
-#ifndef QMLWEB_NODE_H
-#define QMLWEB_NODE_H
+#ifndef QMLWEB_METHOD_H
+#define QMLWEB_METHOD_H
+
+#include <QString>
+
+#include "node.h"
 
 namespace QmlJSc {
-    namespace IR {
+namespace IR {
 
-class Visitor;
+class Object;
+class Type;
 
-class Node {
+struct Method : public QmlJSc::IR::Node {
+    Method();
+    Method(const QString &name);
+    Method(QmlJSc::IR::Type *returnType, QString name);
 
-public:
-    enum Kind {
-        Kind_Invalid,
-        Kind_Property,
-        Kind_Method,
-        Kind_Signal,
-        Kind_BasicType,
-        Kind_List,
-        Kind_Class,
-        Kind_Component,
-        Kind_Object
-    };
+    QmlJSc::IR::Type *returnType;
+    QString name;
 
-    template<typename T> T *as()
-    {
-        if (T::kind == kind) {
-            return reinterpret_cast<T>(this);
-        }
-        return 0;
-    }
-
-    virtual void accept(Visitor *visitor) = 0;
-
-    Kind kind;
+    virtual void accept(QmlJSc::IR::Visitor *visitor);
 };
 
-} // namespace IR
-} // namespace QmlJSc
+}
+}
 
-
-#endif //QMLWEB_NODE_H
+#endif //QMLWEB_METHOD_H

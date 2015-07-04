@@ -91,7 +91,7 @@ Signal *Type::signal(const QString &name)
     return 0;
 }
 
-Symbol *Type::member(const QString &name)
+Node *Type::member(const QString &name)
 {
     if (m_properties.contains(name)) {
         return &m_properties[name];

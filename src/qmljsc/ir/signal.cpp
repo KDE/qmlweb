@@ -16,44 +16,24 @@
  *
  */
 
-#ifndef QMLWEB_NODE_H
-#define QMLWEB_NODE_H
+#include "visitor.h"
 
-namespace QmlJSc {
-    namespace IR {
+#include "signal.h"
 
-class Visitor;
+using namespace QmlJSc::IR;
 
-class Node {
+Signal::Signal()
+{
+    QmlJSc::IR::Node::kind = QmlJSc::IR::Node::Kind_Signal;
+}
 
-public:
-    enum Kind {
-        Kind_Invalid,
-        Kind_Property,
-        Kind_Method,
-        Kind_Signal,
-        Kind_BasicType,
-        Kind_List,
-        Kind_Class,
-        Kind_Component,
-        Kind_Object
-    };
+Signal::Signal(QString name)
+        : name(name)
+{
+    QmlJSc::IR::Node::kind = QmlJSc::IR::Node::Kind_Signal;
+}
 
-    template<typename T> T *as()
-    {
-        if (T::kind == kind) {
-            return reinterpret_cast<T>(this);
-        }
-        return 0;
-    }
-
-    virtual void accept(Visitor *visitor) = 0;
-
-    Kind kind;
-};
-
-} // namespace IR
-} // namespace QmlJSc
-
-
-#endif //QMLWEB_NODE_H
+void Signal::accept(QmlJSc::IR::Visitor *visitor) {
+    visitor->visit(this);
+    visitor->endVisit(this);
+}
