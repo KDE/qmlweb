@@ -13,21 +13,31 @@
         this.content = new QWProperty({ type: "list<Pastry>", initialValue: new QWList() });
     }
 
+    Pastry.prototype.bake = function() {
+        console.log("Baking for " + this.bakingTime.get() + " minutes.");
+    }
     function Pastry(parent)
     {
         QWObject.call(this, parent);
 
         this.bakingTime = new QWProperty({ type: QWInt });
+
+        this.bakingFinished = QWSignal();
+
+        this.eat = function() {
+            console.log("mnompf!");
+        }
     }
 
     var Cake = function(parent)
     {
         Pastry.call(this, parent);
 
+        this.containsRawEgg = new QWProperty({ type: Boolean });
     }
     QW_INHERIT(Cake, Pastry);
 
-    QW_INHERIT(Cake, Pastry);
+    QW_INHERIT(Pizza, Pastry);
     function Pizza(parent)
     {
         Pastry.call(this, parent);

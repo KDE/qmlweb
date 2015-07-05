@@ -90,6 +90,9 @@ public:
     Method *addMethod(const QString &name);
     Signal *addSignal(const QString &name);
 
+    Type *super();
+    void setSuper(Type *super);
+
     void setName(const QString &name);
 
     virtual void accept(Visitor *visitor) override;

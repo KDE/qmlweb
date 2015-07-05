@@ -43,6 +43,13 @@ Module::Module(ImportDescription import, QObject *parent)
 {
 }
 
+Module::~Module()
+{
+    foreach (Type *type, m_types) {
+        delete type;
+    }
+}
+
 Module::Status Module::status()
 {
     return m_status;

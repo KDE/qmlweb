@@ -24,7 +24,7 @@
 
 #include "../../../src/qmljsc/compiler.h"
 #include "../../../src/qmljsc/moduleloader.h"
-#include "../../../src/qmljsc/ir/file.h"
+#include "../../../src/qmljsc/ir/module.h"
 
 class TestSymbolTable : public QObject
 {
@@ -43,19 +43,40 @@ void TestSymbolTable::loadModule()
 {
     Compiler c;
 
-    IR::File file;
     const ImportDescription testImportDescription = {ImportDescription::Kind_ModuleImport, "TestModule", 0, 1};
 
     compiler->addIncludePath(":/test/");
-    file.addModule(ModuleLoader::loadModule(testImportDescription));
+    IR::Module *module = ModuleLoader::loadModule(testImportDescription);
+    module->waitForLoaded();
 
-    QVERIFY(file.type("Pastry"));
-    QCOMPARE(file.fullyQualifiedName("Pastry"), QStringLiteral("A.Pastry"));
-    QVERIFY(file.type("Cake"));
-    QCOMPARE(file.fullyQualifiedName("Cake"), QStringLiteral("A.Cake"));
-    QVERIFY(file.type("Pizza"));
-    QCOMPARE(file.fullyQualifiedName("Pizza"), QStringLiteral("A.Pizza"));
-    QVERIFY(!file.type("Printer"));
+    Type *pastry = module->type("Pastry");
+    Type *cake = module->type("Cake");
+    Type *pizza = module->type("Pizza");
+    Type *printer = module->type("Printer");
+
+    QVERIFY(module->status() == Module::Successful);
+    QVERIFY(pastry);
+    QVERIFY(cake);
+    QVERIFY(pizza);
+    QVERIFY(!printer);
+
+    QCOMPARE(pastry->name(), QStringLiteral("Pastry"));
+    QCOMPARE(cake->name(), QStringLiteral("Cake"));
+    QCOMPARE(pizza->name(), QStringLiteral("Pizza"));
+
+    QVERIFY(pastry->property("bakingTime"));
+    QVERIFY(cake->property("containsRawEgg"));
+    QVERIFY(cake->property("bakingTime"));
+    QVERIFY(pizza->property("isCalzone"));
+    QVERIFY(pizza->property("topping"));
+    QVERIFY(!pizza->property("containsRawEgg"));
+
+    QVERIFY(pastry->method("eat"));
+    QVERIFY(pastry->method("bake"));
+    QVERIFY(pizza->method("eat"));
+    QVERIFY(pizza->method("bake"));
+
+    QVERIFY(pizza->signal("bakingFinished"));
 }
 
 void TestSymbolTable::testShortSymbolName()

@@ -53,6 +53,16 @@ Signal *Type::addSignal(const QString &name)
     return &m_signals.insert(name, Signal(name)).value();
 }
 
+Type *Type::super()
+{
+    return m_super;
+}
+
+void Type::setSuper(Type* super)
+{
+    m_super = super;
+}
+
 void Type::setName(const QString &name)
 {
     m_name = name;

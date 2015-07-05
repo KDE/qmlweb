@@ -45,6 +45,7 @@ public:
     };
 
     explicit Module(ImportDescription import, QObject *parent = 0);
+    ~Module();
 
     Status status();
     void waitForLoaded();

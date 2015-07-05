@@ -31,6 +31,10 @@
 
 namespace QmlJSc {
 
+namespace IR {
+    class Class;
+}
+
 /**
  * This class parses the javascript source of a module and analyses it for
  * class definitions, properties, methods, etc. to create a Module object.
@@ -63,16 +67,27 @@ private:
     void endVisit(QQmlJS::AST::FunctionExpression*) override;
     bool visit(QQmlJS::AST::FunctionDeclaration*) override;
     void endVisit(QQmlJS::AST::FunctionDeclaration*) override;
+    bool visit(QQmlJS::AST::BinaryExpression*) override;
+    bool visit(QQmlJS::AST::VariableDeclaration*) override;
     bool visit(QQmlJS::AST::CallExpression *call) override;
 
+    void findModuleRegistration(QQmlJS::AST::CallExpression *call);
+    void findInheritance(QQmlJS::AST::CallExpression *call);
+
+    void findPropertyDefinition(QQmlJS::AST::BinaryExpression *expr);
+    void findMethodDefinition(QQmlJS::AST::BinaryExpression *expr);
+    void findSignalDefinition(QQmlJS::AST::BinaryExpression *expr);
+
     void finalizeParse();
+
+    IR::Class *getPreliminaryClass(const QStringRef &name);
 
     static QHash<IR::ImportDescription, IR::Module*> s_loadedModules;
 
     IR::Module *m_module;
-    int m_functionDepth;
-    QStringRef m_currentFunction;
-    QHash<QString, QVector<QString>> m_functionProperties;
+    QHash<QStringRef, QStringRef> m_inheritancies;
+    QVector<QQmlJS::AST::FunctionExpression *> m_currentFunctionStack;
+    QHash<QStringRef, IR::Class *> m_preliminaryClasses;
     QHash<QString, QStringRef> m_typesToFunctionsMap;
     QString m_moduleFileName;
 };
