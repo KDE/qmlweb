@@ -22,6 +22,7 @@
 
 #include <QHash>
 #include <QVector>
+#include <QString>
 
 namespace QQmlJS {
     namespace AST {
