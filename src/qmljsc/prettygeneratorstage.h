@@ -22,12 +22,12 @@
 #include <private/qqmljsastvisitor_p.h>
 #include <private/qqmljsast_p.h>
 
-#include "pipelinestage.h"
+#include "compilerpass.h"
 
 
 namespace QmlJSc {
 
-class PrettyGeneratorStage : public PipelineStage, public QQmlJS::AST::Visitor
+class PrettyGeneratorStage : public CompilerPass, public QQmlJS::AST::Visitor
 {
  Q_OBJECT
 

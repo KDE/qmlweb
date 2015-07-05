@@ -16,52 +16,42 @@
  *
  */
 
-#ifndef PIPELINESTAGE_H
-#define PIPELINESTAGE_H
+#ifndef PIPELINE_H
+#define PIPELINE_H
 
 #include <QtCore/QObject>
+#include <QtCore/QLinkedList>
+#include <QtCore/QUrl>
 #include <QtCore/QVariant>
 
 #include "error.h"
 
-#include <private/qqmljsast_p.h>
-
-Q_DECLARE_METATYPE(QQmlJS::AST::UiProgram*)
-
 namespace QmlJSc {
 
-class Pipeline;
+class CompilerPass;
 
-class PipelineStage : public QObject
+class CompilerPipeline : public QObject
 {
-  Q_OBJECT
+ Q_OBJECT
 
 public:
-  PipelineStage();
+ CompilerPipeline();
+ ~CompilerPipeline();
 
-  void setPipeline(Pipeline* pipeline);
-  Pipeline* pipeline(void);
+ void appendCompilerPass(CompilerPass *stage);
 
-  void connectToSuccessor(PipelineStage *successor) {
-    connect(this, SIGNAL(finished(QString)), successor, SLOT(process(QString)));
-    connect(this, SIGNAL(finished(QQmlJS::AST::UiProgram*)), successor, SLOT(process(QQmlJS::AST::UiProgram*)));
-  }
+ void compile(QString &file);
 
-public slots:
-  virtual void process(QString) { failBecauseOfWrongType(); };
-  virtual void process(QQmlJS::AST::UiProgram*) { failBecauseOfWrongType(); };
+ QUrl file() const;
 
 signals:
-  void finished(QString);
-  void finished(QQmlJS::AST::UiProgram*);
+ void compileFinished(QString output);
 
 private:
-  void failBecauseOfWrongType();
-
-private:
-  Pipeline* m_pipeline;
+ QLinkedList<CompilerPass *> m_pipeline;
+ QString m_file;
 };
 
 }
 
-#endif // PIPELINESTAGE_H
+#endif // PIPELINE_H

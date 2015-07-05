@@ -4,8 +4,8 @@ set(libqmljsc_srcs
   compiler.cpp
   error.h
   parserstage.cpp
-  pipeline.cpp
-  pipelinestage.cpp
+  compilerpipeline.cpp
+  compilerpass.cpp
   prettygeneratorstage.cpp
   symboltable.cpp
 

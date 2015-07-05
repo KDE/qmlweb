@@ -26,11 +26,11 @@
 #include <private/qqmljsparser_p.h>
 
 
-#include "pipelinestage.h"
+#include "compilerpass.h"
 
 namespace QmlJSc {
 
-class ParserStage : public PipelineStage
+class ParserStage : public CompilerPass
 {
   Q_OBJECT
 

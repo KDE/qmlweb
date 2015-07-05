@@ -24,7 +24,7 @@
 
 #include <qdir.h>
 
-#include "../../../src/qmljsc/pipeline.h"
+#include "../../../src/qmljsc/compilerpipeline.h"
 #include "../../../src/qmljsc/parserstage.h"
 #include "../../../src/qmljsc/prettygeneratorstage.h"
 #include "../../../src/qmljsc/compiler.h"
@@ -67,9 +67,9 @@ void TestPrettyGeneratorStage::printout()
     QTextStream jsFileStream(&jsFile);
     QString jsFileContent = jsFileStream.readAll();
 
-    QmlJSc::Pipeline* pipeline = new QmlJSc::Pipeline();
-    pipeline->appendStage(new QmlJSc::ParserStage());
-    pipeline->appendStage(new QmlJSc::PrettyGeneratorStage());
+    QmlJSc::CompilerPipeline * pipeline = new QmlJSc::CompilerPipeline();
+    pipeline->appendCompilerPass(new QmlJSc::ParserStage());
+    pipeline->appendCompilerPass(new QmlJSc::PrettyGeneratorStage());
 
     QSignalSpy pipelineFinished(pipeline, SIGNAL(compileFinished(QString)));
 

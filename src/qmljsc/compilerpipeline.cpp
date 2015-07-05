@@ -18,27 +18,27 @@
 
 #include <QtCore/QFile>
 
-#include "pipelinestage.h"
+#include "compilerpass.h"
 
-#include "pipeline.h"
+#include "compilerpipeline.h"
 
 using namespace QmlJSc;
 
-Pipeline::Pipeline()
+CompilerPipeline::CompilerPipeline()
 {
 
 }
 
-Pipeline::~Pipeline()
+CompilerPipeline::~CompilerPipeline()
 {
 
 }
-QUrl Pipeline::file() const
+QUrl CompilerPipeline::file() const
 {
     return m_file;
 }
 
-void Pipeline::compile(QString& filePath)
+void CompilerPipeline::compile(QString& filePath)
 {
     m_file = filePath;
 
@@ -57,11 +57,11 @@ void Pipeline::compile(QString& filePath)
     m_pipeline.first()->process(qmlCode);
 }
 
-void Pipeline::appendStage(PipelineStage* stage)
+void CompilerPipeline::appendCompilerPass(CompilerPass *stage)
 {
     Q_ASSERT(stage);
 
-    PipelineStage* lastStage = 0;
+    CompilerPass * lastStage = 0;
     if (m_pipeline.size() > 0) {
         lastStage = m_pipeline.last();
         disconnect(lastStage, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));

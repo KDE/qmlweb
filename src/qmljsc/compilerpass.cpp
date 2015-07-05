@@ -16,24 +16,24 @@
  *
  */
 
-#include "pipelinestage.h"
+#include "compilerpass.h"
 
 using namespace QmlJSc;
 
-PipelineStage::PipelineStage(): QObject()
+CompilerPass::CompilerPass(): QObject()
 {
 
 }
 
-void PipelineStage::setPipeline(Pipeline* pipeline) {
-   m_pipeline = pipeline;
+void CompilerPass::setPipeline(CompilerPipeline * pipeline) {
+    m_pipeline = pipeline;
 }
 
-Pipeline* PipelineStage::pipeline() {
+CompilerPipeline* CompilerPass::pipeline() {
     return m_pipeline;
 }
 
-void PipelineStage::failBecauseOfWrongType() {
+void CompilerPass::failBecauseOfWrongType() {
     Q_STATIC_ASSERT_X(1, "The type is not supported by this stage, is the stage order correct?");
 }
 
