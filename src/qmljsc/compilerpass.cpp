@@ -16,6 +16,8 @@
  *
  */
 
+#include "compilerpipeline.h"
+
 #include "compilerpass.h"
 
 using namespace QmlJSc;
@@ -23,14 +25,6 @@ using namespace QmlJSc;
 CompilerPass::CompilerPass(): QObject()
 {
 
-}
-
-void CompilerPass::setPipeline(CompilerPipeline * pipeline) {
-    m_pipeline = pipeline;
-}
-
-CompilerPipeline* CompilerPass::pipeline() {
-    return m_pipeline;
 }
 
 void CompilerPass::failBecauseOfWrongType() {

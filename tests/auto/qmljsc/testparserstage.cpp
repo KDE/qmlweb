@@ -26,6 +26,7 @@
 #include <QtCore/QDebug>
 #include <qdir.h>
 
+#include "../../../src/qmljsc/compilerpipeline.h"
 #include "../../../src/qmljsc/parserstage.h"
 
 class TestParserStage : public QObject
@@ -40,16 +41,20 @@ private slots:
 
 void TestParserStage::working()
 {
-    QmlJSc::ParserStage stage;
+    QmlJSc::CompilerPipeline pipeline;
+
+    QmlJSc::ParserStage* stage = new QmlJSc::ParserStage();
+    pipeline.appendCompilerPass(stage);
+
     QFile minimalTestFile(":/test/minimal.qml");
     minimalTestFile.open(QFile::ReadOnly);
     QTextStream minimalTestFileStream(&minimalTestFile);
     QString minimalTestQml = minimalTestFileStream.readAll();
 
-    QSignalSpy spy(&stage, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
+    QSignalSpy spy(stage, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
 
     try {
-        stage.process(minimalTestQml);
+        stage->process(minimalTestQml);
     } catch (QmlJSc::Error& error) {
         QFAIL("no error should occur");
     }
@@ -77,13 +82,16 @@ void TestParserStage::working()
 
 void TestParserStage::not_working()
 {
-    QmlJSc::ParserStage stage;
+    QmlJSc::CompilerPipeline pipeline;
+
+    QmlJSc::ParserStage* stage = new QmlJSc::ParserStage();
+    pipeline.appendCompilerPass(stage);
     QString invalidQml = "not valid QML";
 
-    QSignalSpy spy(&stage, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
+    QSignalSpy spy(stage, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
 
     try {
-        stage.process(invalidQml);
+        stage->process(invalidQml);
         QFAIL("an parse error should have been thrown");
     } catch (QmlJSc::Error& error) {
         QCOMPARE(error.type(), QmlJSc::Error::ParseError);

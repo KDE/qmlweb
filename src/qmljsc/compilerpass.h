@@ -39,9 +39,6 @@ class CompilerPass : public QObject
 public:
   CompilerPass();
 
-  void setPipeline(CompilerPipeline * pipeline);
-  CompilerPipeline * pipeline(void);
-
   void connectToSuccessor(CompilerPass *successor) {
     connect(this, SIGNAL(finished(QString)), successor, SLOT(process(QString)));
     connect(this, SIGNAL(finished(QQmlJS::AST::UiProgram*)), successor, SLOT(process(QQmlJS::AST::UiProgram*)));
@@ -57,9 +54,6 @@ signals:
 
 private:
   void failBecauseOfWrongType();
-
-private:
-  CompilerPipeline * m_pipeline;
 };
 
 }

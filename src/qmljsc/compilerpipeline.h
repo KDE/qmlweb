@@ -38,6 +38,10 @@ public:
  CompilerPipeline();
  ~CompilerPipeline();
 
+ /**
+  * Appends @param stage to the pipeline and takes the
+  * ownership of @param stage
+  */
  void appendCompilerPass(CompilerPass *stage);
 
  void compile(QString &file);

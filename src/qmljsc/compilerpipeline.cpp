@@ -31,7 +31,9 @@ CompilerPipeline::CompilerPipeline()
 
 CompilerPipeline::~CompilerPipeline()
 {
-
+    foreach (CompilerPass* compilerPass, m_pipeline) {
+        delete compilerPass;
+    }
 }
 QUrl CompilerPipeline::file() const
 {
@@ -68,7 +70,6 @@ void CompilerPipeline::appendCompilerPass(CompilerPass *stage)
     }
 
     m_pipeline.append(stage);
-    stage->setPipeline(this);
 
     if (lastStage) {
         lastStage->connectToSuccessor(stage);

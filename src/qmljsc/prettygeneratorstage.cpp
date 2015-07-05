@@ -19,6 +19,7 @@
 #include <QtCore/QTextStream>
 
 #include "compiler.h"
+#include "compilerpipeline.h"
 
 #include "prettygeneratorstage.h"
 #include "symboltable.h"

@@ -67,20 +67,18 @@ void TestPrettyGeneratorStage::printout()
     QTextStream jsFileStream(&jsFile);
     QString jsFileContent = jsFileStream.readAll();
 
-    QmlJSc::CompilerPipeline * pipeline = new QmlJSc::CompilerPipeline();
-    pipeline->appendCompilerPass(new QmlJSc::ParserStage());
-    pipeline->appendCompilerPass(new QmlJSc::PrettyGeneratorStage());
+    QmlJSc::CompilerPipeline pipeline;
+    pipeline.appendCompilerPass(new QmlJSc::ParserStage());
+    pipeline.appendCompilerPass(new QmlJSc::PrettyGeneratorStage());
 
-    QSignalSpy pipelineFinished(pipeline, SIGNAL(compileFinished(QString)));
+    QSignalSpy pipelineFinished(&pipeline, SIGNAL(compileFinished(QString)));
 
-    pipeline->compile(qmlFileUrl);
+    pipeline.compile(qmlFileUrl);
 
     QCOMPARE(pipelineFinished.count(), 1);
 
     QString compilerOutput = pipelineFinished.takeFirst().takeFirst().value<QString>();
     QCOMPARE(compilerOutput, jsFileContent);
-
-    delete pipeline;
 }
 
 QTEST_MAIN(TestPrettyGeneratorStage)
