@@ -80,7 +80,7 @@ void TestParserStage::not_working()
     QmlJSc::ParserStage stage;
     QString invalidQml = "not valid QML";
 
-    QSignalSpy spy(&stage, SIGNAL(finished(QVariant)));
+    QSignalSpy spy(&stage, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
 
     try {
         stage.process(invalidQml);
