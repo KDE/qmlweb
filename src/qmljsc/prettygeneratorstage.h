@@ -23,6 +23,7 @@
 #include <private/qqmljsast_p.h>
 
 #include "compilerpass.h"
+#include "symboltable.h"
 
 
 namespace QmlJSc {
@@ -32,7 +33,7 @@ class PrettyGeneratorStage : public CompilerPass, public QQmlJS::AST::Visitor
  Q_OBJECT
 
 public:
- PrettyGeneratorStage();
+ PrettyGeneratorStage(SymbolTable*);
 
  bool visit(QQmlJS::AST::UiProgram*) override;
  bool visit(QQmlJS::AST::UiObjectDefinition*) override;
@@ -49,6 +50,8 @@ private:
  int m_levelSpaceCount = 4;
  QTextStream m_output;
  bool m_componentRoot;
+
+ SymbolTable* m_symbols;
 
 };
 

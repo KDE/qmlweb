@@ -26,22 +26,6 @@ class TestCompiler
     Q_OBJECT
 
 private slots:
-    void singleton() {
-        QmlJSc::Compiler* qmljsc = new QmlJSc::Compiler();
-        QCOMPARE(compiler, qmljsc);
-        delete qmljsc;
-    }
-
-    void nullAfterDelete() {
-        QmlJSc::Compiler* qmljsc = new QmlJSc::Compiler();
-        delete qmljsc;
-        QCOMPARE(compiler, static_cast<QmlJSc::Compiler*>(0));
-    }
-
-    void symbolTable() {
-        QmlJSc::Compiler* qmljsc = new QmlJSc::Compiler();
-        QVERIFY(qmljsc->symbols());
-    }
 };
 
 QTEST_MAIN(TestCompiler)

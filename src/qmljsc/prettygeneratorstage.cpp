@@ -41,7 +41,9 @@ const QString TEMPLATE_COMPONENT_FOOT = QStringLiteral(
 );
 
 
-PrettyGeneratorStage::PrettyGeneratorStage() : m_output()
+PrettyGeneratorStage::PrettyGeneratorStage(SymbolTable* symbolTable)
+        : m_symbols(symbolTable)
+        , m_output()
 {
     m_componentRoot = false;
     m_output.setString(new QString());
@@ -64,7 +66,7 @@ bool PrettyGeneratorStage::visit(QQmlJS::AST::UiObjectDefinition* objectDefiniti
 {
     if (m_componentRoot) {
         const QString objectIdentifier = objectDefinition->qualifiedTypeNameId->name.toString();
-        const QString objectFqi = compiler->symbols()->findType(ModuleImports(), objectIdentifier);
+        const QString objectFqi = m_symbols->findType(ModuleImports(), objectIdentifier);
 
         m_output << TEMPLATE_COMPONENT_HEAD.arg(RUNTIME_INHERIT)
                                            .arg("__comp")

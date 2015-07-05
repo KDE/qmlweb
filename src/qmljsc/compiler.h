@@ -38,11 +38,9 @@ public:
     virtual ~Compiler();
 
     static Compiler* instance() { return s_self; }
-    SymbolTable* symbols() { return m_symbols; }
 
 private:
     static Compiler* s_self;
-    SymbolTable* m_symbols;
 };
 
 }
