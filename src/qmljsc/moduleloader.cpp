@@ -36,7 +36,7 @@
 #include <private/qqmljsparser_p.h>
 
 using namespace QmlJSc;
-using namespace QQmlJS::AST;
+using namespace QQmlJS;
 
 QHash<IR::ImportDescription, IR::Module*> ModuleLoader::s_loadedModules;
 
@@ -134,7 +134,7 @@ void ModuleLoader::doLoad()
                     err);
     }
 
-    QQmlJS::AST::Program *ast = cast<Program*>(parser->rootNode());
+    AST::Program *ast = AST::cast<AST::Program *>(parser->rootNode());
 
     ast->accept(this);
 
@@ -144,59 +144,59 @@ void ModuleLoader::doLoad()
     m_module->m_waitCondition.wakeAll(); // Wake up threads, that wait to access this module.
 }
 
-bool ModuleLoader::visit(QQmlJS::AST::FunctionExpression* func)
+bool ModuleLoader::visit(AST::FunctionExpression* func)
 {
     m_currentFunctionStack << func;
     return true;
 }
-void ModuleLoader::endVisit(QQmlJS::AST::FunctionExpression* func)
+void ModuleLoader::endVisit(AST::FunctionExpression* func)
 {
     m_currentFunctionStack.removeLast();
 }
 
-bool ModuleLoader::visit(QQmlJS::AST::FunctionDeclaration* func)
+bool ModuleLoader::visit(AST::FunctionDeclaration* func)
 {
     m_currentFunctionStack << func;
     return true;
 }
-void ModuleLoader::endVisit(QQmlJS::AST::FunctionDeclaration* func)
+void ModuleLoader::endVisit(AST::FunctionDeclaration* func)
 {
     m_currentFunctionStack.removeLast();
 }
 
-bool ModuleLoader::visit(QQmlJS::AST::BinaryExpression* expr)
+bool ModuleLoader::visit(AST::BinaryExpression* expr)
 {
     // --- Might be a property, a method, a signal, a class or uninteresting.
 
-    if (expr->right->kind == Node::Kind_FunctionExpression) {
+    if (expr->right->kind == AST::Node::Kind_FunctionExpression) {
         findMethodDefinition(expr);
 
 
         // Each function expression is a potential class definition. Give it
         // a name, so we may reference it later on.
         QStringRef name;
-        if (expr->left->kind == Node::Kind_FieldMemberExpression) {
-            name = cast<FieldMemberExpression *>(expr->left)->name;
-        } else if (expr->left->kind == Node::Kind_FunctionExpression) {
-            name = cast<IdentifierExpression *>(expr->left)->name;
+        if (expr->left->kind == AST::Node::Kind_FieldMemberExpression) {
+            name = AST::cast<AST::FieldMemberExpression *>(expr->left)->name;
+        } else if (expr->left->kind == AST::Node::Kind_FunctionExpression) {
+            name = AST::cast<AST::IdentifierExpression *>(expr->left)->name;
         } else {
             return true;
         }
 
-        cast<FunctionExpression *>(expr->right)->name = name;
+        AST::cast<AST::FunctionExpression *>(expr->right)->name = name;
 
-    } else if (expr->right->kind == Node::Kind_CallExpression) {
+    } else if (expr->right->kind == AST::Node::Kind_CallExpression) {
         findSignalDefinition(expr);
-    } else if (expr->right->kind == Node::Kind_NewMemberExpression) {
+    } else if (expr->right->kind == AST::Node::Kind_NewMemberExpression) {
         findPropertyDefinition(expr);
     }
 
     return true;
 }
 
-bool ModuleLoader::visit(VariableDeclaration *var)
+bool ModuleLoader::visit(AST::VariableDeclaration *var)
 {
-    FunctionExpression *func = cast<FunctionExpression *>(var->expression);
+    AST::FunctionExpression *func = AST::cast<AST::FunctionExpression *>(var->expression);
     if (!func) {
         return true;
     }
@@ -207,25 +207,25 @@ bool ModuleLoader::visit(VariableDeclaration *var)
     return true;
 }
 
-bool ModuleLoader::visit(CallExpression *call)
+bool ModuleLoader::visit(AST::CallExpression *call)
 {
-    if (call->base->kind == Node::Kind_FieldMemberExpression) {
+    if (call->base->kind == AST::Node::Kind_FieldMemberExpression) {
         findModuleRegistration(call);
-    } else if (call->base->kind == Node::Kind_IdentifierExpression) {
+    } else if (call->base->kind == AST::Node::Kind_IdentifierExpression) {
         findInheritance(call);
     }
 
     return true;
 }
 
-void ModuleLoader::findModuleRegistration(CallExpression *call)
+void ModuleLoader::findModuleRegistration(AST::CallExpression *call)
 {
-    FieldMemberExpression *base = cast<FieldMemberExpression *>(call->base);
+    AST::FieldMemberExpression *base = AST::cast<AST::FieldMemberExpression *>(call->base);
     if (!base || base->name != QStringLiteral("registerModule")) {
         return;
     }
 
-    IdentifierExpression *probablyEngine = cast<IdentifierExpression *>(base->base);
+    AST::IdentifierExpression *probablyEngine = AST::cast<AST::IdentifierExpression *>(base->base);
     if (!probablyEngine || probablyEngine->name != QStringLiteral("__engine")) {
         return;
     }
@@ -241,7 +241,7 @@ void ModuleLoader::findModuleRegistration(CallExpression *call)
         throw error;
     }
 
-    ObjectLiteral *moduleInfoLiteral = cast<ObjectLiteral *>(call->arguments->expression);
+    AST::ObjectLiteral *moduleInfoLiteral = AST::cast<AST::ObjectLiteral *>(call->arguments->expression);
     if (!moduleInfoLiteral) {
         Error error(Error::ModuleImportError, "Malformed registerModule call: Wrong argument type provided. Expected Object Literal.");
         error.setFile(m_moduleFileName);
@@ -250,10 +250,10 @@ void ModuleLoader::findModuleRegistration(CallExpression *call)
         throw error;
     }
 
-    PropertyAssignmentList *assignment = moduleInfoLiteral->properties;
+    AST::PropertyAssignmentList *assignment = moduleInfoLiteral->properties;
 
     while(assignment) {
-        PropertyNameAndValue *nameAndValue = cast<PropertyNameAndValue*>(assignment->assignment);
+        AST::PropertyNameAndValue *nameAndValue = AST::cast<AST::PropertyNameAndValue*>(assignment->assignment);
 
         if (!nameAndValue) {
             Error error(Error::ModuleImportError, "Malformed registerModule call: Invalid type specification.");
@@ -263,7 +263,7 @@ void ModuleLoader::findModuleRegistration(CallExpression *call)
             throw error;
         }
 
-        IdentifierExpression *functionId = cast<IdentifierExpression*>(nameAndValue->value);
+        AST::IdentifierExpression *functionId = AST::cast<AST::IdentifierExpression*>(nameAndValue->value);
         if (!functionId) {
             Error error(Error::ModuleImportError, "Malformed registerModule call: Can't recognize function identifier. Please use a simple identifier as value on type object.");
             error.setFile(m_moduleFileName);
@@ -277,9 +277,9 @@ void ModuleLoader::findModuleRegistration(CallExpression *call)
     }
 }
 
-void ModuleLoader::findInheritance(QQmlJS::AST::CallExpression *call)
+void ModuleLoader::findInheritance(AST::CallExpression *call)
 {
-    IdentifierExpression *maybeInheritance = cast<IdentifierExpression *>(call->base);
+    AST::IdentifierExpression *maybeInheritance = AST::cast<AST::IdentifierExpression *>(call->base);
     if (!maybeInheritance || maybeInheritance->name != QStringLiteral("QW_INHERIT")) {
         return;
     }
@@ -295,8 +295,8 @@ void ModuleLoader::findInheritance(QQmlJS::AST::CallExpression *call)
         throw error;
     }
 
-    IdentifierExpression *constructor = cast<IdentifierExpression *>(call->arguments->expression);
-    IdentifierExpression *baseClass = cast<IdentifierExpression *>(call->arguments->next->expression);
+    AST::IdentifierExpression *constructor = AST::cast<AST::IdentifierExpression *>(call->arguments->expression);
+    AST::IdentifierExpression *baseClass = AST::cast<AST::IdentifierExpression *>(call->arguments->next->expression);
     if (!constructor || !baseClass) {
         Error error(Error::ModuleImportError, "Malformed QW_INHERIT call: Wrong argument types provided. Expected two identifier expressions.");
         error.setFile(m_moduleFileName);
@@ -308,20 +308,20 @@ void ModuleLoader::findInheritance(QQmlJS::AST::CallExpression *call)
     m_inheritancies.insert(constructor->name, baseClass->name);
 }
 
-void ModuleLoader::findPropertyDefinition(QQmlJS::AST::BinaryExpression *expr)
+void ModuleLoader::findPropertyDefinition(AST::BinaryExpression *expr)
 {
     if (expr->op != 3) { // 3 stands for "="
         return;
     }
 
-    FieldMemberExpression *lValue = cast<FieldMemberExpression *>(expr->left);
-    NewMemberExpression *rValue = cast<NewMemberExpression *>(expr->right);
+    AST::FieldMemberExpression *lValue = AST::cast<AST::FieldMemberExpression *>(expr->left);
+    AST::NewMemberExpression *rValue = AST::cast<AST::NewMemberExpression *>(expr->right);
     if (!rValue || !lValue) {
         return;
     }
 
-    IdentifierExpression *constructor = cast<IdentifierExpression *>(rValue->base);
-    ThisExpression *maybeThis = cast<ThisExpression *>(lValue->base);
+    AST::IdentifierExpression *constructor = AST::cast<AST::IdentifierExpression *>(rValue->base);
+    AST::ThisExpression *maybeThis = AST::cast<AST::ThisExpression *>(lValue->base);
     if (!constructor || constructor->name != QStringLiteral("QWProperty") || !maybeThis) {
         return;
     }
@@ -331,25 +331,25 @@ void ModuleLoader::findPropertyDefinition(QQmlJS::AST::BinaryExpression *expr)
     IR::Property *property = c->addProperty(lValue->name.toString());
 }
 
-void ModuleLoader::findMethodDefinition(QQmlJS::AST::BinaryExpression *expr)
+void ModuleLoader::findMethodDefinition(AST::BinaryExpression *expr)
 {
     if (expr->op != 3) { // 3 stands for "="
         return;
     }
 
-    FieldMemberExpression *lValue = cast<FieldMemberExpression *>(expr->left);
-    FunctionExpression *rValue = cast<FunctionExpression *>(expr->right);
+    AST::FieldMemberExpression *lValue = AST::cast<AST::FieldMemberExpression *>(expr->left);
+    AST::FunctionExpression *rValue = AST::cast<AST::FunctionExpression *>(expr->right);
     IR::Class *c;
 
-    if (lValue->base->kind == Node::Kind_ThisExpression) {
+    if (lValue->base->kind == AST::Node::Kind_ThisExpression) {
         c = getPreliminaryClass(m_currentFunctionStack.last()->name);
     } else {
-        FieldMemberExpression *first = cast<FieldMemberExpression *>(lValue->base);
+        AST::FieldMemberExpression *first = AST::cast<AST::FieldMemberExpression *>(lValue->base);
         if (!first || first->name != QStringLiteral("prototype")) {
             return;
         }
 
-        IdentifierExpression *constructor = cast<IdentifierExpression *>(first->base);
+        AST::IdentifierExpression *constructor = AST::cast<AST::IdentifierExpression *>(first->base);
         if (!first) {
             return;
         }
@@ -362,20 +362,20 @@ void ModuleLoader::findMethodDefinition(QQmlJS::AST::BinaryExpression *expr)
     IR::Method *method = c->addMethod(lValue->name.toString());
 }
 
-void ModuleLoader::findSignalDefinition(QQmlJS::AST::BinaryExpression *expr)
+void ModuleLoader::findSignalDefinition(AST::BinaryExpression *expr)
 {
     if (expr->op != 3) { // 3 stands for "="
         return;
     }
 
-    FieldMemberExpression *lValue = cast<FieldMemberExpression *>(expr->left);
-    CallExpression *rValue = cast<CallExpression *>(expr->right);
+    AST::FieldMemberExpression *lValue = AST::cast<AST::FieldMemberExpression *>(expr->left);
+    AST::CallExpression *rValue = AST::cast<AST::CallExpression *>(expr->right);
     if (!rValue || !lValue) {
         return;
     }
 
-    IdentifierExpression *maybeSignal = cast<IdentifierExpression *>(rValue->base);
-    ThisExpression *maybeThis = cast<ThisExpression *>(lValue->base);
+    AST::IdentifierExpression *maybeSignal = AST::cast<AST::IdentifierExpression *>(rValue->base);
+    AST::ThisExpression *maybeThis = AST::cast<AST::ThisExpression *>(lValue->base);
     if (!maybeSignal || maybeSignal->name != QStringLiteral("QWSignal") || !maybeThis) {
         return;
     }
