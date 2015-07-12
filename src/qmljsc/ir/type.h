@@ -62,7 +62,7 @@ public:
 
     void setName(const QString &name);
 
-    virtual void accept(Visitor *visitor);
+    virtual void accept(Visitor *visitor) override;
 
 protected:
     Kind m_kind;

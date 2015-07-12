@@ -50,7 +50,7 @@ struct Property : public QmlJSc::IR::Node {
     bool constant :1;
     bool dummy :6;
 
-    virtual void accept(QmlJSc::IR::Visitor *visitor);
+    virtual void accept(QmlJSc::IR::Visitor *visitor) override;
 };
 
 }

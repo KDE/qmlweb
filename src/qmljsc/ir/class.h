@@ -30,7 +30,7 @@ class Class : public Type
 public:
     Class();
 
-    virtual void accept(Visitor *visitor);
+    virtual void accept(Visitor *visitor) override;
 
 private:
     Type *m_attached;

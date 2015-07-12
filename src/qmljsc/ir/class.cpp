@@ -17,6 +17,7 @@
  *
  */
 
+#include "visitor.h"
 #include "class.h"
 
 using namespace QmlJSc::IR;

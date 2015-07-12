@@ -50,7 +50,7 @@ struct ValueAssignment : public Node {
     Object *objectValue;
     QQmlJS::AST::ExpressionNode *jsValue;
 
-    virtual void accept(Visitor *visitor);
+    virtual void accept(Visitor *visitor) override;
 };
 
 struct BindingAssignment : public Node {
@@ -62,10 +62,7 @@ struct BindingAssignment : public Node {
     Property *property;
     QQmlJS::AST::ExpressionNode *binding;
 
-    virtual void accept(Visitor *visitor) {
-        visitor->visit(this);
-        visitor->endVisit(this);
-    }
+    virtual void accept(Visitor *visitor) override;
 };
 
 class Object : public Type
@@ -80,14 +77,13 @@ public:
     ValueAssignment *addValueAssignment();
     BindingAssignment *addBindingAssignment();
 
-
-    virtual void accept(Visitor *visitor);
+    virtual void accept(Visitor *visitor) override;
 
 protected:
     QVector<ValueAssignment> m_valueAssignments;
     QVector<BindingAssignment> m_bindingAssignments;
 
-    virtual void visitChildren(Visitor *visitor);
+    virtual void visitChildren(Visitor *visitor) override;
 
     /**
      * Refers to the component that contains this object.

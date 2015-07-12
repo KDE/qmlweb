@@ -40,7 +40,7 @@ struct Signal : public QmlJSc::IR::Node {
     QString name;
     QVector<Parameter> parameters;
 
-    virtual void accept(QmlJSc::IR::Visitor *visitor);
+    virtual void accept(QmlJSc::IR::Visitor *visitor) override;
 };
 
 }

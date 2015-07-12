@@ -37,7 +37,7 @@ struct Method : public QmlJSc::IR::Node {
     QmlJSc::IR::Type *returnType;
     QString name;
 
-    virtual void accept(QmlJSc::IR::Visitor *visitor);
+    virtual void accept(QmlJSc::IR::Visitor *visitor) override;
 };
 
 }

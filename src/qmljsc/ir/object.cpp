@@ -79,6 +79,11 @@ BindingAssignment::BindingAssignment()
 {
 }
 
+void BindingAssignment::accept(Visitor *visitor) {
+    visitor->visit(this);
+    visitor->endVisit(this);
+}
+
 BindingAssignment *Object::addBindingAssignment()
 {
     m_bindingAssignments.append(BindingAssignment());
