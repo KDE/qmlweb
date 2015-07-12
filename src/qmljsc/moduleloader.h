@@ -81,6 +81,7 @@ private:
     void finalizeParse();
 
     IR::Class *getPreliminaryClass(const QStringRef &name);
+    void assert(bool condition, const QQmlJS::AST::SourceLocation &token, QString errorMessage);
 
     static QHash<IR::ImportDescription, IR::Module*> s_loadedModules;
 
