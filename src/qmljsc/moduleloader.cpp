@@ -242,35 +242,23 @@ void ModuleLoader::findModuleRegistration(AST::CallExpression *call)
     }
 
     AST::ObjectLiteral *moduleInfoLiteral = AST::cast<AST::ObjectLiteral *>(call->arguments->expression);
-    if (!moduleInfoLiteral) {
-        Error error(Error::ModuleImportError, "Malformed registerModule call: Wrong argument type provided. Expected Object Literal.");
-        error.setFile(m_moduleFileName);
-        error.setLine(call->lparenToken.startLine);
-        error.setColumn(call->lparenToken.startColumn);
-        throw error;
-    }
+    assert(moduleInfoLiteral, call->lparenToken,
+           "Malformed registerModule call: Wrong argument type provided. Expected Object Literal.");
 
     AST::PropertyAssignmentList *assignment = moduleInfoLiteral->properties;
 
     while(assignment) {
         AST::PropertyNameAndValue *nameAndValue = AST::cast<AST::PropertyNameAndValue*>(assignment->assignment);
 
-        if (!nameAndValue) {
-            Error error(Error::ModuleImportError, "Malformed registerModule call: Invalid type specification.");
-            error.setFile(m_moduleFileName);
-            error.setLine(assignment->assignment->firstSourceLocation().startLine);
-            error.setColumn(assignment->assignment->firstSourceLocation().startColumn);
-            throw error;
-        }
+        assert(nameAndValue, assignment->assignment->firstSourceLocation(),
+            "Malformed registerModule call: Invalid type specification."
+        );
 
         AST::IdentifierExpression *functionId = AST::cast<AST::IdentifierExpression*>(nameAndValue->value);
-        if (!functionId) {
-            Error error(Error::ModuleImportError, "Malformed registerModule call: Can't recognize function identifier. Please use a simple identifier as value on type object.");
-            error.setFile(m_moduleFileName);
-            error.setLine(nameAndValue->value->firstSourceLocation().startLine);
-            error.setColumn(nameAndValue->value->firstSourceLocation().startColumn);
-            throw error;
-        }
+        assert(functionId, nameAndValue->value->firstSourceLocation(),
+            "Malformed registerModule call: Can't recognize function identifier. "
+            "Please use a simple identifier as value on type object."
+        );
 
         m_typesToFunctionsMap.insert(nameAndValue->name->asString(), functionId->name);
         assignment = assignment->next;
@@ -287,23 +275,15 @@ void ModuleLoader::findInheritance(AST::CallExpression *call)
     // Apparently this is a QW_INHERIT call, we're looking for.
     // If now still some assumption fails, throw an error.
 
-    if (!call->arguments || !call->arguments->next) {
-        Error error(Error::ModuleImportError, "Malformed QW_INHERIT call: One or no argument provided. Expected two.");
-        error.setFile(m_moduleFileName);
-        error.setLine(call->lparenToken.startLine);
-        error.setColumn(call->lparenToken.startColumn);
-        throw error;
-    }
+    assert(call->arguments && call->arguments->next, call->lparenToken,
+        "Malformed QW_INHERIT call: One or no argument provided. Expected two."
+    );
 
     AST::IdentifierExpression *constructor = AST::cast<AST::IdentifierExpression *>(call->arguments->expression);
     AST::IdentifierExpression *baseClass = AST::cast<AST::IdentifierExpression *>(call->arguments->next->expression);
-    if (!constructor || !baseClass) {
-        Error error(Error::ModuleImportError, "Malformed QW_INHERIT call: Wrong argument types provided. Expected two identifier expressions.");
-        error.setFile(m_moduleFileName);
-        error.setLine(call->lparenToken.startLine);
-        error.setColumn(call->lparenToken.startColumn);
-        throw error;
-    }
+    assert(constructor && baseClass, call->lparenToken,
+        "Malformed QW_INHERIT call: Wrong argument types provided. Expected two identifier expressions."
+    );
 
     m_inheritancies.insert(constructor->name, baseClass->name);
 }
@@ -408,5 +388,16 @@ void ModuleLoader::finalizeParse()
     for (auto i = m_inheritancies.constBegin(); i != m_inheritancies.constEnd(); i++) {
         IR::Type *c = m_module->m_types[i.key().toString()];
         c->setSuper(m_module->m_types[i.value().toString()]);
+    }
+}
+
+void ModuleLoader::assert(bool condition, const AST::SourceLocation &token, QString errorMessage)
+{
+    if (!condition) {
+        Error error(Error::ModuleImportError, errorMessage);
+        error.setFile(m_moduleFileName);
+        error.setLine(token.startLine);
+        error.setColumn(token.startColumn);
+        throw error;
     }
 }
