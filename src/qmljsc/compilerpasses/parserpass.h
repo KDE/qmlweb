@@ -16,45 +16,33 @@
  *
  */
 
-#ifndef PRETTYGENERATORSTAGE_H
-#define PRETTYGENERATORSTAGE_H
+#ifndef PARSER_H
+#define PARSER_H
 
-#include <private/qqmljsastvisitor_p.h>
-#include <private/qqmljsast_p.h>
+#include <QtCore/QString>
 
-#include "compilerpass.h"
-#include "symboltable.h"
+#include <private/qqmljsengine_p.h>
+#include <private/qqmljslexer_p.h>
+#include <private/qqmljsparser_p.h>
 
+
+#include "../compilerpass.h"
 
 namespace QmlJSc {
 
-class PrettyGeneratorPass : public CompilerPass, public QQmlJS::AST::Visitor
+class ParserPass : public CompilerPass
 {
- Q_OBJECT
+  Q_OBJECT
 
 public:
- PrettyGeneratorPass(SymbolTable*);
-
- bool visit(QQmlJS::AST::UiProgram*) override;
- bool visit(QQmlJS::AST::UiObjectDefinition*) override;
-
- void endVisit(QQmlJS::AST::UiProgram*) override;
- void endVisit(QQmlJS::AST::UiObjectDefinition*) override;
-
- void postVisit(QQmlJS::AST::Node*) override;
+    ParserPass();
+    ~ParserPass();
 
 public slots:
- void process(QQmlJS::AST::UiProgram*) override;
-
-private:
- int m_levelSpaceCount = 4;
- QTextStream m_output;
- bool m_componentRoot;
-
- SymbolTable* m_symbols;
+    void process(QString input) override;
 
 };
 
 }
 
-#endif // PRETTYGENERATORSTAGE_H
+#endif // PARSER_H

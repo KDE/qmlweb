@@ -27,7 +27,7 @@
 #include <qdir.h>
 
 #include "../../../src/qmljsc/compilerpipeline.h"
-#include "../../../src/qmljsc/parserpass.h"
+#include "../../../src/qmljsc/compilerpasses/parserpass.h"
 
 class TestParserPass : public QObject
 {

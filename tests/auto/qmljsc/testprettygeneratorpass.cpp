@@ -25,8 +25,8 @@
 #include <qdir.h>
 
 #include "../../../src/qmljsc/compilerpipeline.h"
-#include "../../../src/qmljsc/parserpass.h"
-#include "../../../src/qmljsc/prettygeneratorpass.h"
+#include "../../../src/qmljsc/compilerpasses/parserpass.h"
+#include "../../../src/qmljsc/compilerpasses/prettygeneratorpass.h"
 #include "../../../src/qmljsc/compiler.h"
 
 class TestPrettyGeneratorPass : public QObject
