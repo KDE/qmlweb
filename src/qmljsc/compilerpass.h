@@ -37,7 +37,7 @@ class CompilerPass : public QObject
   Q_OBJECT
 
 public:
-  CompilerPass();
+  CompilerPass(QObject *parent = 0);
 
   void connectToSuccessor(CompilerPass *successor) {
     connect(this, SIGNAL(finished(QString)), successor, SLOT(process(QString)));

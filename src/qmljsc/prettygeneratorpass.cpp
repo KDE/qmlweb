@@ -21,7 +21,7 @@
 #include "compiler.h"
 #include "compilerpipeline.h"
 
-#include "prettygeneratorstage.h"
+#include "prettygeneratorpass.h"
 #include "symboltable.h"
 
 using namespace QmlJSc;
@@ -41,7 +41,7 @@ const QString TEMPLATE_COMPONENT_FOOT = QStringLiteral(
 );
 
 
-PrettyGeneratorStage::PrettyGeneratorStage(SymbolTable* symbolTable)
+PrettyGeneratorPass::PrettyGeneratorPass(SymbolTable* symbolTable)
         : m_symbols(symbolTable)
         , m_output()
 {
@@ -49,20 +49,20 @@ PrettyGeneratorStage::PrettyGeneratorStage(SymbolTable* symbolTable)
     m_output.setString(new QString());
 }
 
-void PrettyGeneratorStage::process(QQmlJS::AST::UiProgram* ast)
+void PrettyGeneratorPass::process(QQmlJS::AST::UiProgram* ast)
 {
     Q_ASSERT(ast);
 
     ast->accept(this);
 }
 
-bool PrettyGeneratorStage::visit(QQmlJS::AST::UiProgram* uiProgram)
+bool PrettyGeneratorPass::visit(QQmlJS::AST::UiProgram* uiProgram)
 {
     m_componentRoot = true;
     return true;
 }
 
-bool PrettyGeneratorStage::visit(QQmlJS::AST::UiObjectDefinition* objectDefinition)
+bool PrettyGeneratorPass::visit(QQmlJS::AST::UiObjectDefinition* objectDefinition)
 {
     if (m_componentRoot) {
         const QString objectIdentifier = objectDefinition->qualifiedTypeNameId->name.toString();
@@ -79,18 +79,18 @@ bool PrettyGeneratorStage::visit(QQmlJS::AST::UiObjectDefinition* objectDefiniti
 }
 
 
-void PrettyGeneratorStage::endVisit(QQmlJS::AST::UiProgram* uiProgram)
+void PrettyGeneratorPass::endVisit(QQmlJS::AST::UiProgram* uiProgram)
 {
     m_output << TEMPLATE_COMPONENT_FOOT.arg("__comp");
 }
 
-void PrettyGeneratorStage::endVisit(QQmlJS::AST::UiObjectDefinition* objectDefinition)
+void PrettyGeneratorPass::endVisit(QQmlJS::AST::UiObjectDefinition* objectDefinition)
 {
     m_output << '}';
 }
 
 
-void PrettyGeneratorStage::postVisit(QQmlJS::AST::Node* node)
+void PrettyGeneratorPass::postVisit(QQmlJS::AST::Node* node)
 {
     if (node->kind == QQmlJS::AST::Node::Kind_UiProgram) {
         m_output.flush();

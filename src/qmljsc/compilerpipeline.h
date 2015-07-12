@@ -35,14 +35,14 @@ class CompilerPipeline : public QObject
  Q_OBJECT
 
 public:
- CompilerPipeline();
+ CompilerPipeline(QObject* parent = 0);
  ~CompilerPipeline();
 
  /**
-  * Appends @param stage to the pipeline and takes the
-  * ownership of @param stage
+  * Appends @param compilerPass to the pipeline and takes the
+  * ownership of @param compilerPass
   */
- void appendCompilerPass(CompilerPass *stage);
+ void appendCompilerPass(CompilerPass *compilerPass);
 
  void compile(QString &file);
 

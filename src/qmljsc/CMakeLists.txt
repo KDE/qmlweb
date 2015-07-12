@@ -3,10 +3,10 @@ find_package(Qt5 COMPONENTS Core Qml)
 set(libqmljsc_srcs
   compiler.cpp
   error.h
-  parserstage.cpp
+  parserpass.cpp
   compilerpipeline.cpp
   compilerpass.cpp
-  prettygeneratorstage.cpp
+  prettygeneratorpass.cpp
   symboltable.cpp
 
   ir/symbol.cpp

@@ -25,11 +25,11 @@
 #include <qdir.h>
 
 #include "../../../src/qmljsc/compilerpipeline.h"
-#include "../../../src/qmljsc/parserstage.h"
-#include "../../../src/qmljsc/prettygeneratorstage.h"
+#include "../../../src/qmljsc/parserpass.h"
+#include "../../../src/qmljsc/prettygeneratorpass.h"
 #include "../../../src/qmljsc/compiler.h"
 
-class TestPrettyGeneratorStage : public QObject
+class TestPrettyGeneratorPass : public QObject
 {
     Q_OBJECT
 
@@ -42,13 +42,13 @@ private slots:
 
 };
 
-void TestPrettyGeneratorStage::initTestCase()
+void TestPrettyGeneratorPass::initTestCase()
 {
     new QmlJSc::Compiler();
 }
 
 
-void TestPrettyGeneratorStage::printout_data()
+void TestPrettyGeneratorPass::printout_data()
 {
     QTest::addColumn<QString>("qmlFileUrl");
     QTest::addColumn<QString>("jsFileUrl");
@@ -57,7 +57,7 @@ void TestPrettyGeneratorStage::printout_data()
 }
 
 
-void TestPrettyGeneratorStage::printout()
+void TestPrettyGeneratorPass::printout()
 {
     QFETCH(QString, qmlFileUrl);
     QFETCH(QString, jsFileUrl);
@@ -69,8 +69,8 @@ void TestPrettyGeneratorStage::printout()
 
     QmlJSc::SymbolTable symbolTable;
     QmlJSc::CompilerPipeline pipeline;
-    pipeline.appendCompilerPass(new QmlJSc::ParserStage());
-    pipeline.appendCompilerPass(new QmlJSc::PrettyGeneratorStage(&symbolTable));
+    pipeline.appendCompilerPass(new QmlJSc::ParserPass());
+    pipeline.appendCompilerPass(new QmlJSc::PrettyGeneratorPass(&symbolTable));
 
     QSignalSpy pipelineFinished(&pipeline, SIGNAL(compileFinished(QString)));
 
@@ -82,5 +82,5 @@ void TestPrettyGeneratorStage::printout()
     QCOMPARE(compilerOutput, jsFileContent);
 }
 
-QTEST_MAIN(TestPrettyGeneratorStage)
-#include "testprettygeneratorstage.moc"
+QTEST_MAIN(TestPrettyGeneratorPass)
+#include "testprettygeneratorpass.moc"

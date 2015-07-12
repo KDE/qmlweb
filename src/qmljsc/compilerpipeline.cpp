@@ -24,16 +24,14 @@
 
 using namespace QmlJSc;
 
-CompilerPipeline::CompilerPipeline()
+CompilerPipeline::CompilerPipeline(QObject *parent)
+    : QObject(parent)
 {
 
 }
 
 CompilerPipeline::~CompilerPipeline()
 {
-    foreach (CompilerPass* compilerPass, m_pipeline) {
-        delete compilerPass;
-    }
 }
 QUrl CompilerPipeline::file() const
 {
@@ -59,21 +57,23 @@ void CompilerPipeline::compile(QString& filePath)
     m_pipeline.first()->process(qmlCode);
 }
 
-void CompilerPipeline::appendCompilerPass(CompilerPass *stage)
+void CompilerPipeline::appendCompilerPass(CompilerPass *compilerPass)
 {
-    Q_ASSERT(stage);
+    Q_ASSERT(compilerPass);
 
-    CompilerPass * lastStage = 0;
+    compilerPass->setParent(this);
+
+    CompilerPass *lastCompilerPass = 0;
     if (m_pipeline.size() > 0) {
-        lastStage = m_pipeline.last();
-        disconnect(lastStage, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
+        lastCompilerPass = m_pipeline.last();
+        disconnect(lastCompilerPass, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
     }
 
-    m_pipeline.append(stage);
+    m_pipeline.append(compilerPass);
 
-    if (lastStage) {
-        lastStage->connectToSuccessor(stage);
+    if (lastCompilerPass) {
+        lastCompilerPass->connectToSuccessor(compilerPass);
     }
 
-    connect(stage, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
+    connect(compilerPass, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
 }

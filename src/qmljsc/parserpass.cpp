@@ -16,20 +16,20 @@
  *
  */
 
-#include "parserstage.h"
+#include "parserpass.h"
 
 using namespace QmlJSc;
 
-ParserStage::ParserStage()
+ParserPass::ParserPass()
 {
 }
 
-ParserStage::~ParserStage()
+ParserPass::~ParserPass()
 {
 
 }
 
-void ParserStage::process(QString input)
+void ParserPass::process(QString input)
 {
     QQmlJS::Engine* engine = new QQmlJS::Engine();
     QQmlJS::Lexer* lexer = new QQmlJS::Lexer(engine);

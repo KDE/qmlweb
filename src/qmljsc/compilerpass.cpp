@@ -22,12 +22,12 @@
 
 using namespace QmlJSc;
 
-CompilerPass::CompilerPass(): QObject()
+CompilerPass::CompilerPass(QObject *parent): QObject(parent)
 {
 
 }
 
 void CompilerPass::failBecauseOfWrongType() {
-    Q_STATIC_ASSERT_X(1, "The type is not supported by this stage, is the stage order correct?");
+    Q_STATIC_ASSERT_X(1, "The type is not supported by this compiler pass, is the compiler pass order correct?");
 }
 

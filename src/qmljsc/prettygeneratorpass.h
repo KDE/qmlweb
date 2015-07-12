@@ -28,12 +28,12 @@
 
 namespace QmlJSc {
 
-class PrettyGeneratorStage : public CompilerPass, public QQmlJS::AST::Visitor
+class PrettyGeneratorPass : public CompilerPass, public QQmlJS::AST::Visitor
 {
  Q_OBJECT
 
 public:
- PrettyGeneratorStage(SymbolTable*);
+ PrettyGeneratorPass(SymbolTable*);
 
  bool visit(QQmlJS::AST::UiProgram*) override;
  bool visit(QQmlJS::AST::UiObjectDefinition*) override;

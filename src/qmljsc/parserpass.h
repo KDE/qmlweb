@@ -30,13 +30,13 @@
 
 namespace QmlJSc {
 
-class ParserStage : public CompilerPass
+class ParserPass : public CompilerPass
 {
   Q_OBJECT
 
 public:
-    ParserStage();
-    ~ParserStage();
+    ParserPass();
+    ~ParserPass();
 
 public slots:
     void process(QString input) override;
