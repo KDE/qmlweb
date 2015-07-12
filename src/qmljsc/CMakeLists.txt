@@ -3,10 +3,8 @@ find_package(Qt5 COMPONENTS Core Qml)
 set(libqmljsc_srcs
   compiler.cpp
   error.h
-  compilerpasses/parserpass.cpp
   compilerpipeline.cpp
   compilerpass.cpp
-  compilerpasses/prettygeneratorpass.cpp
   symboltable.cpp
 
   ir/symbol.cpp
@@ -14,6 +12,9 @@ set(libqmljsc_srcs
   ir/class.cpp
   ir/object.cpp
   ir/component.cpp
+
+  compilerpasses/parserpass.cpp
+  compilerpasses/prettygeneratorpass.cpp
 )
 add_library(libqmljsc SHARED ${libqmljsc_srcs})
 qt5_use_modules(libqmljsc Core Qml)
