@@ -86,14 +86,32 @@ private:
     static QHash<IR::ImportDescription, IR::Module*> s_loadedModules;
 
     IR::Module *m_module;
-    QHash<QStringRef, QStringRef> m_inheritancies;
-    QVector<QQmlJS::AST::FunctionExpression *> m_currentFunctionStack;
-    QHash<QStringRef, IR::Class *> m_preliminaryClasses;
-    QHash<QString, QStringRef> m_typesToFunctionsMap;
     QString m_moduleFileName;
+
+    /**
+     * Maps names of classes to the name of its base class.
+     */
+    QHash<QStringRef, QStringRef> m_inheritancies;
+    /**
+     * Stack of nested functions (closures) we're in.
+     * Each function is represented by it's AST subtree.
+     */
+    QVector<QQmlJS::AST::FunctionExpression *> m_currentFunctionStack;
+    /**
+     * Contains functions that *might* be a constructor function for a class as
+     * key and IR::Class instances as value.
+     * If an entry turns out not to contain a valid class, we simply destroy it
+     * again.
+     */
+    QHash<QStringRef, IR::Class *> m_preliminaryClasses;
+    /**
+     * Maps the name, a type will have in QML to the name of the constructor
+     * function in JavaScript. All other occurancies of constructor functions
+     * use the js-name.
+     */
+    QHash<QString, QStringRef> m_typesToFunctionsMap;
 };
 
 } // namespace QMLJSc
 
 #endif // MODULELOADER_H
-
