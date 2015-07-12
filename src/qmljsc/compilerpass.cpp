@@ -27,6 +27,20 @@ CompilerPass::CompilerPass(QObject *parent): QObject(parent)
 
 }
 
+void CompilerPass::connectToSuccessor(CompilerPass *successor) {
+    connect(this, SIGNAL(finished(QString)), successor, SLOT(process(QString)));
+    connect(this, SIGNAL(finished(QQmlJS::AST::UiProgram*)), successor, SLOT(process(QQmlJS::AST::UiProgram*)));
+}
+
+
+void CompilerPass::process(QString) {
+    failBecauseOfWrongType();
+}
+
+void CompilerPass::process(QQmlJS::AST::UiProgram*) {
+    failBecauseOfWrongType();
+}
+
 void CompilerPass::failBecauseOfWrongType() {
     Q_STATIC_ASSERT_X(1, "The type is not supported by this compiler pass, is the compiler pass order correct?");
 }

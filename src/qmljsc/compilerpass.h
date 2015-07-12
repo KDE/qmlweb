@@ -39,14 +39,11 @@ class CompilerPass : public QObject
 public:
   CompilerPass(QObject *parent = 0);
 
-  void connectToSuccessor(CompilerPass *successor) {
-    connect(this, SIGNAL(finished(QString)), successor, SLOT(process(QString)));
-    connect(this, SIGNAL(finished(QQmlJS::AST::UiProgram*)), successor, SLOT(process(QQmlJS::AST::UiProgram*)));
-  }
+  void connectToSuccessor(CompilerPass *successor);
 
 public slots:
-  virtual void process(QString) { failBecauseOfWrongType(); };
-  virtual void process(QQmlJS::AST::UiProgram*) { failBecauseOfWrongType(); };
+  virtual void process(QString);
+  virtual void process(QQmlJS::AST::UiProgram*);
 
 signals:
   void finished(QString);
