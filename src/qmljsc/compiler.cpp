@@ -23,16 +23,11 @@
 
 using namespace QmlJSc;
 
-QmlJSc::Compiler* QmlJSc::Compiler::s_self = 0;
-
 QmlJSc::Compiler::Compiler(QObject *parent)
     : QObject(parent)
 {
-    Q_ASSERT_X(!s_self, "QmlJSc::QmlJSc", "QmlJSc should only exist once.");
-    s_self = this;
 }
 
 QmlJSc::Compiler::~Compiler()
 {
-    s_self = 0;
 }

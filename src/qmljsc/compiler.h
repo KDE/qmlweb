@@ -25,10 +25,6 @@
 
 namespace QmlJSc {
 
-class SymbolTable;
-
-#define compiler QmlJSc::Compiler::instance()
-
 class Compiler : public QObject
 {
     Q_OBJECT
@@ -37,10 +33,7 @@ public:
     explicit Compiler(QObject *parent = 0);
     virtual ~Compiler();
 
-    static Compiler* instance() { return s_self; }
-
 private:
-    static Compiler* s_self;
 };
 
 }
