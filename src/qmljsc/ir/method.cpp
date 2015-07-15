@@ -25,21 +25,21 @@ using namespace QmlJSc::IR;
 Method::Method()
         : returnType(0)
 {
-    QmlJSc::IR::Node::kind = QmlJSc::IR::Node::Kind_Method;
+    kind = Kind_Method;
 }
 
 Method::Method(const QString &name)
         : returnType(0)
         , name(name)
 {
-    QmlJSc::IR::Node::kind = QmlJSc::IR::Node::Kind_Method;
+    kind = Kind_Method;
 }
 
 Method::Method(QmlJSc::IR::Type *returnType, QString name)
         : returnType(returnType)
         , name(name)
 {
-    QmlJSc::IR::Node::kind = QmlJSc::IR::Node::Kind_Method;
+    kind = Kind_Method;
 }
 
 void Method::accept(QmlJSc::IR::Visitor *visitor) {

@@ -24,13 +24,13 @@ using namespace QmlJSc::IR;
 
 Signal::Signal()
 {
-    QmlJSc::IR::Node::kind = QmlJSc::IR::Node::Kind_Signal;
+    kind = Kind_Signal;
 }
 
 Signal::Signal(QString name)
         : name(name)
 {
-    QmlJSc::IR::Node::kind = QmlJSc::IR::Node::Kind_Signal;
+    kind = Kind_Signal;
 }
 
 void Signal::accept(QmlJSc::IR::Visitor *visitor) {

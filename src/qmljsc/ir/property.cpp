@@ -28,7 +28,7 @@ Property::Property()
         , objectValue(0)
         , jsValue(0)
 {
-    QmlJSc::IR::Node::kind = QmlJSc::IR::Node::Kind_Property;
+    kind = Kind_Property;
 }
 
 Property::Property(const QString &name)
@@ -37,7 +37,7 @@ Property::Property(const QString &name)
         , objectValue(0)
         , jsValue(0)
 {
-    QmlJSc::IR::Node::kind = QmlJSc::IR::Node::Kind_Property;
+    kind = Kind_Property;
 }
 
 Property::Property(QmlJSc::IR::Type *type, QString name)
