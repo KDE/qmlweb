@@ -14,6 +14,7 @@ set(libqmljsc_srcs
   ir/class.cpp
   ir/object.cpp
   ir/component.cpp
+  ir/builtintypes.cpp
 )
 add_library(libqmljsc SHARED ${libqmljsc_srcs})
 qt5_use_modules(libqmljsc Core Qml)

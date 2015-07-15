@@ -66,7 +66,8 @@ struct Property : public Symbol {
     QQmlJS::AST::ExpressionNode *jsValue;
     bool readOnly :1;
     bool constant :1;
-    bool dummy :6;
+    bool simple :1;
+    bool dummy :5;
 };
 
 struct Parameter {

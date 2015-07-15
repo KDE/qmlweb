@@ -26,6 +26,7 @@
 #include "../../../src/qmljsc/ir/type.h"
 #include "../../../src/qmljsc/ir/class.h"
 #include "../../../src/qmljsc/ir/object.h"
+#include "../../../src/qmljsc/ir/builtintypes.h"
 
 // Qt private
 #include <private/qqmljsast_p.h>
@@ -46,6 +47,7 @@ private slots:
     void testAdd();
     void testAsSymbolTable();
     void testVisitorAPI();
+    void testBuiltinTypes();
 
 private:
     Class city;
@@ -396,6 +398,35 @@ void TestIR::testVisitorAPI()
     QQmlJS::AST::StringLiteral* lastValueAssigned = QQmlJS::AST::cast<QQmlJS::AST::StringLiteral*>(visitor.lastValueAssigned);
     if (lastValueAssigned)
         QCOMPARE(lastValueAssigned->value.toString(), QStringLiteral("København"));
+}
+
+void TestIR::testBuiltinTypes()
+{
+    QVERIFY(IR::getBuiltinType("bool"));
+    QVERIFY(IR::getBuiltinType("Boolean"));
+    QVERIFY(IR::getBuiltinType("double"));
+    QVERIFY(IR::getBuiltinType("Number"));
+    QVERIFY(IR::getBuiltinType("enumeration"));
+    QVERIFY(IR::getBuiltinType("int"));
+    QVERIFY(IR::getBuiltinType("QWInt"));
+    QVERIFY(IR::getBuiltinType("list"));
+    QVERIFY(IR::getBuiltinType("QWList"));
+    QVERIFY(IR::getBuiltinType("real"));
+    QVERIFY(IR::getBuiltinType("string"));
+    QVERIFY(IR::getBuiltinType("String"));
+    QVERIFY(IR::getBuiltinType("url"));
+    QVERIFY(IR::getBuiltinType("QWUrl"));
+    QVERIFY(!IR::getBuiltinType("hans"));
+
+    IR::Type *qtobject = IR::getBuiltinType("QtObject");
+    IR::Type *qwobject = IR::getBuiltinType("QWObject");
+    QVERIFY(qtobject);
+    QCOMPARE(IR::getBuiltinType("QtObject"), qtobject);
+    QVERIFY(qwobject);
+    QCOMPARE(qtobject, qwobject);
+    IR::Property *objectName = qtobject->property("objectName");
+    QVERIFY(objectName);
+    QCOMPARE(objectName->type, IR::getBuiltinType("string"));
 }
 
 } // namespace IR
