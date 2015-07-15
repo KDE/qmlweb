@@ -95,10 +95,10 @@ public:
 
     void addModule(Module *module);
 
-    Type* type(const QString &typeName);
+    Type* type(const QString &typeName) const;
     QString fullyQualifiedName(const QString &typeName);
 
-    Component *rootObject();
+    Component *rootObject() const;
     void setRootObject(Component *root);
 
 private:
