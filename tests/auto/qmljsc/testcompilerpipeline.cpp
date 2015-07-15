@@ -27,10 +27,10 @@
 #include <QtCore/QDebug>
 #include <qdir.h>
 
-#include "../../../src/qmljsc/pipeline.h"
-#include "../../../src/qmljsc/pipelinestage.h"
+#include "../../../src/qmljsc/compilerpipeline.h"
+#include "../../../src/qmljsc/compilerpass.h"
 
-class MockStage : public QmlJSc::PipelineStage {
+class MockStage : public QmlJSc::CompilerPass {
     Q_OBJECT
     public:
         void setDoError(bool doError) { m_doError = doError; }
@@ -85,31 +85,31 @@ void TestPipeline::cleanupTestCase()
 }
 
 void TestPipeline::working_data() {
-    QTest::addColumn<QmlJSc::Pipeline*>("pipeline");
+    QTest::addColumn<QmlJSc::CompilerPipeline*>("pipeline");
 
-    QmlJSc::Pipeline* pipeline;
+    QmlJSc::CompilerPipeline* pipeline;
     MockStage* mockStage1;
     MockStage* mockStage2;
 
-    pipeline = new QmlJSc::Pipeline();
+    pipeline = new QmlJSc::CompilerPipeline();
     mockStage1 = new MockStage();
     mockStage1->setDoError(false);
-    pipeline->appendStage(mockStage1);
+    pipeline->appendCompilerPass(mockStage1);
     QTest::newRow("one_okay") << pipeline;
 
-    pipeline = new QmlJSc::Pipeline();
+    pipeline = new QmlJSc::CompilerPipeline();
     mockStage1 = new MockStage();
     mockStage2 = new MockStage();
     mockStage1->setDoError(false);
     mockStage2->setDoError(false);
-    pipeline->appendStage(mockStage1);
-    pipeline->appendStage(mockStage2);
+    pipeline->appendCompilerPass(mockStage1);
+    pipeline->appendCompilerPass(mockStage2);
     QTest::newRow("two_okay") << pipeline;
 }
 
 void TestPipeline::working()
 {
-    QFETCH(QmlJSc::Pipeline*, pipeline);
+    QFETCH(QmlJSc::CompilerPipeline*, pipeline);
 
     QSignalSpy finishedSpy(pipeline, SIGNAL(compileFinished(QString)));
 
@@ -127,33 +127,33 @@ void TestPipeline::working()
 
 void TestPipeline::error_data()
 {
-    QTest::addColumn<QmlJSc::Pipeline*>("pipeline");
+    QTest::addColumn<QmlJSc::CompilerPipeline*>("pipeline");
 
-    QmlJSc::Pipeline* pipeline;
+    QmlJSc::CompilerPipeline* pipeline;
     MockStage* mockStage1;
     MockStage* mockStage2;
 
-    pipeline = new QmlJSc::Pipeline();
+    pipeline = new QmlJSc::CompilerPipeline();
     mockStage1 = new MockStage();
     mockStage1->setDoError(true);
-    pipeline->appendStage(mockStage1);
+    pipeline->appendCompilerPass(mockStage1);
     QTest::newRow("one_notokay") << pipeline;
 
-    pipeline = new QmlJSc::Pipeline();
+    pipeline = new QmlJSc::CompilerPipeline();
     mockStage1 = new MockStage();
     mockStage2 = new MockStage();
     mockStage1->setDoError(true);
     mockStage2->setDoError(false);
-    pipeline->appendStage(mockStage1);
-    pipeline->appendStage(mockStage2);
+    pipeline->appendCompilerPass(mockStage1);
+    pipeline->appendCompilerPass(mockStage2);
     QTest::newRow("first_notokay") << pipeline;
 }
 
 void TestPipeline::error()
 {
-    QFETCH(QmlJSc::Pipeline*, pipeline);
+    QFETCH(QmlJSc::CompilerPipeline*, pipeline);
 
-    QSignalSpy finishedSpy(pipeline, &QmlJSc::Pipeline::compileFinished);
+    QSignalSpy finishedSpy(pipeline, &QmlJSc::CompilerPipeline::compileFinished);
 
     QString filePath(":/test/minimal.qml");
 
@@ -172,10 +172,10 @@ void TestPipeline::error()
 }
 
 void TestPipeline::error_non_existent_file() {
-    QmlJSc::Pipeline* pipeline = new QmlJSc::Pipeline();
+    QmlJSc::CompilerPipeline* pipeline = new QmlJSc::CompilerPipeline();
     QString pathToAtlantis = QStringLiteral(":/test/atlantis.qml"); // does not exist
 
-    QSignalSpy finishedSpy(pipeline, &QmlJSc::Pipeline::compileFinished);
+    QSignalSpy finishedSpy(pipeline, &QmlJSc::CompilerPipeline::compileFinished);
 
     try {
         pipeline->compile(pathToAtlantis);
@@ -189,5 +189,5 @@ void TestPipeline::error_non_existent_file() {
 }
 
 QTEST_MAIN(TestPipeline)
-#include "testpipeline.moc"
+#include "testcompilerpipeline.moc"
 

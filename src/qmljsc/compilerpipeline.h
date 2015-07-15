@@ -16,42 +16,46 @@
  *
  */
 
-#ifndef PRETTYGENERATORSTAGE_H
-#define PRETTYGENERATORSTAGE_H
+#ifndef PIPELINE_H
+#define PIPELINE_H
 
-#include <private/qqmljsastvisitor_p.h>
-#include <private/qqmljsast_p.h>
+#include <QtCore/QObject>
+#include <QtCore/QLinkedList>
+#include <QtCore/QUrl>
+#include <QtCore/QVariant>
 
-#include "pipelinestage.h"
-
+#include "error.h"
 
 namespace QmlJSc {
 
-class PrettyGeneratorStage : public PipelineStage, public QQmlJS::AST::Visitor
+class CompilerPass;
+
+class CompilerPipeline : public QObject
 {
  Q_OBJECT
 
 public:
- PrettyGeneratorStage();
+ CompilerPipeline(QObject* parent = 0);
+ ~CompilerPipeline();
 
- bool visit(QQmlJS::AST::UiProgram*) override;
- bool visit(QQmlJS::AST::UiObjectDefinition*) override;
+ /**
+  * Appends @param compilerPass to the pipeline and takes the
+  * ownership of @param compilerPass
+  */
+ void appendCompilerPass(CompilerPass *compilerPass);
 
- void endVisit(QQmlJS::AST::UiProgram*) override;
- void endVisit(QQmlJS::AST::UiObjectDefinition*) override;
+ void compile(QString &file);
 
- void postVisit(QQmlJS::AST::Node*) override;
+ QUrl file() const;
 
-public slots:
- void process(QQmlJS::AST::UiProgram*) override;
+signals:
+ void compileFinished(QString output);
 
 private:
- int m_levelSpaceCount = 4;
- QTextStream m_output;
- bool m_componentRoot;
-
+ QLinkedList<CompilerPass *> m_pipeline;
+ QString m_file;
 };
 
 }
 
-#endif // PRETTYGENERATORSTAGE_H
+#endif // PIPELINE_H

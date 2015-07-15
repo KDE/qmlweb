@@ -16,33 +16,32 @@
  *
  */
 
-#ifndef PARSER_H
-#define PARSER_H
+#include "compilerpipeline.h"
 
-#include <QtCore/QString>
+#include "compilerpass.h"
 
-#include <private/qqmljsengine_p.h>
-#include <private/qqmljslexer_p.h>
-#include <private/qqmljsparser_p.h>
+using namespace QmlJSc;
 
-
-#include "pipelinestage.h"
-
-namespace QmlJSc {
-
-class ParserStage : public PipelineStage
+CompilerPass::CompilerPass(QObject *parent): QObject(parent)
 {
-  Q_OBJECT
-
-public:
-    ParserStage();
-    ~ParserStage();
-
-public slots:
-    void process(QString input) override;
-
-};
 
 }
 
-#endif // PARSER_H
+void CompilerPass::connectToSuccessor(CompilerPass *successor) {
+    connect(this, SIGNAL(finished(QString)), successor, SLOT(process(QString)));
+    connect(this, SIGNAL(finished(QQmlJS::AST::UiProgram*)), successor, SLOT(process(QQmlJS::AST::UiProgram*)));
+}
+
+
+void CompilerPass::process(QString) {
+    failBecauseOfWrongType();
+}
+
+void CompilerPass::process(QQmlJS::AST::UiProgram*) {
+    failBecauseOfWrongType();
+}
+
+void CompilerPass::failBecauseOfWrongType() {
+    Q_STATIC_ASSERT_X(1, "The type is not supported by this compiler pass, is the compiler pass order correct?");
+}
+

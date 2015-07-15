@@ -24,12 +24,12 @@
 
 #include <qdir.h>
 
-#include "../../../src/qmljsc/pipeline.h"
-#include "../../../src/qmljsc/parserstage.h"
-#include "../../../src/qmljsc/prettygeneratorstage.h"
+#include "../../../src/qmljsc/compilerpipeline.h"
+#include "../../../src/qmljsc/compilerpasses/parserpass.h"
+#include "../../../src/qmljsc/compilerpasses/prettygeneratorpass.h"
 #include "../../../src/qmljsc/compiler.h"
 
-class TestPrettyGeneratorStage : public QObject
+class TestPrettyGeneratorPass : public QObject
 {
     Q_OBJECT
 
@@ -42,13 +42,13 @@ private slots:
 
 };
 
-void TestPrettyGeneratorStage::initTestCase()
+void TestPrettyGeneratorPass::initTestCase()
 {
     new QmlJSc::Compiler();
 }
 
 
-void TestPrettyGeneratorStage::printout_data()
+void TestPrettyGeneratorPass::printout_data()
 {
     QTest::addColumn<QString>("qmlFileUrl");
     QTest::addColumn<QString>("jsFileUrl");
@@ -57,7 +57,7 @@ void TestPrettyGeneratorStage::printout_data()
 }
 
 
-void TestPrettyGeneratorStage::printout()
+void TestPrettyGeneratorPass::printout()
 {
     QFETCH(QString, qmlFileUrl);
     QFETCH(QString, jsFileUrl);
@@ -67,21 +67,20 @@ void TestPrettyGeneratorStage::printout()
     QTextStream jsFileStream(&jsFile);
     QString jsFileContent = jsFileStream.readAll();
 
-    QmlJSc::Pipeline* pipeline = new QmlJSc::Pipeline();
-    pipeline->appendStage(new QmlJSc::ParserStage());
-    pipeline->appendStage(new QmlJSc::PrettyGeneratorStage());
+    QmlJSc::SymbolTable symbolTable;
+    QmlJSc::CompilerPipeline pipeline;
+    pipeline.appendCompilerPass(new QmlJSc::ParserPass());
+    pipeline.appendCompilerPass(new QmlJSc::PrettyGeneratorPass(&symbolTable));
 
-    QSignalSpy pipelineFinished(pipeline, SIGNAL(compileFinished(QString)));
+    QSignalSpy pipelineFinished(&pipeline, SIGNAL(compileFinished(QString)));
 
-    pipeline->compile(qmlFileUrl);
+    pipeline.compile(qmlFileUrl);
 
     QCOMPARE(pipelineFinished.count(), 1);
 
     QString compilerOutput = pipelineFinished.takeFirst().takeFirst().value<QString>();
     QCOMPARE(compilerOutput, jsFileContent);
-
-    delete pipeline;
 }
 
-QTEST_MAIN(TestPrettyGeneratorStage)
-#include "testprettygeneratorstage.moc"
+QTEST_MAIN(TestPrettyGeneratorPass)
+#include "testprettygeneratorpass.moc"

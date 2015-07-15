@@ -16,24 +16,33 @@
  *
  */
 
-#include "pipelinestage.h"
+#ifndef PARSER_H
+#define PARSER_H
 
-using namespace QmlJSc;
+#include <QtCore/QString>
 
-PipelineStage::PipelineStage(): QObject()
+#include <private/qqmljsengine_p.h>
+#include <private/qqmljslexer_p.h>
+#include <private/qqmljsparser_p.h>
+
+
+#include "../compilerpass.h"
+
+namespace QmlJSc {
+
+class ParserPass : public CompilerPass
 {
+  Q_OBJECT
+
+public:
+    ParserPass();
+    ~ParserPass();
+
+public slots:
+    void process(QString input) override;
+
+};
 
 }
 
-void PipelineStage::setPipeline(Pipeline* pipeline) {
-   m_pipeline = pipeline;
-}
-
-Pipeline* PipelineStage::pipeline() {
-    return m_pipeline;
-}
-
-void PipelineStage::failBecauseOfWrongType() {
-    Q_STATIC_ASSERT_X(1, "The type is not supported by this stage, is the stage order correct?");
-}
-
+#endif // PARSER_H

@@ -30,26 +30,20 @@ Q_DECLARE_METATYPE(QQmlJS::AST::UiProgram*)
 
 namespace QmlJSc {
 
-class Pipeline;
+class CompilerPipeline;
 
-class PipelineStage : public QObject
+class CompilerPass : public QObject
 {
   Q_OBJECT
 
 public:
-  PipelineStage();
+  CompilerPass(QObject *parent = 0);
 
-  void setPipeline(Pipeline* pipeline);
-  Pipeline* pipeline(void);
-
-  void connectToSuccessor(PipelineStage *successor) {
-    connect(this, SIGNAL(finished(QString)), successor, SLOT(process(QString)));
-    connect(this, SIGNAL(finished(QQmlJS::AST::UiProgram*)), successor, SLOT(process(QQmlJS::AST::UiProgram*)));
-  }
+  void connectToSuccessor(CompilerPass *successor);
 
 public slots:
-  virtual void process(QString) { failBecauseOfWrongType(); };
-  virtual void process(QQmlJS::AST::UiProgram*) { failBecauseOfWrongType(); };
+  virtual void process(QString);
+  virtual void process(QQmlJS::AST::UiProgram*);
 
 signals:
   void finished(QString);
@@ -57,9 +51,6 @@ signals:
 
 private:
   void failBecauseOfWrongType();
-
-private:
-  Pipeline* m_pipeline;
 };
 
 }

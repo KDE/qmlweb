@@ -18,27 +18,27 @@
 
 #include <QtCore/QFile>
 
-#include "pipelinestage.h"
+#include "compilerpass.h"
 
-#include "pipeline.h"
+#include "compilerpipeline.h"
 
 using namespace QmlJSc;
 
-Pipeline::Pipeline()
+CompilerPipeline::CompilerPipeline(QObject *parent)
+    : QObject(parent)
 {
 
 }
 
-Pipeline::~Pipeline()
+CompilerPipeline::~CompilerPipeline()
 {
-
 }
-QUrl Pipeline::file() const
+QUrl CompilerPipeline::file() const
 {
     return m_file;
 }
 
-void Pipeline::compile(QString& filePath)
+void CompilerPipeline::compile(QString& filePath)
 {
     m_file = filePath;
 
@@ -57,22 +57,23 @@ void Pipeline::compile(QString& filePath)
     m_pipeline.first()->process(qmlCode);
 }
 
-void Pipeline::appendStage(PipelineStage* stage)
+void CompilerPipeline::appendCompilerPass(CompilerPass *compilerPass)
 {
-    Q_ASSERT(stage);
+    Q_ASSERT(compilerPass);
 
-    PipelineStage* lastStage = 0;
+    compilerPass->setParent(this);
+
+    CompilerPass *lastCompilerPass = 0;
     if (m_pipeline.size() > 0) {
-        lastStage = m_pipeline.last();
-        disconnect(lastStage, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
+        lastCompilerPass = m_pipeline.last();
+        disconnect(lastCompilerPass, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
     }
 
-    m_pipeline.append(stage);
-    stage->setPipeline(this);
+    m_pipeline.append(compilerPass);
 
-    if (lastStage) {
-        lastStage->connectToSuccessor(stage);
+    if (lastCompilerPass) {
+        lastCompilerPass->connectToSuccessor(compilerPass);
     }
 
-    connect(stage, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
+    connect(compilerPass, SIGNAL(finished(QString)), this, SIGNAL(compileFinished(QString)));
 }

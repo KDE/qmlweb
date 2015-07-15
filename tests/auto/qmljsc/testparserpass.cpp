@@ -26,9 +26,10 @@
 #include <QtCore/QDebug>
 #include <qdir.h>
 
-#include "../../../src/qmljsc/parserstage.h"
+#include "../../../src/qmljsc/compilerpipeline.h"
+#include "../../../src/qmljsc/compilerpasses/parserpass.h"
 
-class TestParserStage : public QObject
+class TestParserPass : public QObject
 {
     Q_OBJECT
 
@@ -38,18 +39,22 @@ private slots:
 
 };
 
-void TestParserStage::working()
+void TestParserPass::working()
 {
-    QmlJSc::ParserStage stage;
+    QmlJSc::CompilerPipeline pipeline;
+
+    QmlJSc::ParserPass *parserPass = new QmlJSc::ParserPass();
+    pipeline.appendCompilerPass(parserPass);
+
     QFile minimalTestFile(":/test/minimal.qml");
     minimalTestFile.open(QFile::ReadOnly);
     QTextStream minimalTestFileStream(&minimalTestFile);
     QString minimalTestQml = minimalTestFileStream.readAll();
 
-    QSignalSpy spy(&stage, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
+    QSignalSpy spy(parserPass, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
 
     try {
-        stage.process(minimalTestQml);
+        parserPass->process(minimalTestQml);
     } catch (QmlJSc::Error& error) {
         QFAIL("no error should occur");
     }
@@ -75,15 +80,18 @@ void TestParserStage::working()
 
 }
 
-void TestParserStage::not_working()
+void TestParserPass::not_working()
 {
-    QmlJSc::ParserStage stage;
+    QmlJSc::CompilerPipeline pipeline;
+
+    QmlJSc::ParserPass *parserPass = new QmlJSc::ParserPass();
+    pipeline.appendCompilerPass(parserPass);
     QString invalidQml = "not valid QML";
 
-    QSignalSpy spy(&stage, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
+    QSignalSpy spy(parserPass, SIGNAL(finished(QQmlJS::AST::UiProgram*)));
 
     try {
-        stage.process(invalidQml);
+        parserPass->process(invalidQml);
         QFAIL("an parse error should have been thrown");
     } catch (QmlJSc::Error& error) {
         QCOMPARE(error.type(), QmlJSc::Error::ParseError);
@@ -92,5 +100,5 @@ void TestParserStage::not_working()
     QCOMPARE(spy.count(), 0);
 }
 
-QTEST_MAIN(TestParserStage)
-#include "testparserstage.moc"
+QTEST_MAIN(TestParserPass)
+#include "testparserpass.moc"
