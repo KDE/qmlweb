@@ -111,7 +111,7 @@ void File::addModule(Module *module)
     });
 }
 
-Type *File::type(const QString &typeName)
+Type *File::type(const QString &typeName) const
 {
     const ModuleData *data = moduleForType(typeName);
     if (data && data->module)
@@ -123,6 +123,16 @@ Type *File::type(const QString &typeName)
 QString File::fullyQualifiedName(const QString &typeName)
 {
     return QStringLiteral("%1.%2").arg(moduleForType(typeName)->localPrefix, typeName);
+}
+
+Component *File::rootObject() const
+{
+    return m_rootObject;
+}
+
+void File::setRootObject(Component *rootObject)
+{
+    m_rootObject = rootObject;
 }
 
 const File::ModuleData *File::moduleForType(const QString &typeName) const
