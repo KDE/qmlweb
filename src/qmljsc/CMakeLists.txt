@@ -7,13 +7,7 @@ set(libqmljsc_srcs
   compilerpass.cpp
   symboltable.cpp
 
-  ir/property.cpp
-  ir/method.cpp
-  ir/signal.cpp
-  ir/type.cpp
-  ir/class.cpp
-  ir/object.cpp
-  ir/component.cpp
+  ir/ir.cpp
 
   compilerpasses/parserpass.cpp
   compilerpasses/prettygeneratorpass.cpp

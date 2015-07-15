@@ -23,10 +23,8 @@
 #include <QtCore/QDebug>
 
 #include "../../../src/qmljsc/compiler.h"
-#include "../../../src/qmljsc/ir/type.h"
-#include "../../../src/qmljsc/ir/class.h"
-#include "../../../src/qmljsc/ir/object.h"
-#include "../../../src/qmljsc/ir/property.h"
+#include "../../../src/qmljsc/ir/ir.h"
+#include "../../../src/qmljsc/ir/visitor.h"
 
 // Qt private
 #include <private/qqmljsast_p.h>
