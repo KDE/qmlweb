@@ -1,0 +1,4 @@
+
+QtObject {
+    objectName: "hugo"
+}
