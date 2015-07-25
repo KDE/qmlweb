@@ -126,6 +126,14 @@ void Type::visitChildren(Visitor *visitor) {
     }
 }
 
+Type *Type::super() {
+    return m_super;
+}
+
+void Type::setSuper(Type *superType) {
+    m_super = superType;
+}
+
 Class::Class()
         : Type()
 {

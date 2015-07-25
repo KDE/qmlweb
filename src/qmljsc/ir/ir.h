@@ -92,6 +92,9 @@ public:
 
     void setName(const QString &name);
 
+    Type *super();
+    void setSuper(Type *superType);
+
     virtual void accept(Visitor *visitor) override;
 
 protected:
