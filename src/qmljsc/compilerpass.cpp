@@ -41,6 +41,10 @@ void CompilerPass::process(QQmlJS::AST::UiProgram*) {
     failBecauseOfWrongType();
 }
 
+void CompilerPass::process(IR::Component*) {
+    failBecauseOfWrongType();
+}
+
 void CompilerPass::failBecauseOfWrongType() {
     Q_STATIC_ASSERT_X(1, "The type is not supported by this compiler pass, is the compiler pass order correct?");
 }
