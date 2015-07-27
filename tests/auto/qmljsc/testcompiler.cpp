@@ -1,4 +1,7 @@
 /*
+ * Qml.js Compiler -  a QML to JS compiler bringing QML's power to the web.
+ *
+ * Copyright (C) 2015 Anton Kreuzkamp <akreuzkamp@web.de>
  * Copyright (C) 2015 Jan Marker <jan@jangmarker.de>
  *
  * This program is free software: you can redistribute it and/or modify
