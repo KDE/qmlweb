@@ -1,7 +1,6 @@
 /*
- *  Copyright (c) 2011 Lauri Paimen <lauri@paimen.info>
- *  Copyright (c) 2015 Anton Kreuzkamp <akreuzkamp@web.de>
- *  Copyright (c) 2015 Jan Gerrit Marker <jangerrit@weiler-marker.com>
+ *  Copyright (C) 2011  Lauri Paimen <lauri@paimen.info>
+ *  Copyright (C) 2015  Anton Kreuzkamp <kde-development@akreuzkamp.de>
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
