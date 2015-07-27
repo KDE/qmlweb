@@ -2,7 +2,7 @@
  * Qml.js Runtime - Bringing QML's power to the web.
  *
  * Copyright (C) 2011  Lauri Paimen <lauri@paimen.info>
- * Copyright (C) 2015  Anton Kreuzkamp <kde-development@akreuzkamp.de>
+ * Copyright (C) 2015 Anton Kreuzkamp <kde-development@akreuzkamp.de>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
