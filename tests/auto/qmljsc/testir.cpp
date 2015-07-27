@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Anton Kreuzkamp <akreuzkamp@web.de>
+ * Copyright (C) 2015  Anton Kreuzkamp <kde-development@akreuzkamp.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
