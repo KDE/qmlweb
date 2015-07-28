@@ -41,20 +41,13 @@ private:
     TestedVisitorNodeType& m_testedNode;
 };
 
-static const QString MINIMAL_COMPONENT = QStringLiteral("QW_INHERIT(__comp, QtQml20.QtObject);\n"
-                                                                "function __comp(parent) {\n"
-                                                                "    QtQml20.QtObject.call(this, parent);\n"
-                                                                "    var __ = new QWContext(this);\n"
-                                                                "}\n"
-                                                                "\n"
-                                                                "__comp;");
-
 class TestPrettyGeneratorPass : public QObject
 {
     Q_OBJECT
 
 private:
     void initBasicTypes();
+    QString readTestFileContent(const char* fileName);
 
     QmlJSc::PrettyGeneratorPass* m_prettyGeneratorPass = Q_NULLPTR;
     QmlJSc::SymbolTable* m_symbolTable = Q_NULLPTR;
@@ -96,6 +89,14 @@ void TestPrettyGeneratorPass::initBasicTypes() {
     p->type = stringType;
 }
 
+QString TestPrettyGeneratorPass::readTestFileContent(const char *fileName) {
+    QFile testFile( QString(":/test/%1").arg(fileName) );
+    Q_ASSERT(testFile.open(QFile::ReadOnly));
+    QTextStream input(&testFile);
+    return input.readAll();
+}
+
+
 void TestPrettyGeneratorPass::init()
 {
     if (m_prettyGeneratorPass) {
@@ -129,6 +130,8 @@ void TestPrettyGeneratorPass::emitsFinishedSignal() {
 void TestPrettyGeneratorPass::visitComponent()
 {
     // Setup
+    QString minimalComponentJs = readTestFileContent("minimal.qml.js");
+
     QmlJSc::IR::Component component;
     component.setSuper(m_qtObjectType);
 
@@ -138,7 +141,7 @@ void TestPrettyGeneratorPass::visitComponent()
     m_prettyGeneratorPass->process(&testNodeComponent);
 
     // Verify
-    QCOMPARE(m_result, MINIMAL_COMPONENT);
+    QCOMPARE(m_result, minimalComponentJs);
 }
 
 QTEST_MAIN(TestPrettyGeneratorPass)
