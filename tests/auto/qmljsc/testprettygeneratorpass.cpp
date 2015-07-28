@@ -19,6 +19,7 @@
 #include <QtCore/QObject>
 #include <QtTest/QTest>
 #include <QtTest/QSignalSpy>
+#include <QtCore/QFile>
 
 #include "../../../src/qmljsc/ir/ir.h"
 #include "../../../src/qmljsc/compiler.h"
