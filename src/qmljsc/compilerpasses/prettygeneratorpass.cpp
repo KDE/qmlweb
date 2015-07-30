@@ -51,51 +51,28 @@ PrettyGeneratorPass::PrettyGeneratorPass(SymbolTable* symbolTable)
     m_output.setString(new QString());
 }
 
-void PrettyGeneratorPass::process(QQmlJS::AST::UiProgram* ast)
+void PrettyGeneratorPass::process(IR::Component* immediateRepresentation)
 {
-    Q_ASSERT(ast);
+    Q_ASSERT(immediateRepresentation);
 
-    ast->accept(this);
+    immediateRepresentation->accept(this);
+
+    emit finished( *(m_output.string()) );
 }
 
-bool PrettyGeneratorPass::visit(QQmlJS::AST::UiProgram* uiProgram)
-{
-    m_componentRoot = true;
-    return true;
+void PrettyGeneratorPass::visit(IR::Component* component) {
+    const QString objectIdentifier = component->super()->name();
+    const QString objectFqi = m_symbols->findType(ModuleImports(), objectIdentifier);
+
+    m_output << TEMPLATE_COMPONENT_HEAD
+                        .arg(RUNTIME_INHERIT)
+                        .arg("__comp")
+                        .arg(objectFqi)
+                        .arg("QWContext");
 }
 
-bool PrettyGeneratorPass::visit(QQmlJS::AST::UiObjectDefinition* objectDefinition)
-{
-    if (m_componentRoot) {
-        const QString objectIdentifier = objectDefinition->qualifiedTypeNameId->name.toString();
-        const QString objectFqi = m_symbols->findType(ModuleImports(), objectIdentifier);
-
-        m_output << TEMPLATE_COMPONENT_HEAD.arg(RUNTIME_INHERIT)
-                                           .arg("__comp")
-                                           .arg(objectFqi)
-                                           .arg(RUNTIME_CONTEXT);
-
-        m_componentRoot = false;
-    }
-    return true;
-}
-
-
-void PrettyGeneratorPass::endVisit(QQmlJS::AST::UiProgram* uiProgram)
-{
-    m_output << TEMPLATE_COMPONENT_FOOT.arg("__comp");
-}
-
-void PrettyGeneratorPass::endVisit(QQmlJS::AST::UiObjectDefinition* objectDefinition)
-{
-    m_output << '}';
-}
-
-
-void PrettyGeneratorPass::postVisit(QQmlJS::AST::Node* node)
-{
-    if (node->kind == QQmlJS::AST::Node::Kind_UiProgram) {
-        m_output.flush();
-        emit finished(*(m_output.string()));
-    }
+void PrettyGeneratorPass::endVisit(IR::Component *) {
+    m_output << '}'; // close __comp definition
+    m_output << TEMPLATE_COMPONENT_FOOT
+                        .arg("__comp");
 }

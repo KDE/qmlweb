@@ -21,33 +21,27 @@
 #ifndef PRETTYGENERATORSTAGE_H
 #define PRETTYGENERATORSTAGE_H
 
-#include <private/qqmljsastvisitor_p.h>
-#include <private/qqmljsast_p.h>
 
 #include "../symboltable.h"
 
+#include "../ir/visitor.h"
 #include "../compilerpass.h"
 
 
 namespace QmlJSc {
 
-class PrettyGeneratorPass : public CompilerPass, public QQmlJS::AST::Visitor
+class PrettyGeneratorPass : public CompilerPass, public IR::Visitor
 {
  Q_OBJECT
 
 public:
- PrettyGeneratorPass(SymbolTable*);
+ PrettyGeneratorPass(SymbolTable* symbolTable);
 
- bool visit(QQmlJS::AST::UiProgram*) override;
- bool visit(QQmlJS::AST::UiObjectDefinition*) override;
-
- void endVisit(QQmlJS::AST::UiProgram*) override;
- void endVisit(QQmlJS::AST::UiObjectDefinition*) override;
-
- void postVisit(QQmlJS::AST::Node*) override;
+ virtual void visit(IR::Component* component) override;
+ virtual void endVisit(IR::Component* component) override;
 
 public slots:
- void process(QQmlJS::AST::UiProgram*) override;
+ void process(IR::Component* rootComponent) override;
 
 private:
  int m_levelSpaceCount = 4;

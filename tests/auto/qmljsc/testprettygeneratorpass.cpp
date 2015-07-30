@@ -20,68 +20,131 @@
 
 #include <QtCore/QObject>
 #include <QtTest/QTest>
-#include <QSignalSpy>
-#include <QtCore/QTextStream>
+#include <QtTest/QSignalSpy>
 #include <QtCore/QFile>
 
-#include <qdir.h>
-
-#include "../../../src/qmljsc/compilerpipeline.h"
-#include "../../../src/qmljsc/compilerpasses/parserpass.h"
-#include "../../../src/qmljsc/compilerpasses/prettygeneratorpass.h"
+#include "../../../src/qmljsc/ir/ir.h"
 #include "../../../src/qmljsc/compiler.h"
+#include "../../../src/qmljsc/compilerpasses/prettygeneratorpass.h"
+
+template<class TestedVisitorNodeType>
+class TestNodeComponent : public QmlJSc::IR::Component
+{
+public:
+    TestNodeComponent(TestedVisitorNodeType& testedNode)
+            : m_testedNode(testedNode)
+    {
+    }
+
+    virtual void accept(QmlJSc::IR::Visitor* visitor) override {
+        m_testedNode.accept(visitor);
+    }
+
+private:
+    TestedVisitorNodeType& m_testedNode;
+};
 
 class TestPrettyGeneratorPass : public QObject
 {
     Q_OBJECT
 
 private:
+    void initBasicTypes();
+    QString readTestFileContent(const char* fileName);
+
+    QmlJSc::PrettyGeneratorPass* m_prettyGeneratorPass = Q_NULLPTR;
+    QmlJSc::SymbolTable* m_symbolTable = Q_NULLPTR;
+    QString m_result;
+    QmlJSc::IR::Class* m_qtObjectType = Q_NULLPTR;
+
+private slots:
+    void setResult(QString);
 
 private slots:
     void initTestCase();
-    void printout_data();
-    void printout();
+    void init();
+
+    void emitsFinishedSignal();
+    void visitComponent();
 
 };
 
+void TestPrettyGeneratorPass::setResult(QString result) {
+    if (!m_result.isEmpty()) {
+        QFAIL("finished emitted multiple times");
+    } else {
+        m_result = result;
+    }
+}
+
 void TestPrettyGeneratorPass::initTestCase()
 {
-    new QmlJSc::Compiler();
+    initBasicTypes();
+}
+
+void TestPrettyGeneratorPass::initBasicTypes() {
+    QmlJSc::IR::Type* stringType = new QmlJSc::IR::Type();
+    stringType->setName("string");
+
+    m_qtObjectType = new QmlJSc::IR::Class();
+    m_qtObjectType->setName("QtObject");
+    QmlJSc::IR::Property *p = m_qtObjectType->addProperty("objectName");
+    p->type = stringType;
+}
+
+QString TestPrettyGeneratorPass::readTestFileContent(const char *fileName) {
+    QFile testFile( QString(":/test/%1").arg(fileName) );
+    Q_ASSERT(testFile.open(QFile::ReadOnly));
+    QTextStream input(&testFile);
+    return input.readAll();
 }
 
 
-void TestPrettyGeneratorPass::printout_data()
+void TestPrettyGeneratorPass::init()
 {
-    QTest::addColumn<QString>("qmlFileUrl");
-    QTest::addColumn<QString>("jsFileUrl");
+    if (m_prettyGeneratorPass) {
+        disconnect(m_prettyGeneratorPass, SIGNAL(finished(QString)), this, SLOT(setResult(QString)));
+        delete m_prettyGeneratorPass;
+        delete m_symbolTable;
+    }
 
-    QTest::newRow("minimal") << ":/test/minimal.qml" << ":/test/minimal.qml.js";
+    m_symbolTable = new QmlJSc::SymbolTable();
+    m_prettyGeneratorPass = new QmlJSc::PrettyGeneratorPass(m_symbolTable);
+
+    m_result.clear();
+    connect(m_prettyGeneratorPass, SIGNAL(finished(QString)), this, SLOT(setResult(QString)));
 }
 
+void TestPrettyGeneratorPass::emitsFinishedSignal() {
+    // Setup
+    QmlJSc::IR::Component component;
+    component.setSuper(m_qtObjectType);
+    TestNodeComponent<QmlJSc::IR::Component> testNodeComponent(component);
 
-void TestPrettyGeneratorPass::printout()
+    QSignalSpy finishedSpy(m_prettyGeneratorPass, SIGNAL(finished(QString)));
+
+    // Do
+    m_prettyGeneratorPass->process(&testNodeComponent);
+
+    // Verify
+    QCOMPARE(finishedSpy.count(), 1);
+}
+
+void TestPrettyGeneratorPass::visitComponent()
 {
-    QFETCH(QString, qmlFileUrl);
-    QFETCH(QString, jsFileUrl);
+    // Setup
+    QString minimalComponentJs = readTestFileContent("minimal.qml.js");
 
-    QFile jsFile(jsFileUrl);
-    Q_ASSERT(jsFile.open(QFile::ReadOnly));
-    QTextStream jsFileStream(&jsFile);
-    QString jsFileContent = jsFileStream.readAll();
+    QmlJSc::IR::Component component;
+    component.setSuper(m_qtObjectType);
 
-    QmlJSc::SymbolTable symbolTable;
-    QmlJSc::CompilerPipeline pipeline;
-    pipeline.appendCompilerPass(new QmlJSc::ParserPass());
-    pipeline.appendCompilerPass(new QmlJSc::PrettyGeneratorPass(&symbolTable));
+    TestNodeComponent<QmlJSc::IR::Component> testNodeComponent(component);
 
-    QSignalSpy pipelineFinished(&pipeline, SIGNAL(compileFinished(QString)));
+    // Do
+    m_prettyGeneratorPass->process(&testNodeComponent);
 
-    pipeline.compile(qmlFileUrl);
-
-    QCOMPARE(pipelineFinished.count(), 1);
-
-    QString compilerOutput = pipelineFinished.takeFirst().takeFirst().value<QString>();
-    QCOMPARE(compilerOutput, jsFileContent);
+    // Verify
+    QCOMPARE(m_result, minimalComponentJs);
 }
 
 QTEST_MAIN(TestPrettyGeneratorPass)

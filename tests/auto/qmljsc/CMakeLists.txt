@@ -20,7 +20,7 @@ endfunction()
 
 new_test(TEST testcompiler)
 new_test(TEST testparserpass RESOURCES ../data/minimal/minimal.qml)
-new_test(TEST testprettygeneratorpass RESOURCES ../data/minimal/minimal.qml ../data/minimal/minimal.qml.js)
+new_test(TEST testprettygeneratorpass RESOURCES ../data/minimal/minimal.qml.js)
 new_test(TEST testcompilerpipeline RESOURCES ../data/minimal/minimal.qml)
 new_test(TEST testsymboltable RESOURCES ../data/imports/TestModule.0.1.js)
 new_test(TEST testir)
