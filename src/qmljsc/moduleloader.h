@@ -80,8 +80,23 @@ private:
 
     void finalizeParse();
 
+    /**
+     * Returns the preliminary class object with the given name.
+     * If it doesn't exist yet, it creates one and returns that.
+     *
+     * This is used inside class definitions.
+     */
     IR::Class *getPreliminaryClass(const QStringRef &name);
-    void assert(bool condition, const QQmlJS::AST::SourceLocation &token, QString errorMessage);
+
+    /**
+     * Looks for the type with the given name at several places and returns it,
+     * if found or, if not, creates a preliminary class, marks it as referenced
+     * and then returns it.
+     *
+     * This is used when seeing a referenced type.
+     */
+    IR::Type *getType(const QStringRef &name, QQmlJS::AST::SourceLocation location);
+    void assertFailed(const QQmlJS::AST::SourceLocation &token, QString errorMessage);
 
     static QHash<IR::ImportDescription, IR::Module*> s_loadedModules;
 
@@ -89,9 +104,19 @@ private:
     QString m_moduleFileName;
 
     /**
-     * Maps names of classes to the name of its base class.
+     * This set contains pointers to types that are referenced elsewhere.
+     * If we see a function definition, we only can speculate, whether this is a
+     * constructor function of a type to be registered with QML. The same
+     * applies if we see a reference to a type. We can't be certain if it will
+     * be defined and registered lateron.
+     *
+     * Thus, we simply create a type object for it, as soon as we need it the
+     * first time and destroy it, if it wasn't registered. This is totaly valid,
+     * if it was created because we saw a function definition. It isn't ok
+     * anymore, though, if it was referenced somewhere. So we collect those
+     * referenced types here, to check, that all of them have been registered.
      */
-    QHash<QStringRef, QStringRef> m_inheritancies;
+    QHash<IR::Type *, QQmlJS::AST::SourceLocation> m_referencedTypes;
     /**
      * Stack of nested functions (closures) we're in.
      * Each function is represented by it's AST subtree.

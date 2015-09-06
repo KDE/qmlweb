@@ -35,6 +35,12 @@
 #include <private/qqmljslexer_p.h>
 #include <private/qqmljsparser_p.h>
 
+#define assert(condition, token, errorMessage) \
+if (!condition) { \
+    assertFailed(token, errorMessage); \
+}
+
+
 using namespace QmlJSc;
 using namespace QQmlJS;
 
@@ -285,7 +291,8 @@ void ModuleLoader::findInheritance(AST::CallExpression *call)
         "Malformed QW_INHERIT call: Wrong argument types provided. Expected two identifier expressions."
     );
 
-    m_inheritancies.insert(constructor->name, baseClass->name);
+    IR::Class *c = getPreliminaryClass(constructor->name);
+    c->setSuper(getType(baseClass->name, baseClass->identifierToken));
 }
 
 void ModuleLoader::findPropertyDefinition(AST::BinaryExpression *expr)
@@ -309,6 +316,58 @@ void ModuleLoader::findPropertyDefinition(AST::BinaryExpression *expr)
     // Ok, this is a property definition
     IR::Class *c = getPreliminaryClass(m_currentFunctionStack.last()->name);
     IR::Property *property = c->addProperty(lValue->name.toString());
+
+    AST::ObjectLiteral *parameters = AST::cast<AST::ObjectLiteral *>(rValue->arguments->expression);
+    if (!parameters) {
+        return;
+    }
+
+    for (AST::PropertyAssignmentList *aList = parameters->properties; aList; aList = aList->next) {
+        AST::PropertyNameAndValue *nameAndValue = AST::cast<AST::PropertyNameAndValue *>(aList->assignment);
+
+        assert(nameAndValue, aList->assignment->firstSourceLocation(),
+            "Malformed QWProperty call: Expected argument to be a name value pair."
+        );
+
+        if (nameAndValue->name->asString() == "type") {
+            AST::IdentifierExpression *id = AST::cast<AST::IdentifierExpression *>(nameAndValue->value);
+            assert(id, nameAndValue->value->firstSourceLocation(),
+                "Malformed QWProperty call: Expected argument 'type' to have an identifier expression as value."
+            );
+            property->type = getType(id->name, id->identifierToken);
+            continue;
+        }
+        if (nameAndValue->name->asString() == "typeArg") {
+            AST::IdentifierExpression *id = AST::cast<AST::IdentifierExpression *>(nameAndValue->value);
+            assert(id, nameAndValue->value->firstSourceLocation(),
+                "Malformed QWProperty call: Expected argument 'typeArg' to have an identifier expression as value."
+            );
+             property->type = getType(id->name, id->identifierToken);
+            continue;
+        }
+        if (nameAndValue->name->asString() == "initialValue") {
+            property->jsValue = nameAndValue->value;
+            continue;
+        }
+        if (nameAndValue->name->asString() == "readonly") {
+            assert(nameAndValue->value->kind == AST::Node::Kind_TrueLiteral
+                   || nameAndValue->value->kind == AST::Node::Kind_FalseLiteral,
+                nameAndValue->colonToken,
+                "Malformed QWProperty call: readonly may only have true or false as value."
+            );
+            property->readOnly = nameAndValue->value->kind == AST::Node::Kind_TrueLiteral;
+            continue;
+        }
+        if (nameAndValue->name->asString() == "constant") {
+            assert(nameAndValue->value->kind == AST::Node::Kind_TrueLiteral
+                   || nameAndValue->value->kind == AST::Node::Kind_FalseLiteral,
+                nameAndValue->colonToken,
+                "Malformed QWProperty call: constant may only have true or false as value."
+            );
+            property->constant = nameAndValue->value->kind == AST::Node::Kind_TrueLiteral;
+            continue;
+        }
+    }
 }
 
 void ModuleLoader::findMethodDefinition(AST::BinaryExpression *expr)
@@ -375,6 +434,25 @@ IR::Class *ModuleLoader::getPreliminaryClass(const QStringRef &name)
     return c;
 }
 
+IR::Type *ModuleLoader::getType(const QStringRef& name, AST::SourceLocation location)
+{
+    IR::Type *t = 0;
+    // TODO: Look for basic types
+    t = m_preliminaryClasses.value(name);
+
+    if (!t) {
+        t = m_preliminaryClasses[name] = new IR::Class;
+        t->setName(name.toString());
+    }
+
+    if (t) {
+        m_referencedTypes.insert(t, location);
+    }
+
+    return t;
+}
+
+
 void ModuleLoader::finalizeParse()
 {
     for (auto i = m_typesToFunctionsMap.constBegin(); i != m_typesToFunctionsMap.constEnd(); i++) {
@@ -383,21 +461,20 @@ void ModuleLoader::finalizeParse()
         // value is the name of the function that defines it.
         IR::Class *c = getPreliminaryClass(i.value());
         m_module->m_types.insert(i.key(), c);
+        m_preliminaryClasses.remove(i.value());
+        m_referencedTypes.remove(c);
     }
 
-    for (auto i = m_inheritancies.constBegin(); i != m_inheritancies.constEnd(); i++) {
-        IR::Type *c = m_module->m_types[i.key().toString()];
-        c->setSuper(m_module->m_types[i.value().toString()]);
-    }
+     assert(m_referencedTypes.empty(), m_referencedTypes.constBegin().value(),
+         QStringLiteral("Referenced unregistered type %1.").arg(m_referencedTypes.constBegin().key()->name())
+     );
 }
 
-void ModuleLoader::assert(bool condition, const AST::SourceLocation &token, QString errorMessage)
+void ModuleLoader::assertFailed(const AST::SourceLocation &token, QString errorMessage)
 {
-    if (!condition) {
-        Error error(Error::ModuleImportError, errorMessage);
-        error.setFile(m_moduleFileName);
-        error.setLine(token.startLine);
-        error.setColumn(token.startColumn);
-        throw error;
-    }
+    Error error(Error::ModuleImportError, errorMessage);
+    error.setFile(m_moduleFileName);
+    error.setLine(token.startLine);
+    error.setColumn(token.startColumn);
+    throw error;
 }

@@ -10,7 +10,7 @@
         QWObject.call(this, parent);
 
         this.temperature = new QWProperty({ type: QWInt, initialValue: 20 });
-        this.content = new QWProperty({ type: "list<Pastry>", initialValue: new QWList() });
+        this.content = new QWProperty({ type: QWList, typeArg: Pastry, initialValue: new QWList() });
     }
 
     Pastry.prototype.bake = function() {
@@ -19,6 +19,8 @@
     function Pastry(parent)
     {
         QWObject.call(this, parent);
+
+        this.baked = new QWProperty({ type: Boolean, readonly: true, initialValue: false });
 
         this.bakingTime = new QWProperty({ type: QWInt });
 

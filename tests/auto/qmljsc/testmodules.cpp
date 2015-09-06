@@ -33,14 +33,82 @@ class TestSymbolTable : public QObject
     Q_OBJECT
 
 private slots:
-    void loadModule();
+    void loadMinimalModule();
+//     void loadModule();
     void testShortSymbolName();
 
 };
 
 using namespace QmlJSc;
 using namespace QmlJSc::IR;
+using namespace QQmlJS;
 
+void TestSymbolTable::loadMinimalModule()
+{
+    Compiler comp;
+
+    const ImportDescription testImportDescription = {ImportDescription::Kind_ModuleImport, "MinimalModule", 0, 1};
+
+    compiler->addIncludePath(":/test/");
+    IR::Module *module = ModuleLoader::loadModule(testImportDescription);
+    module->waitForLoaded();
+
+    Type *a = module->type("A");
+    Type *b = module->type("B");
+    Type *c = module->type("C");
+    Type *d = module->type("D");
+    Type *e = module->type("E");
+
+    QCOMPARE((int)module->status(), (int)Module::Successful);
+    QVERIFY(a);
+    QVERIFY(b);
+    QVERIFY(c);
+    QVERIFY(d);
+    QVERIFY(!e);
+
+    QCOMPARE(a->name(), QStringLiteral("A"));
+    QCOMPARE(b->name(), QStringLiteral("B"));
+    QCOMPARE(c->name(), QStringLiteral("C"));
+    QCOMPARE(d->name(), QStringLiteral("D"));
+
+    QVERIFY(b->property("minimalProp"));
+    QVERIFY(c->property("propWithType"));
+    QVERIFY(c->property("yaPropWithType"));
+    QVERIFY(d->property("readonlyProp"));
+    QVERIFY(d->property("constantProp"));
+    QVERIFY(!d->property("yaPropWithType"));
+
+    IR::Property *readonlyProp = d->property("readonlyProp");
+    QVERIFY(readonlyProp);
+    QCOMPARE(readonlyProp->type, d);
+    QCOMPARE(readonlyProp->readOnly, true);
+    QCOMPARE(readonlyProp->jsValue->kind, (int)AST::Node::Kind_FalseLiteral);
+
+    IR::Method *prototypeMethod = b->method("prototypeMethod");
+    QVERIFY(prototypeMethod);
+    QCOMPARE(prototypeMethod->name, QStringLiteral("prototypeMethod"));
+
+    QVERIFY(b->method("prototypeMethod2"));
+    QVERIFY(b->method("constructorMethod"));
+    QVERIFY(c->method("prototypeMethod"));
+    QVERIFY(c->method("constructorMethod"));
+    QVERIFY(d->method("prototypeMethod"));
+    QVERIFY(d->method("constructorMethod"));
+
+    IR::Signal *someSignal = d->signal("someSignal");
+    QVERIFY(someSignal);
+    QCOMPARE(someSignal->parameters.size(), 0);
+
+    IR::Signal *anotherSignal = d->signal("anotherSignal");
+    QVERIFY(anotherSignal);
+    QCOMPARE(anotherSignal->parameters.size(), 2);
+    QCOMPARE(anotherSignal->parameters[0].name, QStringLiteral("arg1"));
+    QCOMPARE(anotherSignal->parameters[0].type, a);
+    QCOMPARE(anotherSignal->parameters[1].name, QStringLiteral("arg2"));
+    QCOMPARE(anotherSignal->parameters[1].type, a);
+}
+
+#if false
 void TestSymbolTable::loadModule()
 {
     Compiler c;
@@ -73,6 +141,12 @@ void TestSymbolTable::loadModule()
     QVERIFY(pizza->property("topping"));
     QVERIFY(!pizza->property("containsRawEgg"));
 
+    IR::Property *baked = pizza->property("baked");
+    QVERIFY(baked);
+//     QCOMPARE(baked->type, );
+    QCOMPARE(baked->readOnly, true);
+    QCOMPARE(baked->jsValue->kind, (int)AST::Node::Kind_FalseLiteral);
+
     QVERIFY(pastry->method("eat"));
     QVERIFY(pastry->method("bake"));
     QVERIFY(pizza->method("eat"));
@@ -80,6 +154,7 @@ void TestSymbolTable::loadModule()
 
     QVERIFY(pizza->signal("bakingFinished"));
 }
+#endif
 
 void TestSymbolTable::testShortSymbolName()
 {
