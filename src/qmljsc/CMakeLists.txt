@@ -16,6 +16,8 @@ set(libqmljsc_srcs
   moduleloading/abstractmoduleloader.cpp
   moduleloading/javascriptmoduleloader.cpp
   moduleloading/moduleloading.cpp
+
+  utils/shortsymbolname.cpp
 )
 add_library(libqmljsc SHARED ${libqmljsc_srcs})
 qt5_use_modules(libqmljsc Core Qml)

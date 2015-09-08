@@ -31,33 +31,31 @@ namespace IR {
 }
 
 /**
- * This class parses the javascript source of a module and analyses it for
- * class definitions, properties, methods, etc. to create a Module object.
+ * This class provides an abstract base class for classes that can load modules.
+ * Examples for base classes are the javascript-module loader and the
+ * qtqml-module loader.
  *
- * It will always run asynchronously in its own thread.
+ * It brings the basic infrastructure to run it on it's own thread (so module
+ * loaders will always run asynchronously in their own thread) and to figure out
+ * if it's the right loader for a specific module.
  *
- * To load a module, use the static function Modules::loadModule().
- *
- * If you implement a module loader, reimplement doLoad and setModule. If an
- * error occurs during loading, throw an exception. AbstractModuleLoader will
- * take care of communicating it up.
+ * If you implement this class, you need to implement canLoad, telling if the
+ * class is suitable to load this module and doLoad, to actually load it.
+ * Use module() to get the module you're about to load and add types to it.
  */
 class AbstractModuleLoader : public QRunnable
 {
 public:
+    AbstractModuleLoader(IR::Module *module);
 
     /**
-     * Don't reimplement this in a moduleloader. It's
+     * Don't reimplement this in a moduleloader.
      */
     void run() override;
 
     virtual bool canLoad() = 0;
     virtual void doLoad() = 0;
 
-    /**
-     * Needs to be called *before* run() is called.
-     */
-    void setModule(IR::Module *module);
     IR::Module *module();
 
 

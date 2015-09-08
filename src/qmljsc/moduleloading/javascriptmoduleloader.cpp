@@ -223,7 +223,7 @@ bool TypeDefinitionVisitor::visit(AST::CallExpression *call)
 
 void TypeDefinitionVisitor::findPropertyDefinition(AST::BinaryExpression *expr)
 {
-    if (expr->op != 3) { // 3 stands for "="
+    if (expr->op != QSOperator::Assign) {
         return;
     }
 
@@ -299,7 +299,7 @@ void TypeDefinitionVisitor::findPropertyDefinition(AST::BinaryExpression *expr)
 
 void TypeDefinitionVisitor::findMethodDefinition(AST::BinaryExpression *expr)
 {
-    if (expr->op != 3) { // 3 stands for "="
+    if (expr->op != QSOperator::Assign) {
         return;
     }
 
@@ -340,7 +340,7 @@ void TypeDefinitionVisitor::findMethodDefinition(AST::BinaryExpression *expr)
 
 void TypeDefinitionVisitor::findSignalDefinition(AST::BinaryExpression *expr)
 {
-    if (expr->op != 3) { // 3 stands for "="
+    if (expr->op != QSOperator::Assign) {
         return;
     }
 
@@ -419,7 +419,7 @@ IR::Type *TypeDefinitionVisitor::getType(const QStringRef& name)
 {
     IR::Type *t = 0;
     t = m_module->typeFromJSName(name.toString());
-    // TODO: Search different locations.
+    // TODO: Search different locations (Task T488).
 
     return t;
 }
@@ -427,18 +427,22 @@ IR::Type *TypeDefinitionVisitor::getType(const QStringRef& name)
 
 
 
-JavaScriptModuleLoader *JavaScriptModuleLoader::create()
+JavaScriptModuleLoader *JavaScriptModuleLoader::create(IR::Module *module)
 {
-    return new JavaScriptModuleLoader;
+    return new JavaScriptModuleLoader(module);
 }
+
+JavaScriptModuleLoader::JavaScriptModuleLoader(IR::Module *module)
+    : AbstractModuleLoader(module)
+{}
 
 bool JavaScriptModuleLoader::canLoad()
 {
     IR::Module *module = AbstractModuleLoader::module();
 
     QString moduleFileName = QStringLiteral("%1.%2.%3.js").arg(module->importDescription().name)
-                                                                .arg(module->importDescription().versionMajor)
-                                                                .arg(module->importDescription().versionMinor);
+                                                          .arg(module->importDescription().versionMajor)
+                                                          .arg(module->importDescription().versionMinor);
 
     // For now we only support local files.
     const QStringList &includePaths = compiler->includePaths();
@@ -487,11 +491,11 @@ void JavaScriptModuleLoader::doLoad()
         err->setColumn(parser->errorColumnNumber());
         err->setLine(parser->errorLineNumber());
         throw new Error(Error::ModuleImportError,
-                    QStringLiteral("Error while processing module %1 %2.%3")
+                        QStringLiteral("Error while processing module %1 %2.%3")
                         .arg(module->importDescription().name)
                         .arg(module->importDescription().versionMajor)
                         .arg(module->importDescription().versionMinor),
-                    err);
+                        err);
     }
 
     AST::Program *ast = AST::cast<AST::Program *>(parser->rootNode());
@@ -506,5 +510,5 @@ void JavaScriptModuleLoader::doLoad()
         throw e;
     }
 
-    module->setStatus(IR::Module::Successful);
+    module->setLoadingState(IR::Module::Successful);
 }

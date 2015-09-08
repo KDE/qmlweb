@@ -25,23 +25,23 @@
 
 using namespace QmlJSc;
 
+AbstractModuleLoader::AbstractModuleLoader(IR::Module *module)
+    : QRunnable()
+    , m_module(module)
+{}
+
 void AbstractModuleLoader::run()
 {
     try {
         doLoad();
     } catch (Error *e) {
         qWarning() << e->what();
-        m_module->setStatus(IR::Module::ErrorState);
+        m_module->setLoadingState(IR::Module::ErrorState);
     }
 }
 
 IR::Module *AbstractModuleLoader::module()
 {
     return m_module;
-}
-
-void AbstractModuleLoader::setModule(IR::Module* module)
-{
-    m_module = module;
 }
 

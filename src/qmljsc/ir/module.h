@@ -39,7 +39,7 @@ namespace IR {
 class Module
 {
 public:
-    enum Status {
+    enum LoadingState {
         Loading,
         Successful,
         ErrorState
@@ -48,8 +48,8 @@ public:
     explicit Module(ImportDescription import, QObject *parent = 0);
     ~Module();
 
-    Status status();
-    void setStatus(Status status);
+    LoadingState loadingState();
+    void setLoadingState(LoadingState status);
 
     void waitForLoaded();
 
@@ -78,9 +78,9 @@ public:
 private:
     QHash<QString, Type*> m_types;
     QHash<QString, Type*> m_jsNameToTypeHash;
-    ImportDescription m_import;
-    Status m_status;
-    QWaitCondition m_waitCondition;
+    ImportDescription m_importDescription;
+    LoadingState m_loadingState;
+    QWaitCondition m_loadFinishedCondition;
     QMutex m_loadMutex;
 };
 

@@ -97,13 +97,14 @@ private:
 class JavaScriptModuleLoader : public AbstractModuleLoader
 {
 public:
-    static JavaScriptModuleLoader *create();
+    static JavaScriptModuleLoader *create(IR::Module *module);
 
     bool canLoad();
 
     void doLoad();
 
 private:
+    JavaScriptModuleLoader(IR::Module *module);
     QFile m_moduleFile;
 };
 

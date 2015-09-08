@@ -39,8 +39,8 @@ using namespace QmlJSc::IR;
 using namespace QQmlJS::AST;
 
 Module::Module(ImportDescription import, QObject *parent)
-    : m_import(import)
-    , m_status(Loading)
+    : m_importDescription(import)
+    , m_loadingState(Loading)
 {
 }
 
@@ -51,26 +51,26 @@ Module::~Module()
     }
 }
 
-Module::Status Module::status()
+Module::LoadingState Module::loadingState()
 {
-    return m_status;
+    return m_loadingState;
 }
 
-void Module::setStatus(Module::Status status)
+void Module::setLoadingState(Module::LoadingState status)
 {
-    Q_ASSERT_X(m_status == Loading, __FILE__,
+    Q_ASSERT_X(m_loadingState == Loading, __FILE__,
                "It's not allowed to change status after loading finished.");
 
-    m_status = status;
-    if (m_status == Successful || m_status == ErrorState) {
-        m_waitCondition.wakeAll();
+    m_loadingState = status;
+    if (m_loadingState == Successful || m_loadingState == ErrorState) {
+        m_loadFinishedCondition.wakeAll();
     }
 }
 
 
 const QString &Module::name()
 {
-    return m_import.name;
+    return m_importDescription.name;
 }
 
 Type *Module::type(QString name)
@@ -86,7 +86,7 @@ Type *Module::typeFromJSName(QString name)
 
 void Module::addType(Type *type)
 {
-    Q_ASSERT_X(m_status == Loading, __FILE__,
+    Q_ASSERT_X(m_loadingState == Loading, __FILE__,
                "It's not allowed to add types after loading finished.");
 
     m_types.insert(type->name(), type);
@@ -95,15 +95,15 @@ void Module::addType(Type *type)
 
 void Module::waitForLoaded()
 {
-    if (m_status != Loading)
+    if (m_loadingState != Loading)
         return;
 
     m_loadMutex.lock();
-    m_waitCondition.wait(&m_loadMutex);
+    m_loadFinishedCondition.wait(&m_loadMutex);
     m_loadMutex.unlock();
 }
 
 ImportDescription Module::importDescription()
 {
-    return m_import;
+    return m_importDescription;
 }

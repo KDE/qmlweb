@@ -47,7 +47,7 @@ using namespace QmlJSc;
 using namespace QQmlJS;
 
 QHash<IR::ImportDescription, IR::Module*> ModuleLoading::s_loadedModules;
-QVector<std::function<AbstractModuleLoader *()>> ModuleLoading::s_moduleLoaders;
+QVector<ModuleLoaderFactoryFunc> ModuleLoading::s_moduleLoaderFactories;
 
 IR::Module *ModuleLoading::loadModule(IR::ImportDescription import)
 {
@@ -59,9 +59,8 @@ IR::Module *ModuleLoading::loadModule(IR::ImportDescription import)
     IR::Module *module = new IR::Module(import, compiler);
     s_loadedModules.insert(import, module);
     AbstractModuleLoader *loader = 0;
-    foreach (auto factory, s_moduleLoaders) {
-        loader = factory(); // will delete itself when done
-        loader->setModule(module);
+    foreach (ModuleLoaderFactoryFunc createLoaderFor, s_moduleLoaderFactories) {
+        loader = createLoaderFor(module); // will delete itself when done
         if (loader->canLoad()) {
             break;
         } else {
@@ -80,8 +79,8 @@ IR::Module *ModuleLoading::loadModule(IR::ImportDescription import)
     return module;
 }
 
-void ModuleLoading::registerModuleLoader(std::function<AbstractModuleLoader *()> factory)
+void ModuleLoading::registerModuleLoader(ModuleLoaderFactoryFunc factory)
 {
-    s_moduleLoaders.append(factory);
+    s_moduleLoaderFactories.append(factory);
 }
 

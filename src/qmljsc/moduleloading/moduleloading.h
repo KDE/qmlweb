@@ -38,6 +38,8 @@ namespace IR {
 
 class AbstractModuleLoader;
 
+typedef std::function<AbstractModuleLoader *(IR::Module *)> ModuleLoaderFactoryFunc;
+
 class ModuleLoading {
 public:
     /**
@@ -50,11 +52,11 @@ public:
      */
     static IR::Module *loadModule(IR::ImportDescription import);
 
-    static void registerModuleLoader(std::function<AbstractModuleLoader *()> factory);
+    static void registerModuleLoader(ModuleLoaderFactoryFunc factory);
 
 private:
     static QHash<IR::ImportDescription, IR::Module*> s_loadedModules;
-    static QVector<std::function<AbstractModuleLoader *()>> s_moduleLoaders;
+    static QVector<ModuleLoaderFactoryFunc> s_moduleLoaderFactories;
 };
 
 } // namespace QMLJSc

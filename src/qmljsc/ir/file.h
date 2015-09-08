@@ -22,6 +22,8 @@
 #define FILE_H
 
 #include "ir.h"
+#include "importdefinition.h"
+#include "../utils/shortsymbolname.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QHash>
@@ -32,54 +34,8 @@
 namespace QmlJSc {
 namespace IR {
 
-struct ImportDescription {
-    enum Kind {
-        Kind_ModuleImport,
-        Kind_FileImport,
-        Kind_DirectoryImport
-    };
-
-    Kind kind;
-    QString name;
-    int versionMajor;
-    int versionMinor;
-
-    inline bool operator==(const ImportDescription& other) const
-    {
-        return name == other.name && versionMajor == other.versionMajor && versionMinor == other.versionMinor;
-    }
-};
-
 class Module;
 struct Type;
-
-inline uint qHash(const ImportDescription &key, uint seed)
-{
-    return qHash(key.name, seed) ^ key.versionMajor ^ key.versionMinor;
-}
-
-typedef QList<ImportDescription> ImportDescriptions;
-
-/**
- * This class represents a minified symbol name like "a", "b", "aa", "A8",...
- *
- * Initialize it with the first character you want to use as symbol name MINUS
- * ONE, as you normally will use the preincrement operator before accessing it.
- * If you won't, feel free to initialize it with the first symbol name directly,
- * of course.
- *
- * To get the next valid symbol name, use the preincrement operator.
- *
- * This is a subclass of QString, so you can just use it as a string.
- */
-class ShortSymbolName : public QString
-{
-public:
-    ShortSymbolName(char first);
-    ShortSymbolName(QString first);
-
-    ShortSymbolName &operator++();
-};
 
 class File
 {
@@ -105,14 +61,12 @@ public:
 private:
     const ModuleData *moduleForType(const QString &typeName) const;
 
-    QVector<ModuleData> m_modules;
+    QVector<ModuleData> m_importedModules;
     ShortSymbolName m_prefix;
     Component *m_rootObject;
 };
 
 } // namespace IR
 } // namespace QMLJSc
-
-Q_DECLARE_METATYPE(QmlJSc::IR::ImportDescription);
 
 #endif // FILE_H

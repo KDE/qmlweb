@@ -33,13 +33,13 @@
 #include "../../../src/qmljsc/moduleloading/javascriptmoduleloader.h"
 #include "../../../src/qmljsc/ir/module.h"
 
-class TestSymbolTable : public QObject
+class TestModules : public QObject
 {
     Q_OBJECT
 
 private slots:
     void loadMinimalModule();
-//     void loadModule();
+    void loadModule();
     void testShortSymbolName();
 
 };
@@ -48,7 +48,7 @@ using namespace QmlJSc;
 using namespace QmlJSc::IR;
 using namespace QQmlJS;
 
-void TestSymbolTable::loadMinimalModule()
+void TestModules::loadMinimalModule()
 {
     Compiler comp;
     ModuleLoading::registerModuleLoader(&JavaScriptModuleLoader::create);
@@ -65,7 +65,7 @@ void TestSymbolTable::loadMinimalModule()
     Type *d = module->type("D");
     Type *e = module->type("E");
 
-    QCOMPARE((int)module->status(), (int)Module::Successful);
+    QCOMPARE((int)module->loadingState(), (int)Module::Successful);
     QVERIFY(a);
     QVERIFY(b);
     QVERIFY(c);
@@ -124,9 +124,9 @@ void TestSymbolTable::loadMinimalModule()
     QCOMPARE(anotherSignal->parameters[1].type, a);
 }
 
-#if false
-void TestSymbolTable::loadModule()
+void TestModules::loadModule()
 {
+    QSKIP("This will be implemented later (Task T488).");
     Compiler c;
 
     const ImportDescription testImportDescription = {ImportDescription::Kind_ModuleImport, "TestModule", 0, 1};
@@ -140,7 +140,7 @@ void TestSymbolTable::loadModule()
     Type *pizza = module->type("Pizza");
     Type *printer = module->type("Printer");
 
-    QVERIFY(module->status() == Module::Successful);
+    QVERIFY(module->loadingState() == Module::Successful);
     QVERIFY(pastry);
     QVERIFY(cake);
     QVERIFY(pizza);
@@ -159,7 +159,6 @@ void TestSymbolTable::loadModule()
 
     IR::Property *baked = pizza->property("baked");
     QVERIFY(baked);
-//     QCOMPARE(baked->type, );
     QCOMPARE(baked->readOnly, true);
     QCOMPARE(baked->jsValue->kind, (int)AST::Node::Kind_FalseLiteral);
 
@@ -170,9 +169,8 @@ void TestSymbolTable::loadModule()
 
     QVERIFY(pizza->signal("bakingFinished"));
 }
-#endif
 
-void TestSymbolTable::testShortSymbolName()
+void TestModules::testShortSymbolName()
 {
     ShortSymbolName nA('A');
     ShortSymbolName nB('B');
@@ -258,6 +256,6 @@ void TestSymbolTable::testShortSymbolName()
     QCOMPARE(static_cast<QString>(++nzzzz), QStringLiteral("a0000"));
 }
 
-QTEST_MAIN(TestSymbolTable)
+QTEST_MAIN(TestModules)
 #include "testmodules.moc"
 

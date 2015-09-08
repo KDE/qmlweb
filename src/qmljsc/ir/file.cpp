@@ -26,66 +26,6 @@
 using namespace QmlJSc;
 using namespace QmlJSc::IR;
 
-ShortSymbolName::ShortSymbolName(char first)
-    : QString(first)
-{}
-
-ShortSymbolName::ShortSymbolName(QString first)
-    : QString(first)
-{}
-
-ShortSymbolName &ShortSymbolName::operator++()
-{
-    Q_ASSERT(!isEmpty());
-
-    iterator i = end();
-    i--;
-
-    char borrow = 1;
-
-    while (i != begin()) {
-        if ((*i) == '9') {
-            *i = 'A';
-            borrow = 0;
-            break;
-        } else if ((*i) == 'Z') {
-            *i = 'a';
-            borrow = 0;
-            break;
-        } else if ((*i) == 'z') {
-            // We need to add a borrow of 1 to the previous digit
-            *i = '0';
-            i--;
-            borrow = 1;
-            continue;
-        } else {
-            *i = i->toLatin1() + 1;
-            borrow = 0;
-            break;
-        }
-    }
-
-    if (borrow == 1) {
-        if (*i <= 'Z') { // the first letter is a capital one, so it should remain so.
-            if (*i == 'Z') { // We need to prepend a new digit
-                *i = '0';
-                prepend('A');
-            } else {
-                *i = i->toLatin1() + 1;
-            }
-        } else { // the first letter is a small one, so it should remain so.
-            if (*i == 'z') { // We need to prepend a new digit
-                *i = '0';
-                prepend('a');
-            } else {
-                *i = i->toLatin1() + 1;
-            }
-        }
-    }
-
-    return *this;
-}
-
 bool File::ModuleData::operator==(const File::ModuleData& other) const
 {
     return module == other.module;
@@ -102,10 +42,10 @@ File::~File()
 
 void File::addModule(Module *module)
 {
-    if (m_modules.contains({ module, QString() }))
+    if (m_importedModules.contains({ module, QString() }))
         return;
 
-    m_modules.append({
+    m_importedModules.append({
         module,
         ++m_prefix
     });
@@ -139,12 +79,12 @@ const File::ModuleData *File::moduleForType(const QString &typeName) const
 {
     Type *foundType = 0;
     const ModuleData *moduleData = 0;
-    foreach (const ModuleData &data, m_modules) {
+    foreach (const ModuleData &data, m_importedModules) {
         if (Type * type = data.module->type(typeName)) {
             if (foundType) {
                 throw Error(
                             QmlJSc::Error::SymbolLookupError,
-                            QString("Ambitious type name. Type %1 was defined by module %2 and %3.")
+                            QString("Ambigious type name. Type %1 was defined by module %2 and %3.")
                                 .arg(typeName, moduleData->module->name(), data.module->name())
                            );
                 return 0;
