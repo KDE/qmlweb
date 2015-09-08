@@ -93,9 +93,19 @@ void TestSymbolTable::loadMinimalModule()
     IR::Method *prototypeMethod = b->method("prototypeMethod");
     QVERIFY(prototypeMethod);
     QCOMPARE(prototypeMethod->name, QStringLiteral("prototypeMethod"));
+    IR::Method *bPrototypeMethod = b->method("prototypeMethod");
+    QVERIFY(bPrototypeMethod);
+    QCOMPARE(bPrototypeMethod->parameters.size(), 0);
+    IR::Method *bPrototypeMethod2 = b->method("prototypeMethod2");
+    QVERIFY(bPrototypeMethod2);
+    QCOMPARE(bPrototypeMethod2->parameters.size(), 1);
+    QCOMPARE(bPrototypeMethod2->parameters[0], QStringLiteral("prop"));
+    IR::Method *bConstructorMethod = b->method("constructorMethod");
+    QVERIFY(bConstructorMethod);
+    QCOMPARE(bConstructorMethod->parameters.size(), 2);
+    QCOMPARE(bConstructorMethod->parameters[0], QStringLiteral("prop1"));
+    QCOMPARE(bConstructorMethod->parameters[1], QStringLiteral("prop2"));
 
-    QVERIFY(b->method("prototypeMethod2"));
-    QVERIFY(b->method("constructorMethod"));
     QVERIFY(c->method("prototypeMethod"));
     QVERIFY(c->method("constructorMethod"));
     QVERIFY(d->method("prototypeMethod"));

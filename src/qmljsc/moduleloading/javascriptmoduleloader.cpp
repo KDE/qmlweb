@@ -303,7 +303,7 @@ void TypeDefinitionVisitor::findMethodDefinition(AST::BinaryExpression *expr)
     }
 
     AST::FieldMemberExpression *lValue = AST::cast<AST::FieldMemberExpression *>(expr->left);
-    AST::FunctionExpression *rValue = AST::cast<AST::FunctionExpression *>(expr->right);
+    AST::FunctionExpression *func = AST::cast<AST::FunctionExpression *>(expr->right);
     IR::Type *t;
 
     if (lValue->base->kind == AST::Node::Kind_ThisExpression) {
@@ -329,6 +329,12 @@ void TypeDefinitionVisitor::findMethodDefinition(AST::BinaryExpression *expr)
     // Treat as a method definiton of a class. We can't ever be sure, but let's
     // try and discard later, if it turns out not to be one.
     IR::Method *method = t->addMethod(lValue->name.toString());
+
+    AST::FormalParameterList *parameter = func->formals;
+    while (parameter) {
+        method->parameters << parameter->name.toString();
+        parameter = parameter->next;
+    }
 }
 
 void TypeDefinitionVisitor::findSignalDefinition(AST::BinaryExpression *expr)
