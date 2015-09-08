@@ -215,7 +215,7 @@ bool TypeDefinitionVisitor::visit(AST::CallExpression *call)
 
     IR::Type *t = m_module->typeFromJSName(constructor->name.toString());
     assert(t, constructor->firstSourceLocation(), "Using a type that won't get registered.");
-    t->setSuper(getType(baseClass->name, baseClass->identifierToken));
+    t->setSuper(getType(baseClass->name));
 
     return true;
 }
@@ -260,7 +260,7 @@ void TypeDefinitionVisitor::findPropertyDefinition(AST::BinaryExpression *expr)
             assert(id, nameAndValue->value->firstSourceLocation(),
                 "Malformed QWProperty call: Expected argument 'type' to have an identifier expression as value."
             );
-            property->type = getType(id->name, id->identifierToken);
+            property->type = getType(id->name);
             continue;
         }
         if (nameAndValue->name->asString() == "typeArg") {
@@ -268,7 +268,7 @@ void TypeDefinitionVisitor::findPropertyDefinition(AST::BinaryExpression *expr)
             assert(id, nameAndValue->value->firstSourceLocation(),
                 "Malformed QWProperty call: Expected argument 'typeArg' to have an identifier expression as value."
             );
-             property->type = getType(id->name, id->identifierToken);
+             property->type = getType(id->name);
             continue;
         }
         if (nameAndValue->name->asString() == "initialValue") {
@@ -357,11 +357,64 @@ void TypeDefinitionVisitor::findSignalDefinition(AST::BinaryExpression *expr)
 
     // Ok, this is a signal definition
     IR::Type *t = m_module->typeFromJSName(m_currentFunctionStack.last()->name.toString());
-    assert(t, lValue->firstSourceLocation(), "Registering a signal to a type that won't get registered.");
+    assert(t, lValue->firstSourceLocation(),
+           "Registering a signal to a type that won't get registered.");
     IR::Signal *signal = t->addSignal(lValue->name.toString());
+
+    AST::ArgumentList *argumentList = rValue->arguments;
+    if (!argumentList) {
+        return; // Ok, no arguments, so we're done here.
+    }
+
+    AST::ArrayLiteral *arrayLit = AST::cast<AST::ArrayLiteral *>(argumentList->expression);
+    assert(arrayLit, argumentList->expression->firstSourceLocation(), "Malformed Signal definition:"
+           " First argument must be an array literal.");
+    AST::ElementList *array = arrayLit->elements;
+
+    // Go through all the elements in the list, each of which is an object
+    // literal describing one parameter
+    while (array) {
+        AST::ObjectLiteral *parameterObject = AST::cast<AST::ObjectLiteral *>(array->expression);
+        assert(parameterObject, array->expression->firstSourceLocation(),
+               "Malformed Signal definition: Array elements must be object literals.");
+        AST::PropertyAssignmentList *parameterData = parameterObject->properties;
+        IR::Type *type = 0;
+        QString name;
+
+        // Go through all properties of the object literal. Basically we're
+        // looking for "type" and "name"
+        while (parameterData) {
+            AST::PropertyNameAndValue *nameAndValue = AST::cast<AST::PropertyNameAndValue *>(parameterData->assignment);
+
+            assert(nameAndValue, parameterData->assignment->firstSourceLocation(),
+                   "Malformed Signal definition: The definition of a parameter "
+                   "must only contain name and value.");
+
+            if (nameAndValue->name->asString() == QStringLiteral("type")) {
+                AST::IdentifierExpression *t = AST::cast<AST::IdentifierExpression *>(nameAndValue->value);
+                assert(t, nameAndValue->value->firstSourceLocation(), "Malformed Signal definition:"
+                       "The type definition of a parameter must be an identifier expression"
+                       "that refers to a type.");
+                type = getType(t->name);
+            } else if (nameAndValue->name->asString() == QStringLiteral("name")) {
+                AST::StringLiteral *n = AST::cast<AST::StringLiteral *>(nameAndValue->value);
+                assert(n, nameAndValue->value->firstSourceLocation(), "Malformed Signal definition:"
+                       "The name definition of a parameter must be a string literal.");
+                name = n->value.toString();
+            }
+
+            parameterData = parameterData->next;
+        }
+
+        signal->parameters.append({type, name});
+
+        array = array->next;
+    }
+
+
 }
 
-IR::Type *TypeDefinitionVisitor::getType(const QStringRef& name, AST::SourceLocation location)
+IR::Type *TypeDefinitionVisitor::getType(const QStringRef& name)
 {
     IR::Type *t = 0;
     t = m_module->typeFromJSName(name.toString());

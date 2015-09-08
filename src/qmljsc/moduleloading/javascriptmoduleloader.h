@@ -73,7 +73,7 @@ public:
      *
      * This is used when seeing a referenced type.
      */
-    IR::Type *getType(const QStringRef &name, QQmlJS::AST::SourceLocation location);
+    IR::Type *getType(const QStringRef &name);
 
 private:
     IR::Module *m_module;
