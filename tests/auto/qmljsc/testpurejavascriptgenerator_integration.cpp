@@ -31,7 +31,7 @@
 
 Q_DECLARE_METATYPE(QQmlJS::AST::Node*)
 
-class PureJavaScriptGeneratorIntegration
+class TestPureJavaScriptGeneratorIntegration
     : public QObject
 {
     Q_OBJECT
@@ -87,5 +87,5 @@ private slots:
 
 };
 
-QTEST_MAIN(PureJavaScriptGeneratorIntegration)
+QTEST_MAIN(TestPureJavaScriptGeneratorIntegration)
 #include "testpurejavascriptgenerator_integration.moc"
