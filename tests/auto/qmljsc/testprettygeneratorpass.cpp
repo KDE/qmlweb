@@ -53,7 +53,6 @@ private:
     QString readTestFileContent(const char* fileName);
 
     QmlJSc::PrettyGeneratorPass* m_prettyGeneratorPass = Q_NULLPTR;
-    QmlJSc::SymbolTable* m_symbolTable = Q_NULLPTR;
     QString m_result;
     QmlJSc::IR::Class* m_qtObjectType = Q_NULLPTR;
 
@@ -105,11 +104,9 @@ void TestPrettyGeneratorPass::init()
     if (m_prettyGeneratorPass) {
         disconnect(m_prettyGeneratorPass, SIGNAL(finished(QString)), this, SLOT(setResult(QString)));
         delete m_prettyGeneratorPass;
-        delete m_symbolTable;
     }
 
-    m_symbolTable = new QmlJSc::SymbolTable();
-    m_prettyGeneratorPass = new QmlJSc::PrettyGeneratorPass(m_symbolTable);
+    m_prettyGeneratorPass = new QmlJSc::PrettyGeneratorPass();
 
     m_result.clear();
     connect(m_prettyGeneratorPass, SIGNAL(finished(QString)), this, SLOT(setResult(QString)));

@@ -40,6 +40,11 @@ const QString &Type::name()
     return m_name;
 }
 
+const QString &Type::javaScriptName()
+{
+    return m_javaScriptName;
+}
+
 Property *Type::addProperty(const QString &name)
 {
     return &m_properties.insert(name, Property(name)).value();
@@ -58,6 +63,11 @@ Signal *Type::addSignal(const QString &name)
 void Type::setName(const QString &name)
 {
     m_name = name;
+}
+
+void Type::setJavaScriptName(const QString &jsName)
+{
+    m_javaScriptName = jsName;
 }
 
 Property *Type::property(const QString &name)

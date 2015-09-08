@@ -1,7 +1,7 @@
 /*
  * Qml.js Compiler -  a QML to JS compiler bringing QML's power to the web.
  *
- * Copyright (C) 2015 Jan Marker <jan@jangmarker.de>
+ * Copyright (C) 2015  Anton Kreuzkamp <kde-development@akreuzkamp.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,36 +18,30 @@
  *
  */
 
-#ifndef PRETTYGENERATORSTAGE_H
-#define PRETTYGENERATORSTAGE_H
+// Own
+#include "abstractmoduleloader.h"
+#include "ir/module.h"
+#include "error.h"
 
+using namespace QmlJSc;
 
-#include "../ir/visitor.h"
-#include "../compilerpass.h"
+AbstractModuleLoader::AbstractModuleLoader(IR::Module *module)
+    : QRunnable()
+    , m_module(module)
+{}
 
-
-namespace QmlJSc {
-
-class PrettyGeneratorPass : public CompilerPass, public IR::Visitor
+void AbstractModuleLoader::run()
 {
- Q_OBJECT
-
-public:
- PrettyGeneratorPass();
-
- virtual void visit(IR::Component* component) override;
- virtual void endVisit(IR::Component* component) override;
-
-public slots:
- void process(IR::Component* rootComponent) override;
-
-private:
- int m_levelSpaceCount = 4;
- QTextStream m_output;
- bool m_componentRoot;
-
-};
-
+    try {
+        doLoad();
+    } catch (Error *e) {
+        qWarning() << e->what();
+        m_module->setLoadingState(IR::Module::ErrorState);
+    }
 }
 
-#endif // PRETTYGENERATORSTAGE_H
+IR::Module *AbstractModuleLoader::module()
+{
+    return m_module;
+}
+

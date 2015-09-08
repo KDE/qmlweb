@@ -83,6 +83,7 @@ public:
 
     Kind kind();
     const QString &name();
+    const QString &javaScriptName();
     Property *property(const QString &name);
     Method *method(const QString &name);
     Signal *signal(const QString &name);
@@ -93,6 +94,7 @@ public:
     Signal *addSignal(const QString &name);
 
     void setName(const QString &name);
+    void setJavaScriptName(const QString &jsName);
 
     Type *super();
     void setSuper(Type *superType);
@@ -104,6 +106,7 @@ protected:
 
 protected:
     QString m_name;
+    QString m_javaScriptName;
     QHash<QString, Property> m_properties;
     QHash<QString, Method> m_methods;
     QHash<QString, Signal> m_signals;
@@ -220,6 +223,7 @@ struct Method : public QmlJSc::IR::Node {
 
     QmlJSc::IR::Type *returnType;
     QString name;
+    QVector<QString> parameters;
 
     virtual void accept(QmlJSc::IR::Visitor *visitor) override;
 };

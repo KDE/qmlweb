@@ -1,7 +1,7 @@
 /*
  * Qml.js Compiler -  a QML to JS compiler bringing QML's power to the web.
  *
- * Copyright (C) 2015 Jan Marker <jan@jangmarker.de>
+ * Copyright (C) 2015  Anton Kreuzkamp <kde-development@akreuzkamp.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,36 +18,18 @@
  *
  */
 
-#ifndef PRETTYGENERATORSTAGE_H
-#define PRETTYGENERATORSTAGE_H
+#include "error.h"
 
+using namespace QmlJSc;
 
-#include "../ir/visitor.h"
-#include "../compilerpass.h"
-
-
-namespace QmlJSc {
-
-class PrettyGeneratorPass : public CompilerPass, public IR::Visitor
+QDebug operator<<(QDebug dbg, const Error &error)
 {
- Q_OBJECT
+    dbg << error.what();
 
-public:
- PrettyGeneratorPass();
-
- virtual void visit(IR::Component* component) override;
- virtual void endVisit(IR::Component* component) override;
-
-public slots:
- void process(IR::Component* rootComponent) override;
-
-private:
- int m_levelSpaceCount = 4;
- QTextStream m_output;
- bool m_componentRoot;
-
-};
-
+    return dbg.space();
 }
 
-#endif // PRETTYGENERATORSTAGE_H
+const char *QmlJSc::Error::what() const noexcept
+{
+    return qPrintable(description());
+}

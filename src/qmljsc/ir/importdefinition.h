@@ -1,7 +1,6 @@
 /*
  * Qml.js Compiler -  a QML to JS compiler bringing QML's power to the web.
  *
- * Copyright (C) 2015 Jan Marker <jan@jangmarker.de>
  * Copyright (C) 2015 Anton Kreuzkamp <kde-development@akreuzkamp.de>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,30 +18,42 @@
  *
  */
 
-#include "compiler.h"
+#ifndef IMPORTDESCRIPTION_H
+#define IMPORTDESCRIPTION_H
 
-using namespace QmlJSc;
+#include <QtCore/QMetaType>
+#include <QtCore/QString>
 
-QmlJSc::Compiler* QmlJSc::Compiler::s_self = 0;
+namespace QmlJSc {
+namespace IR {
 
-QmlJSc::Compiler::Compiler(QObject *parent)
-    : QObject(parent)
+struct ImportDescription {
+    enum Kind {
+        Kind_ModuleImport,
+        Kind_FileImport,
+        Kind_DirectoryImport
+    };
+
+    Kind kind;
+    QString name;
+    int versionMajor;
+    int versionMinor;
+
+    inline bool operator==(const ImportDescription& other) const
+    {
+        return name == other.name && versionMajor == other.versionMajor && versionMinor == other.versionMinor;
+    }
+};
+
+inline uint qHash(const ImportDescription &key, uint seed)
 {
-    Q_ASSERT_X(!s_self, "QmlJSc::QmlJSc", "QmlJSc should only exist once.");
-    s_self = this;
+    return qHash(key.name, seed) ^ key.versionMajor ^ key.versionMinor;
 }
 
-QmlJSc::Compiler::~Compiler()
-{
-    s_self = 0;
-}
+} // namespace IR
+} // namespace QmlJSc
 
-void Compiler::addIncludePath(QString path)
-{
-    m_includePaths << path;
-}
+Q_DECLARE_METATYPE(QmlJSc::IR::ImportDescription);
 
-const QStringList &Compiler::includePaths()
-{
-    return m_includePaths;
-}
+#endif // IMPORTDESCRIPTION_H
+

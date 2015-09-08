@@ -1,7 +1,6 @@
 /*
  * Qml.js Compiler -  a QML to JS compiler bringing QML's power to the web.
  *
- * Copyright (C) 2015 Jan Marker <jan@jangmarker.de>
  * Copyright (C) 2015 Anton Kreuzkamp <kde-development@akreuzkamp.de>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,30 +18,35 @@
  *
  */
 
-#include "compiler.h"
+#ifndef SHORTSYMBOLNAME_H
+#define SHORTSYMBOLNAME_H
 
-using namespace QmlJSc;
+#include <QtCore/QString>
 
-QmlJSc::Compiler* QmlJSc::Compiler::s_self = 0;
+namespace QmlJSc {
 
-QmlJSc::Compiler::Compiler(QObject *parent)
-    : QObject(parent)
+/**
+ * This class represents a minified symbol name like "a", "b", "aa", "A8",...
+ *
+ * Initialize it with the first character you want to use as symbol name MINUS
+ * ONE, as you normally will use the preincrement operator before accessing it.
+ * If you won't, feel free to initialize it with the first symbol name directly,
+ * of course.
+ *
+ * To get the next valid symbol name, use the preincrement operator.
+ *
+ * This is a subclass of QString, so you can just use it as a string.
+ */
+class ShortSymbolName : public QString
 {
-    Q_ASSERT_X(!s_self, "QmlJSc::QmlJSc", "QmlJSc should only exist once.");
-    s_self = this;
-}
+public:
+    ShortSymbolName(char first);
+    ShortSymbolName(QString first);
 
-QmlJSc::Compiler::~Compiler()
-{
-    s_self = 0;
-}
+    ShortSymbolName &operator++();
+};
 
-void Compiler::addIncludePath(QString path)
-{
-    m_includePaths << path;
-}
+} // namespace QmlJSc
 
-const QStringList &Compiler::includePaths()
-{
-    return m_includePaths;
-}
+#endif // SHORTSYMBOLNAME_H
+
