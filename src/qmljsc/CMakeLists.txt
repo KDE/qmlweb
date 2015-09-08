@@ -4,6 +4,7 @@ set(libqmljsc_srcs
   compiler.cpp
   compilerpipeline.cpp
   compilerpass.cpp
+  purejavascriptgenerator.cpp
 
   ir/objecttree.cpp
   ir/module.cpp
