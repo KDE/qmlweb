@@ -42,13 +42,9 @@
         this.constantProp = new QWProperty({ type: B, constant: true });
     }
 
-    QW_INHERIT(E, B);
     function E(parent)
     {
         B.call(this, parent);
-
-        this.fourthPropWithType = new QWProperty({ type: D_ });
-        this.constantProp = new QWProperty({ type: B, constant: true });
     }
 
     __engine.registerModule({

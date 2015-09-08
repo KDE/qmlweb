@@ -18,14 +18,19 @@
  *
  */
 
+// Qt
 #include <QtCore/QObject>
 #include <QtTest/QTest>
 #include <QtTest/QSignalSpy>
-
 #include <QtCore/QDebug>
 
+// Qt private
+#include <QtQml/private/qqmljsast_p.h>
+
+// own
 #include "../../../src/qmljsc/compiler.h"
-#include "../../../src/qmljsc/moduleloader.h"
+#include "../../../src/qmljsc/moduleloading/moduleloading.h"
+#include "../../../src/qmljsc/moduleloading/javascriptmoduleloader.h"
 #include "../../../src/qmljsc/ir/module.h"
 
 class TestSymbolTable : public QObject
@@ -46,11 +51,12 @@ using namespace QQmlJS;
 void TestSymbolTable::loadMinimalModule()
 {
     Compiler comp;
+    ModuleLoading::registerModuleLoader(&JavaScriptModuleLoader::create);
 
     const ImportDescription testImportDescription = {ImportDescription::Kind_ModuleImport, "MinimalModule", 0, 1};
 
     compiler->addIncludePath(":/test/");
-    IR::Module *module = ModuleLoader::loadModule(testImportDescription);
+    IR::Module *module = ModuleLoading::loadModule(testImportDescription);
     module->waitForLoaded();
 
     Type *a = module->type("A");
@@ -72,10 +78,10 @@ void TestSymbolTable::loadMinimalModule()
     QCOMPARE(d->name(), QStringLiteral("D"));
 
     QVERIFY(b->property("minimalProp"));
-    QVERIFY(c->property("propWithType"));
+    QVERIFY(c->property("otherPropWithType"));
     QVERIFY(c->property("yaPropWithType"));
     QVERIFY(d->property("readonlyProp"));
-    QVERIFY(d->property("constantProp"));
+    QVERIFY(d->property("otherPropWithType"));
     QVERIFY(!d->property("yaPropWithType"));
 
     IR::Property *readonlyProp = d->property("readonlyProp");
@@ -116,7 +122,7 @@ void TestSymbolTable::loadModule()
     const ImportDescription testImportDescription = {ImportDescription::Kind_ModuleImport, "TestModule", 0, 1};
 
     compiler->addIncludePath(":/test/");
-    IR::Module *module = ModuleLoader::loadModule(testImportDescription);
+    IR::Module *module = ModuleLoading::loadModule(testImportDescription);
     module->waitForLoaded();
 
     Type *pastry = module->type("Pastry");

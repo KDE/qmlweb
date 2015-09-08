@@ -55,6 +55,17 @@ Module::Status Module::status()
     return m_status;
 }
 
+void Module::setStatus(Module::Status status)
+{
+    Q_ASSERT_X(m_status == Loading, __FILE__,
+               "It's not allowed to change status after loading finished.");
+
+    m_status = status;
+    if (m_status == Successful || m_status == ErrorState) {
+        m_waitCondition.wakeAll();
+    }
+}
+
 
 const QString &Module::name()
 {
@@ -67,6 +78,20 @@ Type *Module::type(QString name)
     return m_types.value(name);
 }
 
+Type *Module::typeFromJSName(QString name)
+{
+    return m_jsNameToTypeHash.value(name);
+}
+
+void Module::addType(Type *type)
+{
+    Q_ASSERT_X(m_status == Loading, __FILE__,
+               "It's not allowed to add types after loading finished.");
+
+    m_types.insert(type->name(), type);
+    m_jsNameToTypeHash.insert(type->javaScriptName(), type);
+}
+
 void Module::waitForLoaded()
 {
     if (m_status != Loading)
@@ -75,4 +100,9 @@ void Module::waitForLoaded()
     m_loadMutex.lock();
     m_waitCondition.wait(&m_loadMutex);
     m_loadMutex.unlock();
+}
+
+ImportDescription Module::importDescription()
+{
+    return m_import;
 }

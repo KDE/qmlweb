@@ -5,7 +5,6 @@ set(libqmljsc_srcs
   error.cpp
   compilerpipeline.cpp
   compilerpass.cpp
-  moduleloader.cpp
 
   ir/ir.cpp
   ir/module.cpp
@@ -13,6 +12,10 @@ set(libqmljsc_srcs
 
   compilerpasses/parserpass.cpp
   compilerpasses/prettygeneratorpass.cpp
+
+  moduleloading/abstractmoduleloader.cpp
+  moduleloading/javascriptmoduleloader.cpp
+  moduleloading/moduleloading.cpp
 )
 add_library(libqmljsc SHARED ${libqmljsc_srcs})
 qt5_use_modules(libqmljsc Core Qml)

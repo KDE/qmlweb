@@ -48,20 +48,39 @@ public:
     ~Module();
 
     Status status();
+    void setStatus(Status status);
+
     void waitForLoaded();
 
+    /**
+     * Returns the type object for the (QML-) name.
+     *
+     * If the data isn't available, yet, because the module is still loading,
+     * this function will block until the data is available.
+     */
     Type *type(QString name);
+
+    /**
+     * Returns the type object for the name it has in JS code.
+     *
+     * This function won't wait for the data to be available, only use this
+     * function if you're certain about it!
+     */
+    Type *typeFromJSName(QString name);
 
     const QString &name();
 
+    void addType(Type *type);
+
+    ImportDescription importDescription();
+
 private:
     QHash<QString, Type*> m_types;
+    QHash<QString, Type*> m_jsNameToTypeHash;
     ImportDescription m_import;
     Status m_status;
     QWaitCondition m_waitCondition;
     QMutex m_loadMutex;
-
-    friend class QmlJSc::ModuleLoader;
 };
 
 } // namespace IR
