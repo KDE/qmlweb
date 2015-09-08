@@ -44,7 +44,9 @@ public:
     virtual bool visit(QQmlJS::AST::PreIncrementExpression *) override;
     virtual bool visit(QQmlJS::AST::VariableDeclaration *) override;
 
+    virtual void endVisit(QQmlJS::AST::BinaryExpression *) override;
     virtual void endVisit(QQmlJS::AST::Block *) override;
+    virtual void endVisit(QQmlJS::AST::ExpressionStatement *) override;
     virtual void endVisit(QQmlJS::AST::IdentifierExpression *) override;
     virtual void endVisit(QQmlJS::AST::NumericLiteral *) override;
     virtual void endVisit(QQmlJS::AST::PostDecrementExpression *) override;
@@ -52,6 +54,7 @@ public:
     virtual void endVisit(QQmlJS::AST::PreDecrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::PreIncrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::StringLiteral *) override;
+    virtual void endVisit(QQmlJS::AST::VariableStatement *) override;
 
 private:
     void generateIfLastElementOnStack();

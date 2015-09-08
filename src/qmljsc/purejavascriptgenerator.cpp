@@ -30,8 +30,12 @@ QString PureJavaScriptGenerator::getGeneratedCode() {
     return *m_generatedCode.string();
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::BinaryExpression *) {
-
+bool PureJavaScriptGenerator::visit(QQmlJS::AST::BinaryExpression *binaryExpression) {
+    switch(binaryExpression->op) {
+        case QSOperator::Assign: m_expressionStack << "="; break;
+        default: Q_ASSERT(binaryExpression->op);
+    }
+    return true;
 }
 
 bool PureJavaScriptGenerator::visit(QQmlJS::AST::Block *) {
@@ -98,8 +102,21 @@ bool PureJavaScriptGenerator::visit(QQmlJS::AST::VariableDeclaration *variableDe
     return true;
 }
 
+void PureJavaScriptGenerator::endVisit(QQmlJS::AST::BinaryExpression *) {
+    const QString rightOperand = m_expressionStack.pop();
+    const QString leftOperand = m_expressionStack.pop();
+    const QString operation = m_expressionStack.pop();
+    QString expression = QString("%1%2%3").arg(leftOperand).arg(operation).arg(rightOperand);
+    m_expressionStack.push(expression);
+    generateIfLastElementOnStack();
+}
+
 void PureJavaScriptGenerator::endVisit(QQmlJS::AST::Block *) {
     m_generatedCode << '}';
+}
+
+void PureJavaScriptGenerator::endVisit(QQmlJS::AST::ExpressionStatement *) {
+    m_generatedCode << ';';
 }
 
 void PureJavaScriptGenerator::endVisit(QQmlJS::AST::IdentifierExpression *) {
@@ -138,6 +155,10 @@ void PureJavaScriptGenerator::generateIfLastElementOnStack() {
     if (m_expressionStack.size() == 1) {
         m_generatedCode << m_expressionStack.pop();
     }
+}
+
+void PureJavaScriptGenerator::endVisit(QQmlJS::AST::VariableStatement *) {
+    m_generatedCode << ';';
 }
 
 void PureJavaScriptGenerator::updateStackWithPostOperation() {

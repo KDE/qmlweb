@@ -105,7 +105,8 @@ private:
     const QStringRef m_someStringStringRef = QStringRef(&m_someString);
     const QString m_someIdentifier = QString("i");
     const QStringRef m_someIdentifierStringRef = QStringRef(&m_someIdentifier);
-    QQmlJS::AST::TrueLiteral m_someExpression;
+    QQmlJS::AST::TrueLiteral m_trueExpression;
+    QQmlJS::AST::FalseLiteral m_falseExpression;
 
 private slots:
     void init() {
@@ -120,12 +121,15 @@ private slots:
         QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral(""));
     }
 
+    TEST_VISIT_RETURNS(Generally, true, BinaryExpression, &m_trueExpression, QSOperator::Assign , &m_falseExpression);
+    TEST_VISIT_PUTS_ON_STACK(EqualOperator, "=", BinaryExpression, &m_trueExpression, QSOperator::Assign, &m_falseExpression);
     TEST_VISIT_RETURNS(WithoutStatements, true, Block, nullptr)
     TEST_VISIT_GENERATES(WithoutStatements, "{", Block, nullptr)
     TEST_VISIT_RETURNS(WithLabel, true, BreakStatement, m_someLabelStringRef)
     TEST_VISIT_GENERATES(WithLabel, "break ALabel", BreakStatement, m_someLabelStringRef)
     TEST_VISIT_RETURNS(WithoutLabel, true, BreakStatement, nullptr)
     TEST_VISIT_GENERATES(WithoutLabel, "break", BreakStatement, nullptr)
+    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(ExpressionStatement, nullptr)
     TEST_VISIT_RETURNS(DefaultScenario, true, IdentifierExpression, m_someIdentifierStringRef)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "i", IdentifierExpression, m_someIdentifierStringRef)
     TEST_VISIT_RETURNS(DefaultScenario, true, NumericLiteral, 3.14)
@@ -141,11 +145,11 @@ private slots:
     TEST_VISIT_RETURNS(SomeString, true, StringLiteral, m_someStringStringRef)
     TEST_VISIT_PUTS_ON_STACK(SomeString, "some string", StringLiteral, m_someStringStringRef)
     TEST_VISIT_RETURNS(AssignmentScenario, true, VariableDeclaration, m_someIdentifierStringRef, nullptr)
-    TEST_VISIT_GENERATES(AssignmentScenario, "var i=", VariableDeclaration, m_someIdentifierStringRef, &m_someExpression)
+    TEST_VISIT_GENERATES(AssignmentScenario, "var i=", VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
     TEST_VISIT_GENERATES(NoAssignmentScenario, "var i", VariableDeclaration, m_someIdentifierStringRef, nullptr)
     void test_visit_VariableDeclaration_generatesCorrectCode_ConstAssignment() {
         // Prepare
-        QQmlJS::AST::VariableDeclaration variableDeclaration(m_someIdentifierStringRef, &m_someExpression);
+        QQmlJS::AST::VariableDeclaration variableDeclaration(m_someIdentifierStringRef, &m_trueExpression);
         variableDeclaration.readOnly = true;
 
         // Do
@@ -154,8 +158,12 @@ private slots:
         // Verify
         QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral("const i="));
     }
+    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(VariableStatement, nullptr)
 
+    TEST_ENDVISIT_ONLY_UPDATES_STACK(MoreThanTwoOperands, "2==4", ({"++", "==", "2", "4"}), BinaryExpression, nullptr, -1, nullptr)
+    TEST_ENDVISIT_GENERATES_FROM_STACK(TwoOperands, "2==4", ({"==", "2", "4"}), BinaryExpression, nullptr, -1, nullptr)
     TEST_ENDVISIT_GENERATES(WithoutStatements, "}", Block, nullptr)
+    TEST_ENDVISIT_GENERATES(NoExpression, ";", ExpressionStatement, nullptr)
     TEST_ENDVISIT_GENERATES_FROM_STACK(DefaultScenario, "abc", ({"abc"}), IdentifierExpression, nullptr)
     TEST_ENDVISIT_ONLY_UPDATES_STACK(DefaultScenario, "abc", ({"def", "abc"}), IdentifierExpression, nullptr)
     TEST_ENDVISIT_GENERATES_FROM_STACK(OneElement, "2.7", ({"2.7"}), NumericLiteral, 3.14)
@@ -171,6 +179,7 @@ private slots:
     TEST_ENDVISIT_GENERATES_FROM_STACK(OneLiteral, "another string", ({"another string"}), StringLiteral, nullptr)
     TEST_ENDVISIT_ONLY_UPDATES_STACK(TwoLiterals, "string", ({"another", "string"}), StringLiteral, nullptr)
     TEST_ENDVISIT_DOES_NOTHING(DefaultScenario, VariableDeclaration, m_someIdentifierStringRef, nullptr)
+    TEST_ENDVISIT_GENERATES(NoDeclarationList, ";", VariableStatement, nullptr)
 };
 
 QTEST_MAIN(TestPureJavaScriptGenerator)
