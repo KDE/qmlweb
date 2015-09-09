@@ -22,6 +22,7 @@
 
 #include <private/qqmljsast_p.h>
 
+#include "../../../src/qmljsc/error.h"
 #include "../../../src/qmljsc/purejavascriptgenerator.h"
 
 #define TEST_SOMEVISIT_GENERATES_FROM(testSituation, expectedResult, visitType, className, ...) \
@@ -51,18 +52,18 @@
     void test_visit_## className ## _putsOnStack_ ## testScenario() { \
         QQmlJS::AST::className classInstance(__VA_ARGS__); \
         m_generator->visit(&classInstance); \
-        int stackElementCount = asPureJSGen(m_generator)->m_expressionStack.count(); \
+        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.count(); \
         QCOMPARE(stackElementCount, 1); \
-        QString stringOnStack = asPureJSGen(m_generator)->m_expressionStack.top(); \
+        QString stringOnStack = asPureJSGen(m_generator)->m_outputStack.top(); \
         QCOMPARE(stringOnStack, QStringLiteral(expectedTopOfStack)); \
     }
 
 #define TEST_ENDVISIT_FROM_STACK(testScenario, action, expectedResult, expectedStackSize, stackContent, className, ...) \
     void test_endVisit_ ## className ## _ ## action ## _ ## testScenario() { \
         QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        asPureJSGen(m_generator)->m_expressionStack.append(QVector<QString>stackContent); \
+        asPureJSGen(m_generator)->m_outputStack.append(QVector<QString>stackContent); \
         m_generator->endVisit(&classInstance); \
-        int stackElementCount = asPureJSGen(m_generator)->m_expressionStack.count(); \
+        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.count(); \
         QCOMPARE(stackElementCount, expectedStackSize); \
         QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral(expectedResult)); \
     }
@@ -73,9 +74,9 @@
 #define TEST_ENDVISIT_ONLY_UPDATES_STACK(testScenario, expectedTopOfStack, stackContent, className, ...) \
     void test_endVisit_ ## className ## _updatesStack_ ## testScenario() { \
         QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        asPureJSGen(m_generator)->m_expressionStack.append(QVector<QString>stackContent); \
+        asPureJSGen(m_generator)->m_outputStack.append(QVector<QString>stackContent); \
         m_generator->endVisit(&classInstance); \
-        QString stringOnStack = asPureJSGen(m_generator)->m_expressionStack.top(); \
+        QString stringOnStack = asPureJSGen(m_generator)->m_outputStack.top(); \
         QCOMPARE(stringOnStack, QStringLiteral(expectedTopOfStack)); \
         QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral("")); \
     }
@@ -84,7 +85,7 @@
     void test_endVisit_ ## className ## _doesNothing_ ## testScenario() { \
         QQmlJS::AST::className classInstance(__VA_ARGS__); \
         m_generator->endVisit(&classInstance); \
-        QCOMPARE(asPureJSGen(m_generator)->m_expressionStack.size(), 0); \
+        QCOMPARE(asPureJSGen(m_generator)->m_outputStack.size(), 0); \
         QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral("")); \
     }
 
@@ -130,6 +131,10 @@ private slots:
     TEST_VISIT_RETURNS(WithoutLabel, true, BreakStatement, nullptr)
     TEST_VISIT_GENERATES(WithoutLabel, "break", BreakStatement, nullptr)
     TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(ExpressionStatement, nullptr)
+    TEST_VISIT_RETURNS(DefautScenario, true, FunctionBody, nullptr)
+    TEST_VISIT_GENERATES(NoSourceElements, "{", FunctionBody, nullptr)
+    TEST_VISIT_RETURNS(DefaultScenario, true, FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
+    TEST_VISIT_GENERATES(DefaultScenario, "function i", FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
     TEST_VISIT_RETURNS(DefaultScenario, true, IdentifierExpression, m_someIdentifierStringRef)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "i", IdentifierExpression, m_someIdentifierStringRef)
     TEST_VISIT_RETURNS(DefaultScenario, true, NumericLiteral, 3.14)
@@ -164,6 +169,8 @@ private slots:
     TEST_ENDVISIT_GENERATES_FROM_STACK(TwoOperands, "2==4", ({"==", "2", "4"}), BinaryExpression, nullptr, -1, nullptr)
     TEST_ENDVISIT_GENERATES(WithoutStatements, "}", Block, nullptr)
     TEST_ENDVISIT_GENERATES(NoExpression, ";", ExpressionStatement, nullptr)
+    TEST_ENDVISIT_GENERATES(FunctionBodyClosesCorrectly, "}", FunctionBody, nullptr);
+    TEST_ENDVISIT_DOES_NOTHING(DefaultScenario, FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr);
     TEST_ENDVISIT_GENERATES_FROM_STACK(DefaultScenario, "abc", ({"abc"}), IdentifierExpression, nullptr)
     TEST_ENDVISIT_ONLY_UPDATES_STACK(DefaultScenario, "abc", ({"def", "abc"}), IdentifierExpression, nullptr)
     TEST_ENDVISIT_GENERATES_FROM_STACK(OneElement, "2.7", ({"2.7"}), NumericLiteral, 3.14)
@@ -180,6 +187,7 @@ private slots:
     TEST_ENDVISIT_ONLY_UPDATES_STACK(TwoLiterals, "string", ({"another", "string"}), StringLiteral, nullptr)
     TEST_ENDVISIT_DOES_NOTHING(DefaultScenario, VariableDeclaration, m_someIdentifierStringRef, nullptr)
     TEST_ENDVISIT_GENERATES(NoDeclarationList, ";", VariableStatement, nullptr)
+
 };
 
 QTEST_MAIN(TestPureJavaScriptGenerator)

@@ -35,6 +35,8 @@ public:
     virtual bool visit(QQmlJS::AST::BinaryExpression *) override;
     virtual bool visit(QQmlJS::AST::Block *) override;
     virtual bool visit(QQmlJS::AST::BreakStatement *) override;
+    virtual bool visit(QQmlJS::AST::FunctionBody *) override;
+    virtual bool visit(QQmlJS::AST::FunctionDeclaration *) override;
     virtual bool visit(QQmlJS::AST::IdentifierExpression *) override;
     virtual bool visit(QQmlJS::AST::NumericLiteral *) override;
     virtual bool visit(QQmlJS::AST::StringLiteral *) override;
@@ -47,6 +49,7 @@ public:
     virtual void endVisit(QQmlJS::AST::BinaryExpression *) override;
     virtual void endVisit(QQmlJS::AST::Block *) override;
     virtual void endVisit(QQmlJS::AST::ExpressionStatement *) override;
+    virtual void endVisit(QQmlJS::AST::FunctionBody *) override;
     virtual void endVisit(QQmlJS::AST::IdentifierExpression *) override;
     virtual void endVisit(QQmlJS::AST::NumericLiteral *) override;
     virtual void endVisit(QQmlJS::AST::PostDecrementExpression *) override;
@@ -61,7 +64,7 @@ private:
     void updateStackWithPostOperation();
     void updateStackWithPreOperation();
 
-    QStack<QString> m_expressionStack;
+    QStack<QString> m_outputStack;
     QTextStream m_generatedCode;
 
     friend class TestPureJavaScriptGenerator;

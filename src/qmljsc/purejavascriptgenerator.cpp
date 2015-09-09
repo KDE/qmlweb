@@ -21,7 +21,7 @@
 #include "purejavascriptgenerator.h"
 
 PureJavaScriptGenerator::PureJavaScriptGenerator()
-    : m_expressionStack()
+    : m_outputStack()
     , m_generatedCode(new QString())
 {
 }
@@ -32,7 +32,7 @@ QString PureJavaScriptGenerator::getGeneratedCode() {
 
 bool PureJavaScriptGenerator::visit(QQmlJS::AST::BinaryExpression *binaryExpression) {
     switch(binaryExpression->op) {
-        case QSOperator::Assign: m_expressionStack << "="; break;
+        case QSOperator::Assign: m_outputStack << "="; break;
         default: Q_ASSERT(binaryExpression->op);
     }
     return true;
@@ -53,38 +53,49 @@ bool PureJavaScriptGenerator::visit(QQmlJS::AST::BreakStatement *breakStatement)
     return true;
 }
 
+bool PureJavaScriptGenerator::visit(QQmlJS::AST::FunctionBody *) {
+    m_generatedCode << "{";
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(QQmlJS::AST::FunctionDeclaration *functionDeclaration) {
+    const QString functionName = functionDeclaration->name.toString();
+    m_generatedCode << "function" << ' ' << functionName;
+    return true;
+}
+
 bool PureJavaScriptGenerator::visit(QQmlJS::AST::IdentifierExpression *identifierExpression) {
-    m_expressionStack << identifierExpression->name.toString();
+    m_outputStack << identifierExpression->name.toString();
     return true;
 }
 
 bool PureJavaScriptGenerator::visit(QQmlJS::AST::NumericLiteral *numericLiteral) {
-    m_expressionStack.push(QString("%1").arg(numericLiteral->value));
+    m_outputStack.push(QString("%1").arg(numericLiteral->value));
     return true;
 }
 
 bool PureJavaScriptGenerator::visit(QQmlJS::AST::StringLiteral *stringLiteral) {
-    m_expressionStack.push(stringLiteral->value.toString());
+    m_outputStack.push(stringLiteral->value.toString());
     return true;
 }
 
 bool PureJavaScriptGenerator::visit(QQmlJS::AST::PostDecrementExpression *) {
-    m_expressionStack.push("--");
+    m_outputStack.push("--");
     return true;
 }
 
 bool PureJavaScriptGenerator::visit(QQmlJS::AST::PostIncrementExpression *) {
-    m_expressionStack.push("++");
+    m_outputStack.push("++");
     return true;
 }
 
 bool PureJavaScriptGenerator::visit(QQmlJS::AST::PreDecrementExpression *) {
-    m_expressionStack.push("--");
+    m_outputStack.push("--");
     return true;
 }
 
 bool PureJavaScriptGenerator::visit(QQmlJS::AST::PreIncrementExpression *) {
-    m_expressionStack.push("++");
+    m_outputStack.push("++");
     return true;
 }
 
@@ -103,11 +114,11 @@ bool PureJavaScriptGenerator::visit(QQmlJS::AST::VariableDeclaration *variableDe
 }
 
 void PureJavaScriptGenerator::endVisit(QQmlJS::AST::BinaryExpression *) {
-    const QString rightOperand = m_expressionStack.pop();
-    const QString leftOperand = m_expressionStack.pop();
-    const QString operation = m_expressionStack.pop();
+    const QString rightOperand = m_outputStack.pop();
+    const QString leftOperand = m_outputStack.pop();
+    const QString operation = m_outputStack.pop();
     QString expression = QString("%1%2%3").arg(leftOperand).arg(operation).arg(rightOperand);
-    m_expressionStack.push(expression);
+    m_outputStack.push(expression);
     generateIfLastElementOnStack();
 }
 
@@ -117,6 +128,10 @@ void PureJavaScriptGenerator::endVisit(QQmlJS::AST::Block *) {
 
 void PureJavaScriptGenerator::endVisit(QQmlJS::AST::ExpressionStatement *) {
     m_generatedCode << ';';
+}
+
+void PureJavaScriptGenerator::endVisit(QQmlJS::AST::FunctionBody *) {
+    m_generatedCode << '}';
 }
 
 void PureJavaScriptGenerator::endVisit(QQmlJS::AST::IdentifierExpression *) {
@@ -152,8 +167,8 @@ void PureJavaScriptGenerator::endVisit(QQmlJS::AST::StringLiteral *) {
 }
 
 void PureJavaScriptGenerator::generateIfLastElementOnStack() {
-    if (m_expressionStack.size() == 1) {
-        m_generatedCode << m_expressionStack.pop();
+    if (m_outputStack.size() == 1) {
+        m_generatedCode << m_outputStack.pop();
     }
 }
 
@@ -162,13 +177,13 @@ void PureJavaScriptGenerator::endVisit(QQmlJS::AST::VariableStatement *) {
 }
 
 void PureJavaScriptGenerator::updateStackWithPostOperation() {
-    const QString expression = m_expressionStack.pop();
-    const QString operation = m_expressionStack.pop();
-    m_expressionStack.push(QString("%1%2").arg(expression).arg(operation));
+    const QString expression = m_outputStack.pop();
+    const QString operation = m_outputStack.pop();
+    m_outputStack.push(QString("%1%2").arg(expression).arg(operation));
 }
 
 void PureJavaScriptGenerator::updateStackWithPreOperation() {
-    const QString expression = m_expressionStack.pop();
-    const QString operation = m_expressionStack.pop();
-    m_expressionStack.push(QString("%1%2").arg(operation).arg(expression));
+    const QString expression = m_outputStack.pop();
+    const QString operation = m_outputStack.pop();
+    m_outputStack.push(QString("%1%2").arg(operation).arg(expression));
 }

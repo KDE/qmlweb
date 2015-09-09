@@ -60,13 +60,19 @@ private:
         return QString(inputFile.readAll());
     }
 
+    void addRowForFile(const char* fileName) {
+        const QString filePath = QString(":/test/%1.js").arg(fileName);
+        QTest::newRow(fileName) << astForFile(filePath) << fileContent(filePath);
+    }
+
 private slots:
 
     void test_compileJavaScriptFile_data() {
         QTest::addColumn<QQmlJS::AST::Node*>("ast");
         QTest::addColumn<QString>("expectedOutput");
 
-        QTest::newRow("expressions") << astForFile(":/test/expressions.js") << fileContent(":/test/expressions.js");
+        addRowForFile("expressions");
+        addRowForFile("functions");
     }
 
     void test_compileJavaScriptFile() {
