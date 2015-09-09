@@ -14,9 +14,10 @@ set(libqmljsc_srcs
   compilerpasses/parserpass.cpp
   compilerpasses/prettygeneratorpass.cpp
 
+  moduleloading/moduleloading.cpp
   moduleloading/abstractmoduleloader.cpp
   moduleloading/javascriptmoduleloader.cpp
-  moduleloading/moduleloading.cpp
+  moduleloading/qtqmlmoduleloader.cpp
 
   utils/shortsymbolname.cpp
 )

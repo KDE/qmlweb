@@ -31,6 +31,7 @@
 #include "../../../src/qmljsc/compiler.h"
 #include "../../../src/qmljsc/moduleloading/moduleloading.h"
 #include "../../../src/qmljsc/moduleloading/javascriptmoduleloader.h"
+#include "../../../src/qmljsc/moduleloading/qtqmlmoduleloader.h"
 #include "../../../src/qmljsc/ir/module.h"
 
 class TestModules : public QObject
@@ -38,7 +39,9 @@ class TestModules : public QObject
     Q_OBJECT
 
 private slots:
+    void initTestCase();
     void loadMinimalModule();
+    void loadQtQml();
     void loadModule();
     void testShortSymbolName();
 
@@ -48,14 +51,19 @@ using namespace QmlJSc;
 using namespace QmlJSc::IR;
 using namespace QQmlJS;
 
+void TestModules::initTestCase()
+{
+    new Compiler;
+    compiler->addIncludePath(":/test/");
+
+    ModuleLoading::registerModuleLoader(&JavaScriptModuleLoader::create);
+    ModuleLoading::registerModuleLoader(&QtQmlModuleLoader::create);
+}
+
 void TestModules::loadMinimalModule()
 {
-    Compiler comp;
-    ModuleLoading::registerModuleLoader(&JavaScriptModuleLoader::create);
-
     const ImportDescription testImportDescription = {ImportDescription::Kind_ModuleImport, "MinimalModule", 0, 1};
 
-    compiler->addIncludePath(":/test/");
     IR::Module *module = ModuleLoading::loadModule(testImportDescription);
     module->waitForLoaded();
 
@@ -123,16 +131,137 @@ void TestModules::loadMinimalModule()
     QCOMPARE(anotherSignal->parameters[1].type, a);
 }
 
+void TestModules::loadQtQml()
+{
+    const ImportDescription qtqmlImportDescription = {ImportDescription::Kind_ModuleImport, "QtQml", 1, 0};
+    IR::Module *qtqmlModule = ModuleLoading::loadModule(qtqmlImportDescription);
+    qtqmlModule->waitForLoaded();
+
+    IR::Property *p = 0;
+    IR::Method *m = 0;
+    IR::Signal *s = 0;
+
+    Type *boolType = qtqmlModule->type("bool");
+    QVERIFY(boolType);
+    QCOMPARE(qtqmlModule->typeFromJSName("Boolean"), boolType);
+
+    Type *doubleType = qtqmlModule->type("double");
+    QVERIFY(doubleType);
+    QCOMPARE(qtqmlModule->typeFromJSName("QWDouble"), doubleType);
+
+    Type *enumType = qtqmlModule->type("enum");
+    QVERIFY(enumType);
+    QCOMPARE(qtqmlModule->typeFromJSName("QWEnum"), enumType);
+
+    Type *intType = qtqmlModule->type("int");
+    QVERIFY(intType);
+    QCOMPARE(qtqmlModule->typeFromJSName("QWInt"), intType);
+
+    Type *listType = qtqmlModule->type("list");
+    QVERIFY(listType);
+    QCOMPARE(qtqmlModule->typeFromJSName("QWList"), listType);
+
+    Type *realType = qtqmlModule->type("real");
+    QVERIFY(realType);
+    QCOMPARE(qtqmlModule->typeFromJSName("QWReal"), realType);
+
+    Type *stringType = qtqmlModule->type("string");
+    QVERIFY(stringType);
+    QCOMPARE(qtqmlModule->typeFromJSName("String"), stringType);
+
+    Type *urlType = qtqmlModule->type("url");
+    QVERIFY(urlType);
+    QCOMPARE(qtqmlModule->typeFromJSName("QWUrl"), urlType);
+
+    Type *varType = qtqmlModule->type("var");
+    QVERIFY(varType);
+    QCOMPARE(qtqmlModule->typeFromJSName("QWVar"), varType);
+
+    Type *componentClass = qtqmlModule->type("Component");
+    QVERIFY(componentClass);
+    QCOMPARE(qtqmlModule->typeFromJSName("QWComponent"), componentClass);
+    QVERIFY(componentClass->flags() & IR::Type::IsComponent);
+    QVERIFY(p = componentClass->property("progress"));
+    QCOMPARE(p->type, realType);
+    QVERIFY(p = componentClass->property("status"));
+    QCOMPARE(p->type, enumType);
+    QVERIFY(p = componentClass->property("url"));
+    QCOMPARE(p->type, urlType);
+    QVERIFY(!componentClass->property("heyo"));
+    QVERIFY(!componentClass->method("heyo"));
+    QVERIFY(m = componentClass->method("createObject"));
+    QCOMPARE(m->parameters.count(), 2);
+    QCOMPARE(m->parameters.at(0), QStringLiteral("parent"));
+    QCOMPARE(m->parameters.at(1), QStringLiteral("properties"));
+    QVERIFY(m = componentClass->method("errorString"));
+    QCOMPARE(m->parameters.count(), 0);
+    QVERIFY(m = componentClass->method("incubateObject"));
+    QCOMPARE(m->parameters.count(), 3);
+    QCOMPARE(m->parameters.at(0), QStringLiteral("parent"));
+    QCOMPARE(m->parameters.at(1), QStringLiteral("properties"));
+    QCOMPARE(m->parameters.at(2), QStringLiteral("mode"));
+    Type *componentAttached = componentClass->attachedType();
+    QVERIFY(componentAttached);
+    QVERIFY(s = componentAttached->signal("completed"));
+    QCOMPARE(s->parameters.count(), 0);
+    QVERIFY(!componentAttached->property("completed"));
+    QVERIFY(!componentAttached->method("completed"));
+    QVERIFY(s = componentAttached->signal("destruction"));
+    QCOMPARE(s->parameters.count(), 0);
+
+    Type *qtobjectClass = qtqmlModule->type("QtObject");
+    QVERIFY(qtobjectClass);
+    QCOMPARE(qtqmlModule->typeFromJSName("QWObject"), qtobjectClass);
+    QVERIFY(p = qtobjectClass->property("objectName"));
+    QCOMPARE(p->type, stringType);
+
+    Type *bindingClass = qtqmlModule->type("Binding");
+    QVERIFY(bindingClass);
+    QVERIFY(p = bindingClass->property("property"));
+    QCOMPARE(p->type, stringType);
+    QVERIFY(p = bindingClass->property("target"));
+    QCOMPARE(p->type, qtobjectClass);
+    QVERIFY(p = bindingClass->property("value"));
+    QCOMPARE(p->type, varType);
+    QVERIFY(p = bindingClass->property("when"));
+    QCOMPARE(p->type, boolType);
+
+
+    Type *connectionsClass = qtqmlModule->type("Connections");
+    QVERIFY(connectionsClass);
+    QVERIFY(p = connectionsClass->property("ignoreUnknownSignals"));
+    QCOMPARE(p->type, boolType);
+    QVERIFY(p = connectionsClass->property("target"));
+    QCOMPARE(p->type, qtobjectClass);
+
+
+    Type *timerClass = qtqmlModule->type("Timer");
+    QVERIFY(timerClass);
+    QVERIFY(p = timerClass->property("interval"));
+    QCOMPARE(p->type, intType);
+    QVERIFY(p = timerClass->property("repeat"));
+    QCOMPARE(p->type, boolType);
+    QVERIFY(p = timerClass->property("running"));
+    QCOMPARE(p->type, boolType);
+    QVERIFY(p = timerClass->property("triggeredOnStart"));
+    QCOMPARE(p->type, boolType);
+    QVERIFY(timerClass->method("restart"));
+    QVERIFY(timerClass->method("start"));
+    QVERIFY(timerClass->method("stop"));
+    QVERIFY(s = timerClass->signal("triggered"));
+    QCOMPARE(s->parameters.count(), 0);
+}
+
 void TestModules::loadModule()
 {
     QSKIP("This will be implemented later (Task T488).");
-    Compiler c;
-
+    const ImportDescription qtqmlImportDescription = {ImportDescription::Kind_ModuleImport, "QtQml", 1, 0};
     const ImportDescription testImportDescription = {ImportDescription::Kind_ModuleImport, "TestModule", 0, 1};
 
-    compiler->addIncludePath(":/test/");
     IR::Module *module = ModuleLoading::loadModule(testImportDescription);
+    IR::Module *qtqmlModule = ModuleLoading::loadModule(qtqmlImportDescription);
     module->waitForLoaded();
+    qtqmlModule->waitForLoaded();
 
     Type *pastry = module->type("Pastry");
     Type *cake = module->type("Cake");
@@ -149,11 +278,17 @@ void TestModules::loadModule()
     QCOMPARE(cake->name(), QStringLiteral("Cake"));
     QCOMPARE(pizza->name(), QStringLiteral("Pizza"));
 
-    QVERIFY(pastry->property("bakingTime"));
-    QVERIFY(cake->property("containsRawEgg"));
-    QVERIFY(cake->property("bakingTime"));
-    QVERIFY(pizza->property("isCalzone"));
-    QVERIFY(pizza->property("topping"));
+    IR::Property *p = 0;
+    QVERIFY(p = pastry->property("bakingTime"));
+    QCOMPARE(p->type, qtqmlModule->type("int"));
+    QVERIFY(p = cake->property("containsRawEgg"));
+    QCOMPARE(p->type, qtqmlModule->type("bool"));
+    QVERIFY(p = cake->property("bakingTime"));
+    QCOMPARE(p->type, qtqmlModule->type("int"));
+    QVERIFY(p = pizza->property("isCalzone"));
+    QCOMPARE(p->type, qtqmlModule->type("bool"));
+    QVERIFY(p = pizza->property("topping"));
+    QCOMPARE(p->type, qtqmlModule->type("var"));
     QVERIFY(!pizza->property("containsRawEgg"));
 
     IR::Property *baked = pizza->property("baked");
