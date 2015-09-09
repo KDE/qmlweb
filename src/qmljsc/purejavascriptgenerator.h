@@ -56,19 +56,31 @@ public:
     virtual void endVisit(QQmlJS::AST::PostIncrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::PreDecrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::PreIncrementExpression *) override;
+    virtual void endVisit(QQmlJS::AST::SourceElements *) override;
+    virtual void endVisit(QQmlJS::AST::StatementList *) override;
     virtual void endVisit(QQmlJS::AST::StringLiteral *) override;
+    virtual void endVisit(QQmlJS::AST::VariableDeclaration *) override;
     virtual void endVisit(QQmlJS::AST::VariableStatement *) override;
 
 private:
-    void generateIfLastElementOnStack();
     void updateStackWithPostOperation();
     void updateStackWithPreOperation();
+    template<typename ListType> void reduceListStack(ListType* list);
 
     QStack<QString> m_outputStack;
-    QTextStream m_generatedCode;
 
     friend class TestPureJavaScriptGenerator;
 };
 
+template<typename ListType> void PureJavaScriptGenerator::reduceListStack(ListType* current) {
+    // the list is only iterated to count the elements
+    // current is not processed in any way
+    QString code;
+    while (current) {
+        code.prepend(m_outputStack.pop());
+        current = current->next;
+    }
+    m_outputStack << code;
+}
 
 #endif //QMLWEB_PUREJAVASCRIPTGENERATOR_H

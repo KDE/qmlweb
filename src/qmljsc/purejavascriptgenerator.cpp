@@ -19,18 +19,27 @@
  */
 
 #include "purejavascriptgenerator.h"
+#include "error.h"
+
+using namespace QQmlJS;
 
 PureJavaScriptGenerator::PureJavaScriptGenerator()
     : m_outputStack()
-    , m_generatedCode(new QString())
 {
 }
 
 QString PureJavaScriptGenerator::getGeneratedCode() {
-    return *m_generatedCode.string();
+    if (m_outputStack.size() > 1) {
+        const QString errorDescription = QString("stack was not reduced correctly, top element is %1").arg(m_outputStack.top());
+        QmlJSc::Error stackError(QmlJSc::Error::InternalError, errorDescription);
+        throw stackError;
+    } else if (m_outputStack.size() == 0) {
+        return "";
+    }
+    return m_outputStack.pop();
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::BinaryExpression *binaryExpression) {
+bool PureJavaScriptGenerator::visit(AST::BinaryExpression *binaryExpression) {
     switch(binaryExpression->op) {
         case QSOperator::Assign: m_outputStack << "="; break;
         default: Q_ASSERT(binaryExpression->op);
@@ -38,142 +47,152 @@ bool PureJavaScriptGenerator::visit(QQmlJS::AST::BinaryExpression *binaryExpress
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::Block *) {
-    m_generatedCode << '{';
+bool PureJavaScriptGenerator::visit(AST::Block *) {
+    m_outputStack << "{";
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::BreakStatement *breakStatement) {
-    m_generatedCode << "break";
+bool PureJavaScriptGenerator::visit(AST::BreakStatement *breakStatement) {
+    QString breakStatementCode("break");
     if (breakStatement->label.length() > 0) {
-        m_generatedCode << ' ';
-        m_generatedCode << breakStatement->label.toString();
+        breakStatementCode.append(' ');
+        breakStatementCode.append(breakStatement->label.toString());
     }
+    m_outputStack << breakStatementCode;
 
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::FunctionBody *) {
-    m_generatedCode << "{";
+bool PureJavaScriptGenerator::visit(AST::FunctionBody *) {
+    m_outputStack << "{";
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::FunctionDeclaration *functionDeclaration) {
+bool PureJavaScriptGenerator::visit(AST::FunctionDeclaration *functionDeclaration) {
     const QString functionName = functionDeclaration->name.toString();
-    m_generatedCode << "function" << ' ' << functionName;
+    m_outputStack << QString("function") + ' ' + functionName;
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::IdentifierExpression *identifierExpression) {
+bool PureJavaScriptGenerator::visit(AST::IdentifierExpression *identifierExpression) {
     m_outputStack << identifierExpression->name.toString();
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::NumericLiteral *numericLiteral) {
+bool PureJavaScriptGenerator::visit(AST::NumericLiteral *numericLiteral) {
     m_outputStack.push(QString("%1").arg(numericLiteral->value));
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::StringLiteral *stringLiteral) {
+bool PureJavaScriptGenerator::visit(AST::StringLiteral *stringLiteral) {
     m_outputStack.push(stringLiteral->value.toString());
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::PostDecrementExpression *) {
+bool PureJavaScriptGenerator::visit(AST::PostDecrementExpression *) {
     m_outputStack.push("--");
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::PostIncrementExpression *) {
+bool PureJavaScriptGenerator::visit(AST::PostIncrementExpression *) {
     m_outputStack.push("++");
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::PreDecrementExpression *) {
+bool PureJavaScriptGenerator::visit(AST::PreDecrementExpression *) {
     m_outputStack.push("--");
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::PreIncrementExpression *) {
+bool PureJavaScriptGenerator::visit(AST::PreIncrementExpression *) {
     m_outputStack.push("++");
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::VariableDeclaration *variableDeclaration) {
+bool PureJavaScriptGenerator::visit(AST::VariableDeclaration *variableDeclaration) {
+    QString variableDeclarationCode;
     const QString identifier = variableDeclaration->name.toString();
     if (variableDeclaration->readOnly) {
-        m_generatedCode << "const";
+        variableDeclarationCode += "const";
     } else {
-        m_generatedCode << "var";
+        variableDeclarationCode += "var";
     }
-    m_generatedCode << ' ' <<  identifier;
+    variableDeclarationCode += ' ';
+    variableDeclarationCode += identifier;
     if (variableDeclaration->expression) {
-        m_generatedCode << '=';
+        variableDeclarationCode += '=';
     }
+
+    m_outputStack << variableDeclarationCode;
+
     return true;
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::BinaryExpression *) {
+void PureJavaScriptGenerator::endVisit(AST::BinaryExpression *) {
     const QString rightOperand = m_outputStack.pop();
     const QString leftOperand = m_outputStack.pop();
     const QString operation = m_outputStack.pop();
     QString expression = QString("%1%2%3").arg(leftOperand).arg(operation).arg(rightOperand);
     m_outputStack.push(expression);
-    generateIfLastElementOnStack();
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::Block *) {
-    m_generatedCode << '}';
+void PureJavaScriptGenerator::endVisit(AST::Block *) {
+    const QString blockCode = m_outputStack.pop();
+    const QString openingParenthesis = m_outputStack.pop();
+    m_outputStack << QString("%1%2}").arg(openingParenthesis, blockCode);
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::ExpressionStatement *) {
-    m_generatedCode << ';';
+void PureJavaScriptGenerator::endVisit(AST::ExpressionStatement *) {
+    m_outputStack << m_outputStack.pop() + ';';
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::FunctionBody *) {
-    m_generatedCode << '}';
+void PureJavaScriptGenerator::endVisit(AST::FunctionBody *) {
+    const QString body = m_outputStack.pop();
+    const QString openingBracket = m_outputStack.pop();
+    m_outputStack << openingBracket + body + '}';
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::IdentifierExpression *) {
-    generateIfLastElementOnStack();
+void PureJavaScriptGenerator::endVisit(AST::IdentifierExpression *) {
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::NumericLiteral *) {
-    generateIfLastElementOnStack();
+void PureJavaScriptGenerator::endVisit(AST::NumericLiteral *) {
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::PostDecrementExpression *) {
+void PureJavaScriptGenerator::endVisit(AST::PostDecrementExpression *) {
     updateStackWithPostOperation();
-    generateIfLastElementOnStack();
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::PostIncrementExpression *) {
+void PureJavaScriptGenerator::endVisit(AST::PostIncrementExpression *) {
     updateStackWithPostOperation();
-    generateIfLastElementOnStack();
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::PreDecrementExpression *) {
+void PureJavaScriptGenerator::endVisit(AST::PreDecrementExpression *) {
     updateStackWithPreOperation();
-    generateIfLastElementOnStack();
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::PreIncrementExpression *) {
+void PureJavaScriptGenerator::endVisit(AST::PreIncrementExpression *) {
     updateStackWithPreOperation();
-    generateIfLastElementOnStack();
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::StringLiteral *) {
-    generateIfLastElementOnStack();
+void PureJavaScriptGenerator::endVisit(AST::SourceElements *sourceElements) {
+    reduceListStack<AST::SourceElements>(sourceElements);
 }
 
-void PureJavaScriptGenerator::generateIfLastElementOnStack() {
-    if (m_outputStack.size() == 1) {
-        m_generatedCode << m_outputStack.pop();
-    }
+void PureJavaScriptGenerator::endVisit(AST::StatementList *statementList) {
+    reduceListStack<AST::StatementList>(statementList);
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::VariableStatement *) {
-    m_generatedCode << ';';
+void PureJavaScriptGenerator::endVisit(AST::StringLiteral *) {
+}
+
+void PureJavaScriptGenerator::endVisit(AST::VariableDeclaration *) {
+    const QString expression = m_outputStack.pop();
+    const QString variableName = m_outputStack.pop();
+    m_outputStack << variableName + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::VariableStatement *) {
+    m_outputStack << m_outputStack.pop() + ';';
 }
 
 void PureJavaScriptGenerator::updateStackWithPostOperation() {

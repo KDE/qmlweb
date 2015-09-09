@@ -25,31 +25,8 @@
 #include "../../../src/qmljsc/error.h"
 #include "../../../src/qmljsc/purejavascriptgenerator.h"
 
-#define TEST_SOMEVISIT_GENERATES_FROM(testSituation, expectedResult, visitType, className, ...) \
-    void test_ ## visitType ## _ ## className ## _generatesCorrectCode_ ## testSituation() { \
-        QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        m_generator->visitType(&classInstance); \
-        QCOMPARE(static_cast<PureJavaScriptGenerator*>(m_generator)->getGeneratedCode(), QStringLiteral(expectedResult)); \
-    }
-
-#define TEST_VISIT_GENERATES(testSituation, expectedResult, className, ...) \
-            TEST_SOMEVISIT_GENERATES_FROM(testSituation, expectedResult, visit, className, __VA_ARGS__)
-
-#define TEST_ENDVISIT_GENERATES(testSituation, expectedResult, className, ...) \
-            TEST_SOMEVISIT_GENERATES_FROM(testSituation, expectedResult, endVisit, className, __VA_ARGS__)
-
-#define TEST_VISIT_RETURNS(testSituation, expectedReturnResult, className, ...) \
-    void test_visit ## _ ## className ## _returns_ ## expectedReturnResult ## _ ## testSituation() { \
-        QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        QCOMPARE(m_generator->visit(&classInstance), expectedReturnResult); \
-    }
-
-#define TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(className, ...) \
-    TEST_VISIT_RETURNS(defaultImplementation, true, className, __VA_ARGS__) \
-    TEST_VISIT_GENERATES(defaultImplementation, "", className, __VA_ARGS__)
-
-#define TEST_VISIT_PUTS_ON_STACK(testScenario, expectedTopOfStack, className, ...) \
-    void test_visit_## className ## _putsOnStack_ ## testScenario() { \
+#define TEST_SOMEVISIT_PUTS_ON_STACK(testSituation, expectedTopOfStack, visitType, className, ...) \
+    void test_ ## visitType ## _ ## className ## _putsOnStack_ ## testSituation() { \
         QQmlJS::AST::className classInstance(__VA_ARGS__); \
         m_generator->visit(&classInstance); \
         int stackElementCount = asPureJSGen(m_generator)->m_outputStack.count(); \
@@ -58,27 +35,53 @@
         QCOMPARE(stringOnStack, QStringLiteral(expectedTopOfStack)); \
     }
 
-#define TEST_ENDVISIT_FROM_STACK(testScenario, action, expectedResult, expectedStackSize, stackContent, className, ...) \
-    void test_endVisit_ ## className ## _ ## action ## _ ## testScenario() { \
+#define TEST_VISIT_PUTS_ON_STACK_WITHOUT_RETURN(testSituation, expectedResult, className, ...) \
+            TEST_SOMEVISIT_PUTS_ON_STACK(testSituation, expectedResult, visit, className, __VA_ARGS__)
+
+#define TEST_ENDVISIT_PUTS_ON_STACK(testSituation, expectedResult, className, ...) \
+            TEST_SOMEVISIT_PUTS_ON_STACK(testSituation, expectedResult, endVisit, className, __VA_ARGS__)
+
+#define TEST_VISIT_RETURNS(testSituation, expectedReturnResult, className, ...) \
+    void test_visit ## _ ## className ## _returns_ ## expectedReturnResult ## _ ## testSituation() { \
+        QQmlJS::AST::className classInstance(__VA_ARGS__); \
+        QCOMPARE(m_generator->visit(&classInstance), expectedReturnResult); \
+    }
+
+#define TEST_VISIT_PUTS_ON_STACK(testSituation, expectedResult, className, ...) \
+            TEST_VISIT_PUTS_ON_STACK_WITHOUT_RETURN(testSituation, expectedResult, className, __VA_ARGS__) \
+            TEST_VISIT_RETURNS(testSituation, true, className, __VA_ARGS__)
+
+#define TEST_VISIT_PUTS_NOTHING_ON_STACK(testSituation, className, ...) \
+    void test_ ## visitType ## _ ## className ## _putsNothingOnStack_ ## testSituation() { \
+        QQmlJS::AST::className classInstance(__VA_ARGS__); \
+        m_generator->visit(&classInstance); \
+        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.count(); \
+        QCOMPARE(stackElementCount, 0); \
+    }
+
+#define TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(className, ...) \
+    TEST_VISIT_RETURNS(defaultImplementation, true, className, __VA_ARGS__) \
+    TEST_VISIT_PUTS_NOTHING_ON_STACK(defaultImplementation, className, __VA_ARGS__)
+
+#define TEST_ENDVISIT_REDUCES_STACK(testScenario, expectedTopOfStack, stackContent, className, ...) \
+    void test_endVisit_ ## className ## _reducesStack_ ## testScenario() { \
         QQmlJS::AST::className classInstance(__VA_ARGS__); \
         asPureJSGen(m_generator)->m_outputStack.append(QVector<QString>stackContent); \
         m_generator->endVisit(&classInstance); \
         int stackElementCount = asPureJSGen(m_generator)->m_outputStack.count(); \
-        QCOMPARE(stackElementCount, expectedStackSize); \
-        QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral(expectedResult)); \
-    }
-
-#define TEST_ENDVISIT_GENERATES_FROM_STACK(testScenario, expectedResult, stackContent, className, ...) \
-    TEST_ENDVISIT_FROM_STACK(testScenario, generatesFromStack, expectedResult, 0, stackContent, className, __VA_ARGS__)
-
-#define TEST_ENDVISIT_ONLY_UPDATES_STACK(testScenario, expectedTopOfStack, stackContent, className, ...) \
-    void test_endVisit_ ## className ## _updatesStack_ ## testScenario() { \
-        QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        asPureJSGen(m_generator)->m_outputStack.append(QVector<QString>stackContent); \
-        m_generator->endVisit(&classInstance); \
+        QCOMPARE(stackElementCount, 1); \
         QString stringOnStack = asPureJSGen(m_generator)->m_outputStack.top(); \
         QCOMPARE(stringOnStack, QStringLiteral(expectedTopOfStack)); \
-        QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral("")); \
+    }
+
+#define TEST_ENDVISIT_REDUCES_STACK_OBJ(testScenario, expectedTopOfStack, stackContent, className, classInstancePtr) \
+    void test_endVisit_ ## className ## _reducesStack_ ## testScenario() { \
+        asPureJSGen(m_generator)->m_outputStack.append(QVector<QString>stackContent); \
+        m_generator->endVisit(classInstancePtr); \
+        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.count(); \
+        QCOMPARE(stackElementCount, 1); \
+        QString stringOnStack = asPureJSGen(m_generator)->m_outputStack.top(); \
+        QCOMPARE(stringOnStack, QStringLiteral(expectedTopOfStack)); \
     }
 
 #define TEST_ENDVISIT_DOES_NOTHING(testScenario, className, ...) \
@@ -94,13 +97,40 @@ class TestPureJavaScriptGenerator
 {
     Q_OBJECT
 
+public:
+    TestPureJavaScriptGenerator()
+        : m_someLabel("ALabel")
+        , m_someLabelStringRef(&m_someLabel)
+        , m_someString("some string")
+        , m_someStringStringRef(&m_someString)
+        , m_someIdentifier("i")
+        , m_someIdentifierStringRef(&m_someIdentifier)
+        , m_trueExpression()
+        , m_falseExpression()
+        , m_statement1()
+        , m_statement2()
+        , m_statement3()
+        , m_threeStatementsList(&m_statement1)
+        , m_statementListPart2(&m_threeStatementsList, &m_statement2)
+        , m_statementListPart3(&m_statementListPart2, &m_statement3)
+        , m_sourceElement1(nullptr)
+        , m_sourceElement2(nullptr)
+        , m_sourceElement3(nullptr)
+        , m_threeSourceElementsList(&m_sourceElement1)
+        , m_sourceElementsListPart2(&m_threeSourceElementsList, &m_sourceElement2)
+        , m_sourceElementsListPart3(&m_sourceElementsListPart2, &m_sourceElement3)
+    {
+        m_statementListPart3.finish();
+        m_sourceElementsListPart3.finish();
+    }
+
 private:
     PureJavaScriptGenerator* asPureJSGen(QQmlJS::AST::Visitor* generator) {
         return static_cast<PureJavaScriptGenerator*>(generator);
     }
     QQmlJS::AST::Visitor *m_generator;
 
-    const QString m_someLabel = QString("ALabel");
+    const QString m_someLabel;
     const QStringRef m_someLabelStringRef = QStringRef(&m_someLabel);
     const QString m_someString = QString("some string");
     const QStringRef m_someStringStringRef = QStringRef(&m_someString);
@@ -108,6 +138,18 @@ private:
     const QStringRef m_someIdentifierStringRef = QStringRef(&m_someIdentifier);
     QQmlJS::AST::TrueLiteral m_trueExpression;
     QQmlJS::AST::FalseLiteral m_falseExpression;
+    QQmlJS::AST::EmptyStatement m_statement1;
+    QQmlJS::AST::EmptyStatement m_statement2;
+    QQmlJS::AST::EmptyStatement m_statement3;
+    QQmlJS::AST::StatementList m_threeStatementsList;
+    QQmlJS::AST::StatementList m_statementListPart2;
+    QQmlJS::AST::StatementList m_statementListPart3;
+    QQmlJS::AST::StatementSourceElement m_sourceElement1;
+    QQmlJS::AST::StatementSourceElement m_sourceElement2;
+    QQmlJS::AST::StatementSourceElement m_sourceElement3;
+    QQmlJS::AST::SourceElements m_threeSourceElementsList;
+    QQmlJS::AST::SourceElements m_sourceElementsListPart2;
+    QQmlJS::AST::SourceElements m_sourceElementsListPart3;
 
 private slots:
     void init() {
@@ -122,36 +164,40 @@ private slots:
         QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral(""));
     }
 
-    TEST_VISIT_RETURNS(Generally, true, BinaryExpression, &m_trueExpression, QSOperator::Assign , &m_falseExpression);
-    TEST_VISIT_PUTS_ON_STACK(EqualOperator, "=", BinaryExpression, &m_trueExpression, QSOperator::Assign, &m_falseExpression);
-    TEST_VISIT_RETURNS(WithoutStatements, true, Block, nullptr)
-    TEST_VISIT_GENERATES(WithoutStatements, "{", Block, nullptr)
-    TEST_VISIT_RETURNS(WithLabel, true, BreakStatement, m_someLabelStringRef)
-    TEST_VISIT_GENERATES(WithLabel, "break ALabel", BreakStatement, m_someLabelStringRef)
-    TEST_VISIT_RETURNS(WithoutLabel, true, BreakStatement, nullptr)
-    TEST_VISIT_GENERATES(WithoutLabel, "break", BreakStatement, nullptr)
+    void test_getGeneratedCode_getsTopOfStack() {
+        // Prepare
+        asPureJSGen(m_generator)->m_outputStack << "1";
+
+        // Verify
+        QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral("1"));
+    }
+
+    void test_getGeneratedCode_throwsError_OnStackSizeGreaterThanOne() {
+        // Prepare
+        asPureJSGen(m_generator)->m_outputStack << "1" << "2";
+
+        // Verify
+        QVERIFY_EXCEPTION_THROWN(asPureJSGen(m_generator)->getGeneratedCode(), QmlJSc::Error);
+    }
+
+    TEST_VISIT_PUTS_ON_STACK(EqualOperator, "=", BinaryExpression, &m_trueExpression, QSOperator::Assign, &m_falseExpression)
+    TEST_VISIT_PUTS_ON_STACK(WithoutStatements, "{", Block, nullptr)
+    TEST_VISIT_PUTS_ON_STACK(WithLabel, "break ALabel", BreakStatement, m_someLabelStringRef)
+    TEST_VISIT_PUTS_ON_STACK(WithoutLabel, "break", BreakStatement, nullptr)
     TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(ExpressionStatement, nullptr)
-    TEST_VISIT_RETURNS(DefautScenario, true, FunctionBody, nullptr)
-    TEST_VISIT_GENERATES(NoSourceElements, "{", FunctionBody, nullptr)
-    TEST_VISIT_RETURNS(DefaultScenario, true, FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
-    TEST_VISIT_GENERATES(DefaultScenario, "function i", FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
-    TEST_VISIT_RETURNS(DefaultScenario, true, IdentifierExpression, m_someIdentifierStringRef)
+    TEST_VISIT_PUTS_ON_STACK(NoSourceElements, "{", FunctionBody, nullptr)
+    TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "function i", FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "i", IdentifierExpression, m_someIdentifierStringRef)
-    TEST_VISIT_RETURNS(DefaultScenario, true, NumericLiteral, 3.14)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "3.14", NumericLiteral, 3.14)
-    TEST_VISIT_RETURNS(DefaultScenario, true, PostDecrementExpression, nullptr)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "--", PostDecrementExpression, nullptr)
-    TEST_VISIT_RETURNS(DefaultScenario, true, PostIncrementExpression, nullptr)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "++", PostIncrementExpression, nullptr)
-    TEST_VISIT_RETURNS(DefaultScenario, true, PreDecrementExpression, nullptr)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "--", PreDecrementExpression, nullptr)
-    TEST_VISIT_RETURNS(DefaultScenario, true, PreIncrementExpression, nullptr)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "++", PreIncrementExpression, nullptr)
-    TEST_VISIT_RETURNS(SomeString, true, StringLiteral, m_someStringStringRef)
+    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(SourceElements, nullptr)
+    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(StatementList, nullptr)
     TEST_VISIT_PUTS_ON_STACK(SomeString, "some string", StringLiteral, m_someStringStringRef)
-    TEST_VISIT_RETURNS(AssignmentScenario, true, VariableDeclaration, m_someIdentifierStringRef, nullptr)
-    TEST_VISIT_GENERATES(AssignmentScenario, "var i=", VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
-    TEST_VISIT_GENERATES(NoAssignmentScenario, "var i", VariableDeclaration, m_someIdentifierStringRef, nullptr)
+    TEST_VISIT_PUTS_ON_STACK(AssignmentScenario, "var i=", VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
+    TEST_VISIT_PUTS_ON_STACK(NoAssignmentScenario, "var i", VariableDeclaration, m_someIdentifierStringRef, nullptr)
     void test_visit_VariableDeclaration_generatesCorrectCode_ConstAssignment() {
         // Prepare
         QQmlJS::AST::VariableDeclaration variableDeclaration(m_someIdentifierStringRef, &m_trueExpression);
@@ -165,28 +211,22 @@ private slots:
     }
     TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(VariableStatement, nullptr)
 
-    TEST_ENDVISIT_ONLY_UPDATES_STACK(MoreThanTwoOperands, "2==4", ({"++", "==", "2", "4"}), BinaryExpression, nullptr, -1, nullptr)
-    TEST_ENDVISIT_GENERATES_FROM_STACK(TwoOperands, "2==4", ({"==", "2", "4"}), BinaryExpression, nullptr, -1, nullptr)
-    TEST_ENDVISIT_GENERATES(WithoutStatements, "}", Block, nullptr)
-    TEST_ENDVISIT_GENERATES(NoExpression, ";", ExpressionStatement, nullptr)
-    TEST_ENDVISIT_GENERATES(FunctionBodyClosesCorrectly, "}", FunctionBody, nullptr);
+    TEST_ENDVISIT_REDUCES_STACK(TwoOperands, "2==4", ({"==", "2", "4"}), BinaryExpression, nullptr, -1, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(WithoutStatements, "{content}", ({"{", "content"}), Block, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(NoExpression, "expression;", ({"expression"}), ExpressionStatement, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(FunctionBodyClosesCorrectly, "{func}", ({"{", "func"}), FunctionBody, nullptr);
     TEST_ENDVISIT_DOES_NOTHING(DefaultScenario, FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr);
-    TEST_ENDVISIT_GENERATES_FROM_STACK(DefaultScenario, "abc", ({"abc"}), IdentifierExpression, nullptr)
-    TEST_ENDVISIT_ONLY_UPDATES_STACK(DefaultScenario, "abc", ({"def", "abc"}), IdentifierExpression, nullptr)
-    TEST_ENDVISIT_GENERATES_FROM_STACK(OneElement, "2.7", ({"2.7"}), NumericLiteral, 3.14)
-    TEST_ENDVISIT_ONLY_UPDATES_STACK(TwoElements, "2.2", ({"2.1", "2.2"}), NumericLiteral, 3.14)
-    TEST_ENDVISIT_GENERATES_FROM_STACK(OneLiteral, "2.7--", ({"--", "2.7"}), PostDecrementExpression, nullptr)
-    TEST_ENDVISIT_ONLY_UPDATES_STACK(TwoLiterals, "2.7--", ({"0.0", "--", "2.7"}), PostDecrementExpression, nullptr)
-    TEST_ENDVISIT_GENERATES_FROM_STACK(OneLiteral, "2.7++", ({"++", "2.7"}), PostIncrementExpression, nullptr)
-    TEST_ENDVISIT_ONLY_UPDATES_STACK(TwoLiterals, "2.7++", ({"0.0", "++", "2.7"}), PostIncrementExpression, nullptr)
-    TEST_ENDVISIT_GENERATES_FROM_STACK(OneLiteral, "--2.7", ({"--", "2.7"}), PreDecrementExpression, nullptr)
-    TEST_ENDVISIT_ONLY_UPDATES_STACK(TwoLiterals, "--2.7", ({"0.0", "--", "2.7"}), PreDecrementExpression, nullptr)
-    TEST_ENDVISIT_GENERATES_FROM_STACK(OneLiteral, "++2.7", ({"++", "2.7"}), PreIncrementExpression, nullptr)
-    TEST_ENDVISIT_ONLY_UPDATES_STACK(TwoLiterals, "++2.7", ({"0.0", "++", "2.7"}), PreIncrementExpression, nullptr)
-    TEST_ENDVISIT_GENERATES_FROM_STACK(OneLiteral, "another string", ({"another string"}), StringLiteral, nullptr)
-    TEST_ENDVISIT_ONLY_UPDATES_STACK(TwoLiterals, "string", ({"another", "string"}), StringLiteral, nullptr)
-    TEST_ENDVISIT_DOES_NOTHING(DefaultScenario, VariableDeclaration, m_someIdentifierStringRef, nullptr)
-    TEST_ENDVISIT_GENERATES(NoDeclarationList, ";", VariableStatement, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "abc", ({"abc"}), IdentifierExpression, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(OneElement, "2.7", ({"2.7"}), NumericLiteral, 3.14)
+    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "2.7--", ({"--", "2.7"}), PostDecrementExpression, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "2.7++", ({"++", "2.7"}), PostIncrementExpression, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "--2.7", ({"--", "2.7"}), PreDecrementExpression, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "++2.7", ({"++", "2.7"}), PreIncrementExpression, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeSourceElements, "sEl1sEl2sEl3", ({"sEl1", "sEl2", "sEl3"}), SourceElements, &m_threeSourceElementsList)
+    TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeStatements, "st1st2st3", ({"st1", "st2", "st3"}), StatementList, &m_threeStatementsList)
+    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "another string", ({"another string"}), StringLiteral, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "var x=5", ({"var x=", "5"}), VariableDeclaration, m_someIdentifierStringRef, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "var x;", ({"var x"}), VariableStatement, nullptr)
 
 };
 
