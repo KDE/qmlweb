@@ -19,7 +19,7 @@
  */
 
 #include "purejavascriptgenerator.h"
-#include "error.h"
+#include "utils/error.h"
 
 using namespace QQmlJS;
 
@@ -63,6 +63,11 @@ bool PureJavaScriptGenerator::visit(AST::BreakStatement *breakStatement) {
     return true;
 }
 
+bool PureJavaScriptGenerator::visit(AST::FormalParameterList *parameter) {
+    m_outputStack << parameter->name.toString();
+    return true;
+}
+
 bool PureJavaScriptGenerator::visit(AST::FunctionBody *) {
     m_outputStack << "{";
     return true;
@@ -71,6 +76,11 @@ bool PureJavaScriptGenerator::visit(AST::FunctionBody *) {
 bool PureJavaScriptGenerator::visit(AST::FunctionDeclaration *functionDeclaration) {
     const QString functionName = functionDeclaration->name.toString();
     m_outputStack << QString("function") + ' ' + functionName;
+    if (!functionDeclaration->formals) {
+        // if no parameters are set, formals will be zero and therefore not be visited
+        // but a parameter string is needed on the stack
+        m_outputStack << "";
+    }
     return true;
 }
 
@@ -142,14 +152,29 @@ void PureJavaScriptGenerator::endVisit(AST::Block *) {
     m_outputStack << QString("%1%2}").arg(openingParenthesis, blockCode);
 }
 
+void PureJavaScriptGenerator::endVisit(AST::EmptyStatement *) {
+    m_outputStack << ";";
+}
+
 void PureJavaScriptGenerator::endVisit(AST::ExpressionStatement *) {
     m_outputStack << m_outputStack.pop() + ';';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::FormalParameterList *parameterList) {
+    reduceListStack<AST::FormalParameterList>(parameterList, ",");
 }
 
 void PureJavaScriptGenerator::endVisit(AST::FunctionBody *) {
     const QString body = m_outputStack.pop();
     const QString openingBracket = m_outputStack.pop();
     m_outputStack << openingBracket + body + '}';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::FunctionDeclaration *) {
+    const QString body = m_outputStack.pop();
+    const QString parameters = m_outputStack.pop();
+    const QString typeAndName = m_outputStack.pop();
+    m_outputStack << typeAndName + '(' + parameters + ')' + body;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::IdentifierExpression *) {
