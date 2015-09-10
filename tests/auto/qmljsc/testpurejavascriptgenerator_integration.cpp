@@ -81,8 +81,9 @@ private slots:
         QTest::addColumn<QString>("expectedOutput");
 
         addRowForFile("expressions");
-        addRowForFile("functions");
+        addRowForFileWithCompiled("functions");
         addRowForFileWithCompiled("binaryoperations");
+        addRowForFileWithCompiled("statements");
     }
 
     void test_compileJavaScriptFile() {

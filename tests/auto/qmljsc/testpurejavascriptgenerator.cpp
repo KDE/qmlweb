@@ -25,6 +25,16 @@
 #include "../../../src/qmljsc/utils/error.h"
 #include "../../../src/qmljsc/purejavascriptgenerator.h"
 
+#define TEST_VISIT_PUTS_ON_STACK_OBJ(testSituation, expectedStackContent, className, instancePtr) \
+    void test_ ## visit ## _ ## className ## _putsOnStack_ ## testSituation() { \
+        QStack<QString> expectedStack;\
+        expectedStack.append(QVector<QString>expectedStackContent);\
+        m_generator->visit(instancePtr); \
+        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.size(); \
+        QCOMPARE(stackElementCount, expectedStack.size()); \
+        QCOMPARE(asPureJSGen(m_generator)->m_outputStack, expectedStack); \
+    }
+
 #define TEST_SOMEVISIT_PUTS_MULTIPLE_ON_STACK(testSituation, expectedStackContent, visitType, className, ...) \
     void test_ ## visitType ## _ ## className ## _putsOnStack_ ## testSituation() { \
         QQmlJS::AST::className classInstance(__VA_ARGS__); \
@@ -130,6 +140,7 @@ public:
         , m_sourceElementsListPart3(&m_sourceElementsListPart2, &m_sourceElement3)
         , m_twoParameters(m_someIdentifierStringRef)
         , m_parameterListPart2(&m_twoParameters, m_anotherIdentifierStringRef)
+        , m_functionBody(nullptr)
     {
         m_statementListPart3.finish();
         m_sourceElementsListPart3.finish();
@@ -166,6 +177,7 @@ private:
     QQmlJS::AST::SourceElements m_sourceElementsListPart3;
     QQmlJS::AST::FormalParameterList m_twoParameters;
     QQmlJS::AST::FormalParameterList m_parameterListPart2;
+    QQmlJS::AST::FunctionBody m_functionBody;
 
 private slots:
     void init() {
@@ -236,7 +248,8 @@ private slots:
     TEST_VISIT_PUTS_ON_STACK(WithoutLabel, "break", BreakStatement, nullptr)
     //TODO TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(EmptyStatement)
     TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(ExpressionStatement, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(OneParameter, "i", FormalParameterList, m_someIdentifierStringRef)
+    TEST_VISIT_PUTS_ON_STACK_OBJ(OneParameter, ({"e"}), FormalParameterList, &m_parameterListPart2)
+    TEST_VISIT_PUTS_ON_STACK_OBJ(TwoParameters, ({"i,e"}), FormalParameterList, &m_twoParameters)
     TEST_VISIT_PUTS_ON_STACK(NoSourceElements, "{", FunctionBody, nullptr)
     TEST_VISIT_PUTS_ON_STACK(WithParameters, "function i", FunctionDeclaration, m_someIdentifierStringRef, &m_twoParameters, nullptr)
     TEST_VISIT_PUTS_ON_STACK(WithoutParameters, "function i", FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
@@ -268,11 +281,13 @@ private slots:
     TEST_ENDVISIT_REDUCES_STACK(WithoutStatements, "{content}", ({"{", "content"}), Block, nullptr)
     TEST_ENDVISIT_REDUCES_STACK_OBJ(DefaultScenario, ";", ({}), EmptyStatement, &m_statement1)
     TEST_ENDVISIT_REDUCES_STACK(NoExpression, "expression;", ({"expression"}), ExpressionStatement, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK_OBJ(TwoParameters, "i,e", ({"i", "e"}), FormalParameterList, &m_twoParameters)
+    TEST_ENDVISIT_REDUCES_STACK_OBJ(AnyNumberOfParameters, "i", ({"i"}), FormalParameterList, &m_twoParameters) // does nothing
     TEST_ENDVISIT_REDUCES_STACK(FunctionBodyClosesCorrectly, "{func}", ({"{", "func"}), FunctionBody, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(WithoutParameters, "name(){body}", ({"name", "{body}"}),
-                                                        FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(WithParameters, "name(parameters){body}", ({"name", "parameters", "{body}"}),
+    TEST_ENDVISIT_REDUCES_STACK(WithoutParametersWithBody, "name(){body}", ({"name", "{body}"}),
+                                                        FunctionDeclaration, m_someIdentifierStringRef, nullptr, &m_functionBody)
+    TEST_ENDVISIT_REDUCES_STACK(WithParametersWithBody, "name(parameters){body}", ({"name", "parameters", "{body}"}),
+                                                        FunctionDeclaration, m_someIdentifierStringRef, &m_twoParameters, &m_functionBody)
+    TEST_ENDVISIT_REDUCES_STACK(WithoutBody, "name(parameters){}", ({"name", "parameters"}),
                                                         FunctionDeclaration, m_someIdentifierStringRef, &m_twoParameters, nullptr)
     TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "abc", ({"abc"}), IdentifierExpression, nullptr)
     TEST_ENDVISIT_REDUCES_STACK(OneElement, "2.7", ({"2.7"}), NumericLiteral, 3.14)

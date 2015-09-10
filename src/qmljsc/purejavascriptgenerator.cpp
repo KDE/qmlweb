@@ -97,8 +97,16 @@ bool PureJavaScriptGenerator::visit(AST::BreakStatement *breakStatement) {
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(AST::FormalParameterList *parameter) {
-    m_outputStack << parameter->name.toString();
+bool PureJavaScriptGenerator::visit(AST::FormalParameterList *currentParameter) {
+    QString parameterCode;
+    while (currentParameter) {
+        parameterCode += currentParameter->name.toString();
+        if (currentParameter->next) {
+            parameterCode += ',';
+        }
+        currentParameter = currentParameter->next;
+    }
+    m_outputStack << parameterCode;
     return true;
 }
 
@@ -189,10 +197,6 @@ void PureJavaScriptGenerator::endVisit(AST::ExpressionStatement *) {
     m_outputStack << m_outputStack.pop() + ';';
 }
 
-void PureJavaScriptGenerator::endVisit(AST::FormalParameterList *parameterList) {
-    reduceListStack<AST::FormalParameterList>(parameterList, ",");
-}
-
 void PureJavaScriptGenerator::endVisit(AST::FunctionBody *) {
     const QString body = m_outputStack.pop();
     const QString openingBracket = m_outputStack.pop();
@@ -200,7 +204,7 @@ void PureJavaScriptGenerator::endVisit(AST::FunctionBody *) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::FunctionDeclaration *functionDeclaration) {
-    const QString body = m_outputStack.pop();
+    const QString body = (functionDeclaration->body)?m_outputStack.pop():"{}";
     const QString parameters = (functionDeclaration->formals)?m_outputStack.pop():"";
     const QString typeAndName = m_outputStack.pop();
     m_outputStack << typeAndName + '(' + parameters + ')' + body;

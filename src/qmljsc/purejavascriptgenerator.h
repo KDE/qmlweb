@@ -51,7 +51,6 @@ public:
     virtual void endVisit(QQmlJS::AST::Block *) override;
     virtual void endVisit(QQmlJS::AST::EmptyStatement *) override;
     virtual void endVisit(QQmlJS::AST::ExpressionStatement *) override;
-    virtual void endVisit(QQmlJS::AST::FormalParameterList *) override;
     virtual void endVisit(QQmlJS::AST::FunctionBody *) override;
     virtual void endVisit(QQmlJS::AST::FunctionDeclaration *) override;
     virtual void endVisit(QQmlJS::AST::IdentifierExpression *) override;
