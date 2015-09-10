@@ -202,7 +202,7 @@ private slots:
     TEST_VISIT_PUTS_ON_STACK(OneParameter, "i", FormalParameterList, m_someIdentifierStringRef)
     TEST_VISIT_PUTS_ON_STACK(NoSourceElements, "{", FunctionBody, nullptr)
     TEST_VISIT_PUTS_ON_STACK(WithParameters, "function i", FunctionDeclaration, m_someIdentifierStringRef, &m_twoParameters, nullptr)
-    TEST_SOMEVISIT_PUTS_MULTIPLE_ON_STACK(WithoutParameters, ({"function i", ""}), visit, FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
+    TEST_VISIT_PUTS_ON_STACK(WithoutParameters, "function i", FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "i", IdentifierExpression, m_someIdentifierStringRef)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "3.14", NumericLiteral, 3.14)
     TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "--", PostDecrementExpression, nullptr)
@@ -233,8 +233,10 @@ private slots:
     TEST_ENDVISIT_REDUCES_STACK(NoExpression, "expression;", ({"expression"}), ExpressionStatement, nullptr)
     TEST_ENDVISIT_REDUCES_STACK_OBJ(TwoParameters, "i,e", ({"i", "e"}), FormalParameterList, &m_twoParameters)
     TEST_ENDVISIT_REDUCES_STACK(FunctionBodyClosesCorrectly, "{func}", ({"{", "func"}), FunctionBody, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "name(parameters){body}", ({"name", "parameters", "{body}"}),
-                                FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(WithoutParameters, "name(){body}", ({"name", "{body}"}),
+                                                        FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(WithParameters, "name(parameters){body}", ({"name", "parameters", "{body}"}),
+                                                        FunctionDeclaration, m_someIdentifierStringRef, &m_twoParameters, nullptr)
     TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "abc", ({"abc"}), IdentifierExpression, nullptr)
     TEST_ENDVISIT_REDUCES_STACK(OneElement, "2.7", ({"2.7"}), NumericLiteral, 3.14)
     TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "2.7--", ({"--", "2.7"}), PostDecrementExpression, nullptr)
@@ -244,7 +246,8 @@ private slots:
     TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeSourceElements, "sEl1sEl2sEl3", ({"sEl1", "sEl2", "sEl3"}), SourceElements, &m_threeSourceElementsList)
     TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeStatements, "st1st2st3", ({"st1", "st2", "st3"}), StatementList, &m_threeStatementsList)
     TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "another string", ({"another string"}), StringLiteral, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "var x=5", ({"var x=", "5"}), VariableDeclaration, m_someIdentifierStringRef, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(Assignment, "var x=5", ({"var x=", "5"}), VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
+    TEST_ENDVISIT_REDUCES_STACK(NoAssignment, "var x", ({"var x"}), VariableDeclaration, m_someIdentifierStringRef, nullptr)
     TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "var x;", ({"var x"}), VariableStatement, nullptr)
 
 };

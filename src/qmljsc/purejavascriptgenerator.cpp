@@ -76,11 +76,6 @@ bool PureJavaScriptGenerator::visit(AST::FunctionBody *) {
 bool PureJavaScriptGenerator::visit(AST::FunctionDeclaration *functionDeclaration) {
     const QString functionName = functionDeclaration->name.toString();
     m_outputStack << QString("function") + ' ' + functionName;
-    if (!functionDeclaration->formals) {
-        // if no parameters are set, formals will be zero and therefore not be visited
-        // but a parameter string is needed on the stack
-        m_outputStack << "";
-    }
     return true;
 }
 
@@ -170,9 +165,9 @@ void PureJavaScriptGenerator::endVisit(AST::FunctionBody *) {
     m_outputStack << openingBracket + body + '}';
 }
 
-void PureJavaScriptGenerator::endVisit(AST::FunctionDeclaration *) {
+void PureJavaScriptGenerator::endVisit(AST::FunctionDeclaration *functionDeclaration) {
     const QString body = m_outputStack.pop();
-    const QString parameters = m_outputStack.pop();
+    const QString parameters = (functionDeclaration->formals)?m_outputStack.pop():"";
     const QString typeAndName = m_outputStack.pop();
     m_outputStack << typeAndName + '(' + parameters + ')' + body;
 }
@@ -210,8 +205,8 @@ void PureJavaScriptGenerator::endVisit(AST::StatementList *statementList) {
 void PureJavaScriptGenerator::endVisit(AST::StringLiteral *) {
 }
 
-void PureJavaScriptGenerator::endVisit(AST::VariableDeclaration *) {
-    const QString expression = m_outputStack.pop();
+void PureJavaScriptGenerator::endVisit(AST::VariableDeclaration *declaration) {
+    const QString expression = (declaration->expression)?m_outputStack.pop():"";
     const QString variableName = m_outputStack.pop();
     m_outputStack << variableName + expression;
 }
