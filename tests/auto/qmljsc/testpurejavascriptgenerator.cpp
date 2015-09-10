@@ -96,6 +96,9 @@
         QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral("")); \
     }
 
+#define TEST_VISIT_BINARYOP_PUTS_ON_STACK(operatorEnumName, character) \
+        TEST_VISIT_PUTS_ON_STACK(operatorEnumName ## Operation, character, BinaryExpression, &m_trueExpression, QSOperator::operatorEnumName, &m_falseExpression)
+
 class TestPureJavaScriptGenerator
     : public QObject
 {
@@ -193,7 +196,41 @@ private slots:
         QVERIFY_EXCEPTION_THROWN(asPureJSGen(m_generator)->getGeneratedCode(), QmlJSc::Error);
     }
 
-    TEST_VISIT_PUTS_ON_STACK(EqualOperator, "=", BinaryExpression, &m_trueExpression, QSOperator::Assign, &m_falseExpression)
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Assign, "=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceAdd, "+=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceSub, "-=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceMul, "*=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceDiv, "/=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceMod, "%=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceLeftShift, "<<=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceRightShift, ">>=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceURightShift, ">>>=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceAnd, "&=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceXor, "^=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceOr, "|=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Add, "+")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Sub, "-")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Mul, "*")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Div, "/")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Mod, "%")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(LShift, "<<")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(RShift, ">>")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(URShift, ">>>")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(BitAnd, "&")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(BitXor, "^")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(BitOr, "|")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Equal, "==")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(NotEqual, "!=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(StrictEqual, "===")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(StrictNotEqual, "!==")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Gt, ">")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Ge, ">=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Lt, "<")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Le, "<=")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(And, "&&")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(Or, "||")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(In, " in ")
+    TEST_VISIT_BINARYOP_PUTS_ON_STACK(InstanceOf, " instanceof ")
     TEST_VISIT_PUTS_ON_STACK(WithoutStatements, "{", Block, nullptr)
     TEST_VISIT_PUTS_ON_STACK(WithLabel, "break ALabel", BreakStatement, m_someLabelStringRef)
     TEST_VISIT_PUTS_ON_STACK(WithoutLabel, "break", BreakStatement, nullptr)

@@ -56,13 +56,22 @@ private:
 
     QString fileContent(QString fileName) {
         QFile inputFile(fileName);
-        Q_ASSERT(inputFile.open(QFile::ReadOnly));
+        Q_ASSERT_X(inputFile.open(QFile::ReadOnly), __FILE__, "File could not be opened. Is it added as resource in the CMakeLists.txt?");
         return QString(inputFile.readAll());
     }
 
-    void addRowForFile(const char* fileName) {
-        const QString filePath = QString(":/test/%1.js").arg(fileName);
-        QTest::newRow(fileName) << astForFile(filePath) << fileContent(filePath);
+    void addRowForFileWithCompiled(QString sourceFileName, QString compiledFileName) {
+        const QString folder(":/test/%1.js");
+        QTest::newRow(sourceFileName.toLocal8Bit()) << astForFile(folder.arg(sourceFileName)) << fileContent(folder.arg(compiledFileName));
+
+    }
+
+    void addRowForFile(QString fileName) {
+        addRowForFileWithCompiled(fileName, fileName);
+    }
+
+    void addRowForFileWithCompiled(QString fileName) {
+        addRowForFileWithCompiled(fileName, QString("%1.compiled").arg(fileName));
     }
 
 private slots:
@@ -73,6 +82,7 @@ private slots:
 
         addRowForFile("expressions");
         addRowForFile("functions");
+        addRowForFileWithCompiled("binaryoperations");
     }
 
     void test_compileJavaScriptFile() {

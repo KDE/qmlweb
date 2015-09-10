@@ -42,7 +42,41 @@ QString PureJavaScriptGenerator::getGeneratedCode() {
 bool PureJavaScriptGenerator::visit(AST::BinaryExpression *binaryExpression) {
     switch(binaryExpression->op) {
         case QSOperator::Assign: m_outputStack << "="; break;
-        default: Q_ASSERT(binaryExpression->op);
+        case QSOperator::InplaceAdd: m_outputStack << "+="; break;
+        case QSOperator::InplaceSub: m_outputStack << "-="; break;
+        case QSOperator::InplaceMul: m_outputStack << "*="; break;
+        case QSOperator::InplaceDiv: m_outputStack << "/="; break;
+        case QSOperator::InplaceMod: m_outputStack << "%="; break;
+        case QSOperator::InplaceLeftShift: m_outputStack << "<<="; break;
+        case QSOperator::InplaceRightShift: m_outputStack << ">>="; break;
+        case QSOperator::InplaceURightShift: m_outputStack << ">>>="; break;
+        case QSOperator::InplaceAnd: m_outputStack << "&="; break;
+        case QSOperator::InplaceXor: m_outputStack << "^="; break;
+        case QSOperator::InplaceOr: m_outputStack << "|="; break;
+        case QSOperator::Add: m_outputStack << "+"; break;
+        case QSOperator::Sub: m_outputStack << "-"; break;
+        case QSOperator::Mul: m_outputStack << "*"; break;
+        case QSOperator::Div: m_outputStack << "/"; break;
+        case QSOperator::Mod: m_outputStack << "%"; break;
+        case QSOperator::LShift: m_outputStack << "<<"; break;
+        case QSOperator::RShift: m_outputStack << ">>"; break;
+        case QSOperator::URShift: m_outputStack << ">>>"; break;
+        case QSOperator::BitAnd: m_outputStack << "&"; break;
+        case QSOperator::BitXor: m_outputStack << "^"; break;
+        case QSOperator::BitOr: m_outputStack << "|"; break;
+        case QSOperator::Equal: m_outputStack << "=="; break;
+        case QSOperator::NotEqual: m_outputStack << "!="; break;
+        case QSOperator::StrictEqual: m_outputStack << "==="; break;
+        case QSOperator::StrictNotEqual: m_outputStack << "!=="; break;
+        case QSOperator::Gt: m_outputStack << ">"; break;
+        case QSOperator::Ge: m_outputStack << ">="; break;
+        case QSOperator::Lt: m_outputStack << "<"; break;
+        case QSOperator::Le: m_outputStack << "<="; break;
+        case QSOperator::And: m_outputStack << "&&"; break;
+        case QSOperator::Or: m_outputStack << "||"; break;
+        case QSOperator::In: m_outputStack << " in "; break;
+        case QSOperator::InstanceOf: m_outputStack << " instanceof "; break;
+        default: Q_ASSERT_X(binaryExpression->op, __FILE__, "The operator is not handled yet");
     }
     return true;
 }
