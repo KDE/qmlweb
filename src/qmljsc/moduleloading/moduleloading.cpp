@@ -22,7 +22,7 @@
 #include "moduleloading.h"
 #include "abstractmoduleloader.h"
 #include "ir/module.h"
-#include "ir/ir.h"
+#include "ir/objecttree.h"
 #include "compiler.h"
 #include "error.h"
 

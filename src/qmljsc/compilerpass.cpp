@@ -43,7 +43,7 @@ void CompilerPass::process(QQmlJS::AST::UiProgram*) {
     failBecauseOfWrongType();
 }
 
-void CompilerPass::process(IR::Component*) {
+void CompilerPass::process(IR::File*) {
     failBecauseOfWrongType();
 }
 

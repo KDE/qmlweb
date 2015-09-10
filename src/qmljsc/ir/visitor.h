@@ -26,39 +26,21 @@ namespace QmlJSc {
     namespace IR {
 
 class Node;
-class Component;
-class Class;
-class Type;
+class File;
 class Object;
-class Property;
-class Method;
-class Signal;
-class Symbol;
 class ValueAssignment;
 class BindingAssignment;
 
 class Visitor {
 
 public:
-    virtual void visit(Component *component) {}
-    virtual void visit(Class *_class) {}
-    virtual void visit(Type *type) {}
+    virtual void visit(File *file) {}
     virtual void visit(Object *object) {}
-    virtual void visit(Property *property) {}
-    virtual void visit(Method *method) {}
-    virtual void visit(Signal *signal) {}
-    virtual void visit(Symbol *symbol) {}
     virtual void visit(ValueAssignment *valueAssignment) {}
     virtual void visit(BindingAssignment *bindingAssignment) {}
 
-    virtual void endVisit(Component *component) {}
-    virtual void endVisit(Class *_class) {}
-    virtual void endVisit(Type *type) {}
+    virtual void endVisit(File *file) {}
     virtual void endVisit(Object *object) {}
-    virtual void endVisit(Property *property) {}
-    virtual void endVisit(Method *method) {}
-    virtual void endVisit(Signal *signal) {}
-    virtual void endVisit(Symbol *symbol) {}
     virtual void endVisit(ValueAssignment *valueAssignment) {}
     virtual void endVisit(BindingAssignment *bindingAssignment) {}
 };

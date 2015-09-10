@@ -51,7 +51,7 @@ PrettyGeneratorPass::PrettyGeneratorPass()
     m_output.setString(new QString());
 }
 
-void PrettyGeneratorPass::process(IR::Component* immediateRepresentation)
+void PrettyGeneratorPass::process(IR::File* immediateRepresentation)
 {
     Q_ASSERT(immediateRepresentation);
 
@@ -60,10 +60,9 @@ void PrettyGeneratorPass::process(IR::Component* immediateRepresentation)
     emit finished( *(m_output.string()) );
 }
 
-void PrettyGeneratorPass::visit(IR::Component* component) {
-    IR::File file;
-    const QString objectIdentifier = component->super()->name();
-    const QString objectFqi = file.fullyQualifiedName(objectIdentifier);
+void PrettyGeneratorPass::visit(IR::File* file) {
+    const QString objectIdentifier = file->rootObject()->super()->name();
+    const QString objectFqi = file->fullyQualifiedName(objectIdentifier);
 
     m_output << TEMPLATE_COMPONENT_HEAD
                         .arg(RUNTIME_INHERIT)
@@ -72,7 +71,7 @@ void PrettyGeneratorPass::visit(IR::Component* component) {
                         .arg("QWContext");
 }
 
-void PrettyGeneratorPass::endVisit(IR::Component *) {
+void PrettyGeneratorPass::endVisit(IR::File *) {
     m_output << '}'; // close __comp definition
     m_output << TEMPLATE_COMPONENT_FOOT
                         .arg("__comp");
