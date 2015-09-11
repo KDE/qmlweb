@@ -110,7 +110,7 @@ bool RegisterModuleVisitor::visit(AST::CallExpression *call)
         );
 
 
-        IR::LibraryClass *c = new IR::LibraryClass;
+        IR::Type *c = new IR::Type;
         c->setName(nameAndValue->name->asString());
         c->setJavaScriptName(functionId->name.toString());
         m_module->addType(c);

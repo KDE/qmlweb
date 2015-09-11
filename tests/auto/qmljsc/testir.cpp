@@ -49,11 +49,11 @@ private slots:
     void testVisitorAPI();
 
 private:
-    LibraryClass city;
+    Type city;
     Object christiania;
     Object copenhagen;
-    LibraryClass state;
-    LibraryClass democracy;
+    Type state;
+    Type democracy;
     Object ottomanEmpire;
     Object denmark;
 
