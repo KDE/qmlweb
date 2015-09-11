@@ -28,6 +28,12 @@ Type::Type()
 {
 }
 
+Type::Type(Flags flags)
+        : m_flags(flags)
+        , m_super(0)
+{
+}
+
 const QString &Type::name()
 {
     return m_name;
@@ -36,6 +42,16 @@ const QString &Type::name()
 const QString &Type::javaScriptName()
 {
     return m_javaScriptName;
+}
+
+Type::Flags Type::flags()
+{
+    return m_flags;
+}
+
+void Type::setFlags(Flags flags)
+{
+    m_flags = flags;
 }
 
 Property *Type::addProperty(const QString &name)
@@ -104,10 +120,16 @@ void Type::setSuper(Type *superType) {
     m_super = superType;
 }
 
-LibraryClass::LibraryClass()
-        : Type()
+Type * Type::attachedType()
 {
+    return m_attachedType;
 }
+
+void Type::setAttachedType(Type *attachedType)
+{
+    m_attachedType = attachedType;
+}
+
 
 Method::Method()
         : returnType(0)

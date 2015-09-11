@@ -54,7 +54,7 @@ private:
 
     QmlJSc::PrettyGeneratorPass* m_prettyGeneratorPass = Q_NULLPTR;
     QString m_result;
-    QmlJSc::IR::LibraryClass* m_qtObjectType = Q_NULLPTR;
+    QmlJSc::IR::Type* m_qtObjectType = Q_NULLPTR;
 
 private slots:
     void setResult(QString);
@@ -85,7 +85,7 @@ void TestPrettyGeneratorPass::initBasicTypes() {
     QmlJSc::IR::Type* stringType = new QmlJSc::IR::Type();
     stringType->setName("string");
 
-    m_qtObjectType = new QmlJSc::IR::LibraryClass();
+    m_qtObjectType = new QmlJSc::IR::Type();
     m_qtObjectType->setName("QtObject");
     QmlJSc::IR::Property *p = m_qtObjectType->addProperty("objectName");
     p->type = stringType;

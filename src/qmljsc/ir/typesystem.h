@@ -49,7 +49,15 @@ class Signal;
 class Type
 {
 public:
+    enum Flag {
+        None = 0,
+        IsInstantiable = 1,
+        IsComponent = 2
+    };
+    Q_DECLARE_FLAGS(Flags, Flag);
+
     Type();
+    Type(Flags flags);
 
     const QString &name();
     const QString &javaScriptName();
@@ -67,12 +75,20 @@ public:
     Type *super();
     void setSuper(Type *superType);
 
+    void setFlags(Flags flags);
+    Flags flags();
+
+    Type *attachedType();
+    void setAttachedType(Type *);
+
 protected:
     QString m_name;
     QString m_javaScriptName;
+    Flags m_flags;
     QHash<QString, Property> m_properties;
     QHash<QString, Method> m_methods;
     QHash<QString, Signal> m_signals;
+    Type *m_attachedType;
 
     /**
      * pointer to the super class or in case of objects the class of the object
@@ -81,15 +97,6 @@ protected:
 
 
     friend class TestIR;
-};
-
-class LibraryClass : public Type
-{
-public:
-    LibraryClass();
-
-private:
-    Type *m_attached;
 };
 
 struct Parameter {
