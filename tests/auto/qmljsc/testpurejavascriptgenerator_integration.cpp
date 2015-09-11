@@ -84,6 +84,8 @@ private slots:
         addRowForFile("expressions");
         addRowForFileWithCompiled("functions");
         addRowForFileWithCompiled("binaryoperations");
+        addRowForFileWithCompiled("otherstatements");
+        addRowForFileWithCompiled("ifstatements");
     }
 
     void test_compileJavaScriptFile() {

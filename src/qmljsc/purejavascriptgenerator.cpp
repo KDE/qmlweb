@@ -87,13 +87,12 @@ bool PureJavaScriptGenerator::visit(AST::Block *) {
 }
 
 bool PureJavaScriptGenerator::visit(AST::BreakStatement *breakStatement) {
-    QString breakStatementCode("break");
-    if (breakStatement->label.length() > 0) {
-        breakStatementCode.append(' ');
-        breakStatementCode.append(breakStatement->label.toString());
-    }
-    m_outputStack << breakStatementCode;
+    reduceJumpWithOptionalLabelStatement("break", breakStatement->label);
+    return true;
+}
 
+bool PureJavaScriptGenerator::visit(AST::ContinueStatement *continueStatement) {
+    reduceJumpWithOptionalLabelStatement("continue", continueStatement->label);
     return true;
 }
 
@@ -123,6 +122,11 @@ bool PureJavaScriptGenerator::visit(AST::FunctionDeclaration *functionDeclaratio
 
 bool PureJavaScriptGenerator::visit(AST::IdentifierExpression *identifierExpression) {
     m_outputStack << identifierExpression->name.toString();
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::IfStatement *) {
+    m_outputStack << "if";
     return true;
 }
 
@@ -223,6 +227,24 @@ void PureJavaScriptGenerator::endVisit(AST::FunctionDeclaration *functionDeclara
 void PureJavaScriptGenerator::endVisit(AST::IdentifierExpression *) {
 }
 
+void PureJavaScriptGenerator::endVisit(AST::IfStatement *ifExpression) {
+    QString statementElse;
+    if (ifExpression->ko) {
+        statementElse = m_outputStack.pop();
+    }
+    const QString statementIf = m_outputStack.pop();
+    const QString expression = m_outputStack.pop();
+    const QString ifKeyword = m_outputStack.pop();
+
+    QString code(ifKeyword + '(' + expression + ')' + statementIf);
+    if (ifExpression->ko) {
+        code += "else";
+        code += ' ';
+        code += statementElse;
+    }
+    m_outputStack << code;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::NumericLiteral *) {
 }
 
@@ -289,4 +311,13 @@ void PureJavaScriptGenerator::updateStackWithPreOperation() {
     const QString expression = m_outputStack.pop();
     const QString operation = m_outputStack.pop();
     m_outputStack.push(QString("%1%2").arg(operation).arg(expression));
+}
+
+void PureJavaScriptGenerator::reduceJumpWithOptionalLabelStatement(const char *keyword, QStringRef label) {
+    QString labelStatementCode(keyword);
+    if (label.length() > 0) {
+        labelStatementCode.append(' ');
+        labelStatementCode.append(label.toString());
+    }
+    m_outputStack << labelStatementCode + ';';
 }
