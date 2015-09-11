@@ -25,89 +25,48 @@
 #include "../../../src/qmljsc/utils/error.h"
 #include "../../../src/qmljsc/purejavascriptgenerator.h"
 
-#define TEST_VISIT_PUTS_ON_STACK_OBJ(testSituation, expectedStackContent, className, instancePtr) \
-    void test_ ## visit ## _ ## className ## _putsOnStack_ ## testSituation() { \
-        QStack<QString> expectedStack;\
-        expectedStack.append(QVector<QString>expectedStackContent);\
-        m_generator->visit(instancePtr); \
-        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.size(); \
-        QCOMPARE(stackElementCount, expectedStack.size()); \
-        QCOMPARE(asPureJSGen(m_generator)->m_outputStack, expectedStack); \
-    }
-
-#define TEST_SOMEVISIT_PUTS_MULTIPLE_ON_STACK(testSituation, expectedStackContent, visitType, className, ...) \
-    void test_ ## visitType ## _ ## className ## _putsOnStack_ ## testSituation() { \
-        QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        QStack<QString> expectedStack;\
-        expectedStack.append(QVector<QString>expectedStackContent);\
-        m_generator->visit(&classInstance); \
-        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.size(); \
-        QCOMPARE(stackElementCount, expectedStack.size()); \
-        QCOMPARE(asPureJSGen(m_generator)->m_outputStack, expectedStack); \
-    }
-
-#define TEST_SOMEVISIT_PUTS_ON_STACK(testSituation, expectedStackContent, visitType, className, ...) \
-        TEST_SOMEVISIT_PUTS_MULTIPLE_ON_STACK(testSituation, ({expectedStackContent}), visitType, className, __VA_ARGS__)
-
-#define TEST_VISIT_PUTS_ON_STACK_WITHOUT_RETURN(testSituation, expectedResult, className, ...) \
-            TEST_SOMEVISIT_PUTS_ON_STACK(testSituation, expectedResult, visit, className, __VA_ARGS__)
-
-#define TEST_ENDVISIT_PUTS_ON_STACK(testSituation, expectedResult, className, ...) \
-            TEST_SOMEVISIT_PUTS_ON_STACK(testSituation, expectedResult, endVisit, className, __VA_ARGS__)
-
-#define TEST_VISIT_RETURNS(testSituation, expectedReturnResult, className, ...) \
-    void test_visit ## _ ## className ## _returns_ ## expectedReturnResult ## _ ## testSituation() { \
-        QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        QCOMPARE(m_generator->visit(&classInstance), expectedReturnResult); \
-    }
-
-#define TEST_VISIT_PUTS_ON_STACK(testSituation, expectedResult, className, ...) \
-            TEST_VISIT_PUTS_ON_STACK_WITHOUT_RETURN(testSituation, expectedResult, className, __VA_ARGS__) \
-            TEST_VISIT_RETURNS(testSituation, true, className, __VA_ARGS__)
-
-#define TEST_VISIT_PUTS_NOTHING_ON_STACK(testSituation, className, ...) \
-    void test_ ## visitType ## _ ## className ## _putsNothingOnStack_ ## testSituation() { \
-        QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        m_generator->visit(&classInstance); \
-        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.count(); \
-        QCOMPARE(stackElementCount, 0); \
-    }
-
-#define TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(className, ...) \
-    TEST_VISIT_RETURNS(defaultImplementation, true, className, __VA_ARGS__) \
-    TEST_VISIT_PUTS_NOTHING_ON_STACK(defaultImplementation, className, __VA_ARGS__)
-
-#define TEST_ENDVISIT_REDUCES_STACK(testScenario, expectedTopOfStack, stackContent, className, ...) \
-    void test_endVisit_ ## className ## _reducesStack_ ## testScenario() { \
-        QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        asPureJSGen(m_generator)->m_outputStack.append(QVector<QString>stackContent); \
-        m_generator->endVisit(&classInstance); \
-        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.count(); \
-        QCOMPARE(stackElementCount, 1); \
-        QString stringOnStack = asPureJSGen(m_generator)->m_outputStack.top(); \
-        QCOMPARE(stringOnStack, QStringLiteral(expectedTopOfStack)); \
-    }
-
-#define TEST_ENDVISIT_REDUCES_STACK_OBJ(testScenario, expectedTopOfStack, stackContent, className, classInstancePtr) \
-    void test_endVisit_ ## className ## _reducesStack_ ## testScenario() { \
-        asPureJSGen(m_generator)->m_outputStack.append(QVector<QString>stackContent); \
-        m_generator->endVisit(classInstancePtr); \
-        int stackElementCount = asPureJSGen(m_generator)->m_outputStack.count(); \
-        QCOMPARE(stackElementCount, 1); \
-        QString stringOnStack = asPureJSGen(m_generator)->m_outputStack.top(); \
-        QCOMPARE(stringOnStack, QStringLiteral(expectedTopOfStack)); \
-    }
-
-#define TEST_ENDVISIT_DOES_NOTHING(testScenario, className, ...) \
-    void test_endVisit_ ## className ## _doesNothing_ ## testScenario() { \
-        QQmlJS::AST::className classInstance(__VA_ARGS__); \
-        m_generator->endVisit(&classInstance); \
-        QCOMPARE(asPureJSGen(m_generator)->m_outputStack.size(), 0); \
-        QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral("")); \
-    }
+#define TEST_VISIT_PUTS_ON_STACK(className, testSituation, expectedStackContent, instance) \
+            void test_visit_ ## className ## _ ## testSituation ## _returnsTrue() { \
+                QCOMPARE(m_generator->visit(&instance), true); \
+            } \
+            void test_ ## visit ## _ ## className ## _ ## testSituation ## _putsOnStack() { \
+                m_generator->visit(&instance); \
+                QCOMPARE(asPureJSGen(m_generator)->m_outputStack.top(), QStringLiteral(expectedStackContent)); \
+                QCOMPARE(asPureJSGen(m_generator)->m_outputStack.size(), 1); \
+            }
 
 #define TEST_VISIT_BINARYOP_PUTS_ON_STACK(operatorEnumName, character) \
-        TEST_VISIT_PUTS_ON_STACK(operatorEnumName ## Operation, character, BinaryExpression, &m_trueExpression, QSOperator::operatorEnumName, &m_falseExpression)
+            void test_visit_BinaryExpression_ ## operatorEnumName ## _returnsTrue() { \
+                QQmlJS::AST::BinaryExpression classInstance(nullptr, QSOperator::operatorEnumName, nullptr); \
+                QCOMPARE(m_generator->visit(&classInstance), true); \
+            } \
+            void test_visit_BinaryExpression_ ## operatorEnumName ## _putsOnStack() { \
+                QQmlJS::AST::BinaryExpression instance(nullptr, QSOperator::operatorEnumName, nullptr); \
+                QStack<QString> expectedStack;\
+                expectedStack.append(character);\
+                m_generator->visit(&instance); \
+                QCOMPARE(asPureJSGen(m_generator)->m_outputStack, expectedStack); \
+            }
+
+#define TEST_VISIT_DEFAULT_IMPL_(className, instance) \
+            void test_visit ## _ ## className ## _defaultImplementation_returns_true() { \
+                QCOMPARE(m_generator->visit(&instance), true); \
+            } \
+            void test_ ## visit ## _ ## className ## _ ## testSituation ## _putsNothingOnStack() { \
+                m_generator->visit(&instance); \
+                QCOMPARE(asPureJSGen(m_generator)->m_outputStack.count(), 0); \
+            }
+
+#define TEST_ENDVISIT_REDUCES(className, scenarioName, expectedTopOfStack, stackContent, instance) \
+            void test_endVisit_ ## className ## scenarioName ## _reducesStack() { \
+                asPureJSGen(m_generator)->m_outputStack.append(QVector<QString>stackContent); \
+                m_generator->endVisit(&instance); \
+                QCOMPARE(asPureJSGen(m_generator)->m_outputStack.top(), QStringLiteral(expectedTopOfStack)); \
+                QCOMPARE(asPureJSGen(m_generator)->m_outputStack.count(), 1); \
+            }
+
+
+using namespace QQmlJS;
 
 class TestPureJavaScriptGenerator
     : public QObject
@@ -124,11 +83,42 @@ public:
         , m_someIdentifierStringRef(&m_someIdentifier)
         , m_anotherIdentifier("e")
         , m_anotherIdentifierStringRef(&m_anotherIdentifier)
+        /* Expressions */
+        , m_identifierExpression(m_someIdentifierStringRef)
+        , m_numericalExpressionPi(3.14)
+        , m_stringLiteral(m_someStringStringRef)
         , m_trueExpression()
         , m_falseExpression()
+        , m_equalsBinaryExpression(nullptr, QSOperator::Equal, nullptr)
+        , m_postDecrementExpression(&m_numericalExpressionPi)
+        , m_postIncrementExpression(&m_numericalExpressionPi)
+        , m_preDecrementExpression(&m_numericalExpressionPi)
+        , m_preIncrementExpression(&m_numericalExpressionPi)
+        , m_block(nullptr)
+        /* Variable Declarations */
+        , m_constDeclaration1(m_someIdentifierStringRef, nullptr)
+        , m_constDeclaration2(m_anotherIdentifierStringRef, nullptr)
+        , m_variableDeclarationWithAssignment(m_someIdentifierStringRef, &m_trueExpression)
+        , m_variableDeclarationWithoutAssignment(m_someIdentifierStringRef, nullptr)
+        , m_twoConstDeclarations(&m_constDeclaration1)
+        , m_twoConstDeclarationsPart2(&m_twoConstDeclarations, &m_constDeclaration2)
+        , m_twoVarDeclarations(&m_variableDeclarationWithAssignment)
+        , m_twoVarDeclarationsPart2(&m_twoVarDeclarations, &m_variableDeclarationWithoutAssignment)
+        /* Statements */
+        , m_breakStatementWithLabel(m_someLabelStringRef)
+        , m_breakStatementWithoutLabel(nullptr)
+        , m_continueStatementWithLabel(m_someLabelStringRef)
+        , m_continueStatementWithoutLabel(nullptr)
+        , m_emptyStatement()
         , m_statement1()
         , m_statement2()
         , m_statement3()
+        , m_expressionStatement(nullptr)
+        , m_ifStatementWithoutElse(&m_trueExpression, &m_statement1)
+        , m_ifStatementWithElse(&m_trueExpression, &m_statement1, &m_statement2)
+        , m_returnStatementWithoutValue(nullptr)
+        , m_returnStatementWithValue(&m_trueExpression)
+        , m_variableStatement(&m_twoVarDeclarations)
         , m_threeStatementsList(&m_statement1)
         , m_statementListPart2(&m_threeStatementsList, &m_statement2)
         , m_statementListPart3(&m_statementListPart2, &m_statement3)
@@ -138,23 +128,25 @@ public:
         , m_threeSourceElementsList(&m_sourceElement1)
         , m_sourceElementsListPart2(&m_threeSourceElementsList, &m_sourceElement2)
         , m_sourceElementsListPart3(&m_sourceElementsListPart2, &m_sourceElement3)
+        /* Function declaration */
         , m_twoParameters(m_someIdentifierStringRef)
         , m_parameterListPart2(&m_twoParameters, m_anotherIdentifierStringRef)
         , m_functionBody(nullptr)
-        , m_constDeclaration1(m_someIdentifierStringRef, nullptr)
-        , m_constDeclaration2(m_anotherIdentifierStringRef, nullptr)
-        , m_varDeclaration1(m_someIdentifierStringRef, nullptr)
-        , m_varDeclaration2(m_anotherIdentifierStringRef, nullptr)
-        , m_twoConstDeclarations(&m_constDeclaration1)
-        , m_twoConstDeclarationsPart2(&m_twoConstDeclarations, &m_constDeclaration2)
-        , m_twoVarDeclarations(&m_varDeclaration1)
-        , m_twoVarDeclarationsPart2(&m_twoVarDeclarations, &m_varDeclaration2)
+        , m_functionDeclarationWithoutParameters(m_someIdentifierStringRef, nullptr, &m_functionBody)
+        , m_functionDeclarationWithParameters(m_someIdentifierStringRef, &m_twoParameters , &m_functionBody)
+        , m_functionDeclarationWithoutBody(m_someIdentifierStringRef, &m_twoParameters, nullptr)
+        /* Switch */
         , m_caseClause1(&m_trueExpression, &m_threeStatementsList)
         , m_caseClause2(&m_trueExpression, &m_threeStatementsList)
         , m_twoCaseClauses(&m_caseClause1)
         , m_twoCaseClausesPart2(&m_twoCaseClauses, &m_caseClause2)
         , m_defaultClause(&m_threeStatementsList)
         , m_caseBlock(&m_twoCaseClauses, &m_defaultClause, &m_twoCaseClauses)
+        , m_caseBlockOnlyCases(&m_twoCaseClauses)
+        , m_caseBlockCasesAndDefault(&m_twoCaseClauses, &m_defaultClause)
+        , m_caseBlockCasesDefaultCases(&m_twoCaseClauses, &m_defaultClause, &m_twoCaseClauses)
+        , m_caseClause(&m_trueExpression, &m_threeStatementsList)
+        , m_switchStatement(&m_trueExpression, &m_caseBlock)
     {
         m_statementListPart3.finish();
         m_sourceElementsListPart3.finish();
@@ -178,37 +170,77 @@ private:
     const QStringRef m_someIdentifierStringRef;
     const QString m_anotherIdentifier;
     const QStringRef m_anotherIdentifierStringRef;
-    QQmlJS::AST::TrueLiteral m_trueExpression;
-    QQmlJS::AST::FalseLiteral m_falseExpression;
-    QQmlJS::AST::EmptyStatement m_statement1;
-    QQmlJS::AST::EmptyStatement m_statement2;
-    QQmlJS::AST::EmptyStatement m_statement3;
-    QQmlJS::AST::StatementList m_threeStatementsList;
-    QQmlJS::AST::StatementList m_statementListPart2;
-    QQmlJS::AST::StatementList m_statementListPart3;
-    QQmlJS::AST::StatementSourceElement m_sourceElement1;
-    QQmlJS::AST::StatementSourceElement m_sourceElement2;
-    QQmlJS::AST::StatementSourceElement m_sourceElement3;
-    QQmlJS::AST::SourceElements m_threeSourceElementsList;
-    QQmlJS::AST::SourceElements m_sourceElementsListPart2;
-    QQmlJS::AST::SourceElements m_sourceElementsListPart3;
-    QQmlJS::AST::FormalParameterList m_twoParameters;
-    QQmlJS::AST::FormalParameterList m_parameterListPart2;
-    QQmlJS::AST::FunctionBody m_functionBody;
-    QQmlJS::AST::VariableDeclaration m_constDeclaration1;
-    QQmlJS::AST::VariableDeclaration m_constDeclaration2;
-    QQmlJS::AST::VariableDeclaration m_varDeclaration1;
-    QQmlJS::AST::VariableDeclaration m_varDeclaration2;
-    QQmlJS::AST::VariableDeclarationList m_twoConstDeclarations;
-    QQmlJS::AST::VariableDeclarationList m_twoConstDeclarationsPart2;
-    QQmlJS::AST::VariableDeclarationList m_twoVarDeclarations;
-    QQmlJS::AST::VariableDeclarationList m_twoVarDeclarationsPart2;
-    QQmlJS::AST::CaseClause m_caseClause1;
-    QQmlJS::AST::CaseClause m_caseClause2;
-    QQmlJS::AST::CaseClauses m_twoCaseClauses;
-    QQmlJS::AST::CaseClauses m_twoCaseClausesPart2;
-    QQmlJS::AST::DefaultClause m_defaultClause;
-    QQmlJS::AST::CaseBlock m_caseBlock;
+
+    /* Expressions */
+    AST::IdentifierExpression m_identifierExpression;
+    AST::NumericLiteral m_numericalExpressionPi;
+    AST::StringLiteral m_stringLiteral;
+    AST::TrueLiteral m_trueExpression;
+    AST::FalseLiteral m_falseExpression;
+
+    AST::BinaryExpression m_equalsBinaryExpression;
+
+    AST::PostDecrementExpression m_postDecrementExpression;
+    AST::PostIncrementExpression m_postIncrementExpression;
+    AST::PreDecrementExpression m_preDecrementExpression;
+    AST::PreIncrementExpression m_preIncrementExpression;
+
+    /* Variable Declarations */
+    AST::VariableDeclaration m_constDeclaration1;
+    AST::VariableDeclaration m_constDeclaration2;
+    AST::VariableDeclaration m_variableDeclarationWithAssignment;
+    AST::VariableDeclaration m_variableDeclarationWithoutAssignment;
+    AST::VariableDeclarationList m_twoConstDeclarations;
+    AST::VariableDeclarationList m_twoConstDeclarationsPart2;
+    AST::VariableDeclarationList m_twoVarDeclarations;
+    AST::VariableDeclarationList m_twoVarDeclarationsPart2;
+
+    /* Statements */
+    AST::BreakStatement m_breakStatementWithLabel;
+    AST::BreakStatement m_breakStatementWithoutLabel;
+    AST::ContinueStatement m_continueStatementWithLabel;
+    AST::ContinueStatement m_continueStatementWithoutLabel;
+    AST::EmptyStatement m_emptyStatement;
+    AST::EmptyStatement m_statement1;
+    AST::EmptyStatement m_statement2;
+    AST::EmptyStatement m_statement3;
+    AST::ExpressionStatement m_expressionStatement;
+    AST::IfStatement m_ifStatementWithoutElse;
+    AST::IfStatement m_ifStatementWithElse;
+    AST::ReturnStatement m_returnStatementWithoutValue;
+    AST::ReturnStatement m_returnStatementWithValue;
+    AST::VariableStatement m_variableStatement;
+    AST::Block m_block;
+    AST::StatementList m_threeStatementsList;
+    AST::StatementList m_statementListPart2;
+    AST::StatementList m_statementListPart3;
+    AST::StatementSourceElement m_sourceElement1;
+    AST::StatementSourceElement m_sourceElement2;
+    AST::StatementSourceElement m_sourceElement3;
+    AST::SourceElements m_threeSourceElementsList;
+    AST::SourceElements m_sourceElementsListPart2;
+    AST::SourceElements m_sourceElementsListPart3;
+
+    /* Function declarations */
+    AST::FormalParameterList m_twoParameters;
+    AST::FormalParameterList m_parameterListPart2;
+    AST::FunctionBody m_functionBody;
+    AST::FunctionDeclaration m_functionDeclarationWithoutParameters;
+    AST::FunctionDeclaration m_functionDeclarationWithParameters;
+    AST::FunctionDeclaration m_functionDeclarationWithoutBody;
+    
+    /* Switch */
+    AST::CaseClause m_caseClause1;
+    AST::CaseClause m_caseClause2;
+    AST::CaseClauses m_twoCaseClauses;
+    AST::CaseClauses m_twoCaseClausesPart2;
+    AST::DefaultClause m_defaultClause;
+    AST::CaseBlock m_caseBlock;
+    AST::CaseBlock m_caseBlockOnlyCases;
+    AST::CaseBlock m_caseBlockCasesAndDefault;
+    AST::CaseBlock m_caseBlockCasesDefaultCases;
+    AST::CaseClause m_caseClause;
+    AST::SwitchStatement m_switchStatement;
 
 private slots:
     void init() {
@@ -238,6 +270,76 @@ private slots:
         // Verify
         QVERIFY_EXCEPTION_THROWN(asPureJSGen(m_generator)->getGeneratedCode(), QmlJSc::Error);
     }
+
+    TEST_VISIT_PUTS_ON_STACK(Block                  , AnyCase           , "{"               , m_block)
+    TEST_VISIT_PUTS_ON_STACK(BreakStatement         , WithLabel         , "break ALabel;"   , m_breakStatementWithLabel)
+    TEST_VISIT_PUTS_ON_STACK(BreakStatement         , WithoutLabel      , "break;"          , m_breakStatementWithoutLabel)
+    TEST_VISIT_PUTS_ON_STACK(CaseBlock              , AnyCase           , "{"               , m_caseBlock)
+    TEST_VISIT_PUTS_ON_STACK(CaseClause             , AnyCase           , "case"            , m_caseClause1)
+    TEST_VISIT_DEFAULT_IMPL_(CaseClauses                                                    , m_twoCaseClauses)
+    TEST_VISIT_PUTS_ON_STACK(DefaultClause          , Default           , "default"         , m_defaultClause)
+    TEST_VISIT_PUTS_ON_STACK(ContinueStatement      , WithLabel         , "continue ALabel;", m_continueStatementWithLabel)
+    TEST_VISIT_PUTS_ON_STACK(ContinueStatement      , WithoutLabel      , "continue;"       , m_continueStatementWithoutLabel)
+    TEST_VISIT_DEFAULT_IMPL_(EmptyStatement                                                 , m_emptyStatement)
+    TEST_VISIT_DEFAULT_IMPL_(ExpressionStatement                                            , m_expressionStatement)
+    TEST_VISIT_PUTS_ON_STACK(FormalParameterList    , OneParameter      , "e"               , m_parameterListPart2)
+    TEST_VISIT_PUTS_ON_STACK(FormalParameterList    , TwoParameters     , "i,e"             , m_twoParameters)
+    TEST_VISIT_PUTS_ON_STACK(FunctionBody           , AnyCase           , "{"               , m_functionBody)
+    TEST_VISIT_PUTS_ON_STACK(FunctionDeclaration    , WithParameters    , "function i"      , m_functionDeclarationWithParameters)
+    TEST_VISIT_PUTS_ON_STACK(FunctionDeclaration    , WithoutParameters , "function i"      , m_functionDeclarationWithoutParameters)
+    TEST_VISIT_PUTS_ON_STACK(IdentifierExpression   , AnyCase           , "i"               , m_identifierExpression)
+    TEST_VISIT_PUTS_ON_STACK(IfStatement            , AnyCase           , "if"              , m_ifStatementWithoutElse)
+    TEST_VISIT_PUTS_ON_STACK(NumericLiteral         , Pi                , "3.14"            , m_numericalExpressionPi)
+    TEST_VISIT_PUTS_ON_STACK(PostDecrementExpression, AnyCase           , "--"              , m_postDecrementExpression)
+    TEST_VISIT_PUTS_ON_STACK(PostIncrementExpression, AnyCase           , "++"              , m_postIncrementExpression)
+    TEST_VISIT_PUTS_ON_STACK(PreDecrementExpression , AnyCase           , "--"              , m_preDecrementExpression)
+    TEST_VISIT_PUTS_ON_STACK(PreIncrementExpression , AnyCase           , "++"              , m_preIncrementExpression)
+    TEST_VISIT_PUTS_ON_STACK(ReturnStatement        , WithoutReturnValue, "return"          , m_returnStatementWithoutValue)
+    TEST_VISIT_PUTS_ON_STACK(ReturnStatement        , WithReturnValue   , "return"          , m_returnStatementWithValue)
+    TEST_VISIT_DEFAULT_IMPL_(SourceElements                                                 , m_threeSourceElementsList)
+    TEST_VISIT_DEFAULT_IMPL_(StatementList                                                  , m_threeStatementsList)
+    TEST_VISIT_PUTS_ON_STACK(StringLiteral          , AnyCase           , "some string"     , m_stringLiteral) //TODO correct? probably " is missing in generation
+    TEST_VISIT_PUTS_ON_STACK(SwitchStatement        , AnyCase           , "switch"          , m_switchStatement)
+    TEST_VISIT_PUTS_ON_STACK(VariableDeclaration    , Assignment        , "i="              , m_variableDeclarationWithAssignment)
+    TEST_VISIT_PUTS_ON_STACK(VariableDeclaration    , NoAssignment      , "i"               , m_variableDeclarationWithoutAssignment)
+    TEST_VISIT_PUTS_ON_STACK(VariableDeclarationList, VarDeclaratio     , "var"             , m_twoVarDeclarations)
+    TEST_VISIT_PUTS_ON_STACK(VariableDeclarationList, ConstDeclaration  , "const"           , m_twoConstDeclarations)
+    TEST_VISIT_DEFAULT_IMPL_(VariableStatement                                              , m_variableStatement)
+
+    TEST_ENDVISIT_REDUCES(BinaryExpression        , TwoOperands       , "2==4"            , ({"==", "2", "4"})                , m_equalsBinaryExpression)
+    TEST_ENDVISIT_REDUCES(Block                   , AnyCase           , "{content}"       , ({"{", "content"})                , m_block)
+    TEST_ENDVISIT_REDUCES(CaseBlock               , OnlyCases         , "{cases}"         , ({"{", "cases"})                  , m_caseBlockOnlyCases)
+    TEST_ENDVISIT_REDUCES(CaseBlock               , CasesAndDefault   , "{casesdefault}"  , ({"{", "cases", "default"})       , m_caseBlockCasesAndDefault)
+    TEST_ENDVISIT_REDUCES(CaseBlock               , CasesDefaultCases , "{casdefaultcas}" , ({"{", "cas", "default", "cas"})  , m_caseBlockCasesDefaultCases)
+    TEST_ENDVISIT_REDUCES(CaseClause              , CaseWithStatement , "case exp:stm;"   , ({"case", "exp", "stm;"})         , m_caseClause)
+    TEST_ENDVISIT_REDUCES(CaseClauses             , TwoClauses        , "case e:s;case e2:s2;", ({"case e:s;", "case e2:s2;"}), m_twoCaseClauses)
+    TEST_ENDVISIT_REDUCES(DefaultClause           , AnyCase           , "default:stm"     , ({"default", "stm"})              , m_defaultClause)
+    TEST_ENDVISIT_REDUCES(EmptyStatement          , DefaultScenario   , ";"               , ({})                              , m_emptyStatement)
+    TEST_ENDVISIT_REDUCES(ExpressionStatement     , AnyCase           , "expression;"     , ({"expression"})                  , m_expressionStatement)
+    TEST_ENDVISIT_REDUCES(FormalParameterList     , AnyCase           , "i"               , ({"i"})                           , m_twoParameters) // does nothing
+    TEST_ENDVISIT_REDUCES(FunctionBody            , ClosesCorrectly   , "{func}"          , ({"{", "func"})                   , m_functionBody)
+    TEST_ENDVISIT_REDUCES(FunctionDeclaration     , BodyNoParameters  , "name(){body}"    , ({"name", "{body}"})              , m_functionDeclarationWithoutParameters)
+    TEST_ENDVISIT_REDUCES(FunctionDeclaration     , BodyParameters    , "name(para){body}", ({"name", "para", "{body}"})      , m_functionDeclarationWithParameters)
+    TEST_ENDVISIT_REDUCES(FunctionDeclaration     , WithoutBody       , "name(para){}"    , ({"name", "para"})                , m_functionDeclarationWithoutBody)
+    TEST_ENDVISIT_REDUCES(IdentifierExpression    , AnyCase           , "abc"             , ({"abc"})                         , m_identifierExpression)
+    TEST_ENDVISIT_REDUCES(IfStatement             , OnlyIf            , "if(exp)stm;"     , ({"if", "exp", "stm;"})           , m_ifStatementWithoutElse)
+    TEST_ENDVISIT_REDUCES(IfStatement             , IfElse            , "if(exp)s;else s;", ({"if", "exp", "s;", "s;"})       , m_ifStatementWithElse)
+    TEST_ENDVISIT_REDUCES(NumericLiteral          , AnyCase           , "2.7"             , ({"2.7"})                         , m_numericalExpressionPi)
+    TEST_ENDVISIT_REDUCES(PostDecrementExpression , AnyCase           , "2.7--"           , ({"--", "2.7"})                   , m_postDecrementExpression)
+    TEST_ENDVISIT_REDUCES(PostIncrementExpression , AnyCase           , "2.7++"           , ({"++", "2.7"})                   , m_postIncrementExpression)
+    TEST_ENDVISIT_REDUCES(PreDecrementExpression  , AnyCase           , "--2.7"           , ({"--", "2.7"})                   , m_preDecrementExpression)
+    TEST_ENDVISIT_REDUCES(PreIncrementExpression  , AnyCase           , "++2.7"           , ({"++", "2.7"})                   , m_preIncrementExpression)
+    TEST_ENDVISIT_REDUCES(ReturnStatement         , WithoutReturnValue, "return;"         , ({"return"})                      , m_returnStatementWithoutValue)
+    TEST_ENDVISIT_REDUCES(ReturnStatement         , WithReturnValue   , "return true;"    , ({"return", "true"})              , m_returnStatementWithValue)
+    TEST_ENDVISIT_REDUCES(SourceElements          , ThreeSrcElements  , "sEl1sEl2sEl3"    , ({"sEl1", "sEl2", "sEl3"})        , m_threeSourceElementsList)
+    TEST_ENDVISIT_REDUCES(SourceElements          , ThreeStatements   , "st1st2st3"       , ({"st1", "st2", "st3"})           , m_threeStatementsList)
+    TEST_ENDVISIT_REDUCES(StringLiteral           , AnyCase           , "another string"  , ({"another string"})              , m_stringLiteral)
+    TEST_ENDVISIT_REDUCES(SwitchStatement         , AnyCase           , "switch(e){blk}"  , ({"switch", "e", "{blk}"})        , m_switchStatement)
+    TEST_ENDVISIT_REDUCES(VariableDeclaration     , WithAssignment    , "x=5"             , ({"x=", "5"})                     , m_variableDeclarationWithAssignment)
+    TEST_ENDVISIT_REDUCES(VariableDeclaration     , WithoutAssignment , "x"               , ({"x"})                           , m_variableDeclarationWithoutAssignment)
+    TEST_ENDVISIT_REDUCES(VariableDeclarationList , TwoDeclarations   , "var i,e=5"       , ({"var", "i", "e=5"})             , m_twoVarDeclarations)
+    TEST_ENDVISIT_REDUCES(VariableDeclarationList , OneDeclaration    , "var e=5"         , ({"var", "e=5"})                  , m_twoVarDeclarationsPart2)
+    TEST_ENDVISIT_REDUCES(VariableStatement       , AnyCase           , "x;"              , ({"x"})                           , m_variableStatement)
 
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(Assign, "=")
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceAdd, "+=")
@@ -274,81 +376,6 @@ private slots:
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(Or, "||")
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(In, " in ")
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(InstanceOf, " instanceof ")
-    TEST_VISIT_PUTS_ON_STACK(WithoutStatements, "{", Block, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(WithLabel, "break ALabel;", BreakStatement, m_someLabelStringRef)
-    TEST_VISIT_PUTS_ON_STACK(WithoutLabel, "break;", BreakStatement, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(AnyCase, "{", CaseBlock, nullptr ,nullptr, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(Default, "case", CaseClause, &m_trueExpression, &m_threeStatementsList)
-    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(CaseClauses, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(Default, "default", DefaultClause, &m_threeStatementsList)
-    TEST_VISIT_PUTS_ON_STACK(WithLabel, "continue ALabel;", ContinueStatement, m_someLabelStringRef)
-    TEST_VISIT_PUTS_ON_STACK(WithoutLabel, "continue;", ContinueStatement, nullptr)
-    //TODO TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(EmptyStatement)
-    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(ExpressionStatement, nullptr)
-    TEST_VISIT_PUTS_ON_STACK_OBJ(OneParameter, ({"e"}), FormalParameterList, &m_parameterListPart2)
-    TEST_VISIT_PUTS_ON_STACK_OBJ(TwoParameters, ({"i,e"}), FormalParameterList, &m_twoParameters)
-    TEST_VISIT_PUTS_ON_STACK(NoSourceElements, "{", FunctionBody, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(WithParameters, "function i", FunctionDeclaration, m_someIdentifierStringRef, &m_twoParameters, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(WithoutParameters, "function i", FunctionDeclaration, m_someIdentifierStringRef, nullptr, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "i", IdentifierExpression, m_someIdentifierStringRef)
-    TEST_VISIT_PUTS_ON_STACK(AnyScenario, "if", IfStatement, &m_trueExpression, &m_statement1, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "3.14", NumericLiteral, 3.14)
-    TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "--", PostDecrementExpression, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "++", PostIncrementExpression, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "--", PreDecrementExpression, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(DefaultScenario, "++", PreIncrementExpression, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(WithoutReturnValue, "return",  ReturnStatement, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(WithReturnValue, "return",  ReturnStatement, &m_trueExpression)
-    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(SourceElements, nullptr)
-    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(StatementList, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(SomeString, "some string", StringLiteral, m_someStringStringRef)
-    TEST_VISIT_PUTS_ON_STACK(Default, "switch", SwitchStatement, nullptr, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(AssignmentScenario, "i=", VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
-    TEST_VISIT_PUTS_ON_STACK(NoAssignmentScenario, "i", VariableDeclaration, m_someIdentifierStringRef, nullptr)
-    TEST_VISIT_PUTS_ON_STACK(VarDeclarationList, "var", VariableDeclarationList, &m_varDeclaration1)
-    TEST_VISIT_PUTS_ON_STACK(ConstDelcarationList, "const", VariableDeclarationList, &m_constDeclaration1)
-    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(VariableStatement, nullptr)
-
-    TEST_ENDVISIT_REDUCES_STACK(TwoOperands, "2==4", ({"==", "2", "4"}), BinaryExpression, nullptr, -1, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(WithoutStatements, "{content}", ({"{", "content"}), Block, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(OnlyCases, "{cases}", ({"{", "cases"}), CaseBlock, &m_twoCaseClauses)
-    TEST_ENDVISIT_REDUCES_STACK(CasesAndDefault, "{casesdefault}", ({"{", "cases", "default"}),
-                                                     CaseBlock, &m_twoCaseClauses, &m_defaultClause)
-    TEST_ENDVISIT_REDUCES_STACK(CasesDefaultCases, "{casesdefaultcases}", ({"{", "cases", "default", "cases"}),
-                                                     CaseBlock, &m_twoCaseClauses, &m_defaultClause, &m_twoCaseClauses)
-    TEST_ENDVISIT_REDUCES_STACK(Default, "case exp:stm;", ({"case", "exp", "stm;"}), CaseClause, &m_trueExpression, &m_threeStatementsList)
-    TEST_ENDVISIT_REDUCES_STACK_OBJ(TwoClauses, "case exp:stm;case exp2:stm2;", ({"case exp:stm;", "case exp2:stm2;"}), CaseClauses, &m_twoCaseClauses)
-    TEST_ENDVISIT_REDUCES_STACK(Default, "default:stm", ({"default", "stm"}), DefaultClause, &m_threeStatementsList)
-    TEST_ENDVISIT_REDUCES_STACK_OBJ(DefaultScenario, ";", ({}), EmptyStatement, &m_statement1)
-    TEST_ENDVISIT_REDUCES_STACK(NoExpression, "expression;", ({"expression"}), ExpressionStatement, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK_OBJ(AnyNumberOfParameters, "i", ({"i"}), FormalParameterList, &m_twoParameters) // does nothing
-    TEST_ENDVISIT_REDUCES_STACK(FunctionBodyClosesCorrectly, "{func}", ({"{", "func"}), FunctionBody, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(WithoutParametersWithBody, "name(){body}", ({"name", "{body}"}),
-                                                        FunctionDeclaration, m_someIdentifierStringRef, nullptr, &m_functionBody)
-    TEST_ENDVISIT_REDUCES_STACK(WithParametersWithBody, "name(parameters){body}", ({"name", "parameters", "{body}"}),
-                                                        FunctionDeclaration, m_someIdentifierStringRef, &m_twoParameters, &m_functionBody)
-    TEST_ENDVISIT_REDUCES_STACK(WithoutBody, "name(parameters){}", ({"name", "parameters"}),
-                                                        FunctionDeclaration, m_someIdentifierStringRef, &m_twoParameters, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "abc", ({"abc"}), IdentifierExpression, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(OnlyIf, "if(expression)stm;", ({"if", "expression", "stm;"}), IfStatement, &m_trueExpression, &m_statement1, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(IfElse, "if(expression)stm;else stm;", ({"if", "expression", "stm;", "stm;"}), IfStatement, &m_trueExpression, &m_statement1, &m_statement2)
-    TEST_ENDVISIT_REDUCES_STACK(OneElement, "2.7", ({"2.7"}), NumericLiteral, 3.14)
-    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "2.7--", ({"--", "2.7"}), PostDecrementExpression, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "2.7++", ({"++", "2.7"}), PostIncrementExpression, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "--2.7", ({"--", "2.7"}), PreDecrementExpression, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "++2.7", ({"++", "2.7"}), PreIncrementExpression, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(WithoutReturnValue, "return;", ({"return"}),  ReturnStatement, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(WithReturnValue, "return true;",  ({"return", "true"}), ReturnStatement, &m_trueExpression)
-    TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeSourceElements, "sEl1sEl2sEl3", ({"sEl1", "sEl2", "sEl3"}), SourceElements, &m_threeSourceElementsList)
-    TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeStatements, "st1st2st3", ({"st1", "st2", "st3"}), StatementList, &m_threeStatementsList)
-    TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "another string", ({"another string"}), StringLiteral, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(Default, "switch(expr){clauseBlock}", ({"switch", "expr", "{clauseBlock}"}), SwitchStatement, &m_trueExpression, &m_caseBlock)
-    TEST_ENDVISIT_REDUCES_STACK(Assignment, "x=5", ({"x=", "5"}), VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
-    TEST_ENDVISIT_REDUCES_STACK(NoAssignment, "x", ({"x"}), VariableDeclaration, m_someIdentifierStringRef, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK_OBJ(TwoVarDeclarations, "var i,e=5", ({"var", "i", "e=5"}), VariableDeclarationList, &m_twoVarDeclarations)
-    TEST_ENDVISIT_REDUCES_STACK_OBJ(OneVarDeclaration, "var e=5", ({"var", "e=5"}), VariableDeclarationList, &m_twoVarDeclarationsPart2)
-    TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "x;", ({"x"}), VariableStatement, nullptr)
-
 };
 
 QTEST_MAIN(TestPureJavaScriptGenerator)
