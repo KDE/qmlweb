@@ -157,20 +157,25 @@ bool PureJavaScriptGenerator::visit(AST::PreIncrementExpression *) {
 }
 
 bool PureJavaScriptGenerator::visit(AST::VariableDeclaration *variableDeclaration) {
-    QString variableDeclarationCode;
     const QString identifier = variableDeclaration->name.toString();
-    if (variableDeclaration->readOnly) {
-        variableDeclarationCode += "const";
-    } else {
-        variableDeclarationCode += "var";
-    }
-    variableDeclarationCode += ' ';
-    variableDeclarationCode += identifier;
+    QString variableDeclarationCode = identifier;
+
     if (variableDeclaration->expression) {
         variableDeclarationCode += '=';
     }
 
     m_outputStack << variableDeclarationCode;
+
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(QQmlJS::AST::VariableDeclarationList *variableDeclarationList) {
+    if (variableDeclarationList->declaration->readOnly) {
+        // read only state is the same for all declarations in one list
+        m_outputStack << "const";
+    } else {
+        m_outputStack << "var";
+    }
 
     return true;
 }
@@ -247,6 +252,13 @@ void PureJavaScriptGenerator::endVisit(AST::VariableDeclaration *declaration) {
     const QString expression = (declaration->expression)?m_outputStack.pop():"";
     const QString variableName = m_outputStack.pop();
     m_outputStack << variableName + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::VariableDeclarationList *declarationList) {
+    reduceListStack<AST::VariableDeclarationList>(declarationList, ",");
+    const QString declarationListCode = m_outputStack.pop();
+    const QString declarationType = m_outputStack.pop();
+    m_outputStack << declarationType + ' ' + declarationListCode;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::VariableStatement *) {

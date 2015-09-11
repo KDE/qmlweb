@@ -80,10 +80,9 @@ private slots:
         QTest::addColumn<QQmlJS::AST::Node*>("ast");
         QTest::addColumn<QString>("expectedOutput");
 
+        addRowForFileWithCompiled("declarations");
         addRowForFile("expressions");
-        addRowForFileWithCompiled("functions");
         addRowForFileWithCompiled("binaryoperations");
-        addRowForFileWithCompiled("statements");
     }
 
     void test_compileJavaScriptFile() {

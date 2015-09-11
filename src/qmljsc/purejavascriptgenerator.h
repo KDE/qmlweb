@@ -46,6 +46,7 @@ public:
     virtual bool visit(QQmlJS::AST::PreDecrementExpression *) override;
     virtual bool visit(QQmlJS::AST::PreIncrementExpression *) override;
     virtual bool visit(QQmlJS::AST::VariableDeclaration *) override;
+    virtual bool visit(QQmlJS::AST::VariableDeclarationList *) override;
 
     virtual void endVisit(QQmlJS::AST::BinaryExpression *) override;
     virtual void endVisit(QQmlJS::AST::Block *) override;
@@ -63,6 +64,7 @@ public:
     virtual void endVisit(QQmlJS::AST::StatementList *) override;
     virtual void endVisit(QQmlJS::AST::StringLiteral *) override;
     virtual void endVisit(QQmlJS::AST::VariableDeclaration *) override;
+    virtual void endVisit(QQmlJS::AST::VariableDeclarationList *) override;
     virtual void endVisit(QQmlJS::AST::VariableStatement *) override;
 
 private:

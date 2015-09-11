@@ -1,1 +1,1 @@
-var x;var i=5;var e=i++;e=++i;e=i--;e=--i;
+var x;var i;var e=i++;e=++i;e=i--;e=--i;

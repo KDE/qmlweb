@@ -141,10 +141,20 @@ public:
         , m_twoParameters(m_someIdentifierStringRef)
         , m_parameterListPart2(&m_twoParameters, m_anotherIdentifierStringRef)
         , m_functionBody(nullptr)
+        , m_constDeclaration1(m_someIdentifierStringRef, nullptr)
+        , m_constDeclaration2(m_anotherIdentifierStringRef, nullptr)
+        , m_varDeclaration1(m_someIdentifierStringRef, nullptr)
+        , m_varDeclaration2(m_anotherIdentifierStringRef, nullptr)
+        , m_twoConstDeclarations(&m_constDeclaration1)
+        , m_twoConstDeclarationsPart2(&m_twoConstDeclarations, &m_constDeclaration2)
+        , m_twoVarDeclarations(&m_varDeclaration1)
+        , m_twoVarDeclarationsPart2(&m_twoVarDeclarations, &m_varDeclaration2)
     {
         m_statementListPart3.finish();
         m_sourceElementsListPart3.finish();
         m_parameterListPart2.finish();
+        m_twoConstDeclarationsPart2.finish(true);
+        m_twoVarDeclarationsPart2.finish(false);
     }
 
 private:
@@ -178,6 +188,14 @@ private:
     QQmlJS::AST::FormalParameterList m_twoParameters;
     QQmlJS::AST::FormalParameterList m_parameterListPart2;
     QQmlJS::AST::FunctionBody m_functionBody;
+    QQmlJS::AST::VariableDeclaration m_constDeclaration1;
+    QQmlJS::AST::VariableDeclaration m_constDeclaration2;
+    QQmlJS::AST::VariableDeclaration m_varDeclaration1;
+    QQmlJS::AST::VariableDeclaration m_varDeclaration2;
+    QQmlJS::AST::VariableDeclarationList m_twoConstDeclarations;
+    QQmlJS::AST::VariableDeclarationList m_twoConstDeclarationsPart2;
+    QQmlJS::AST::VariableDeclarationList m_twoVarDeclarations;
+    QQmlJS::AST::VariableDeclarationList m_twoVarDeclarationsPart2;
 
 private slots:
     void init() {
@@ -262,19 +280,10 @@ private slots:
     TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(SourceElements, nullptr)
     TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(StatementList, nullptr)
     TEST_VISIT_PUTS_ON_STACK(SomeString, "some string", StringLiteral, m_someStringStringRef)
-    TEST_VISIT_PUTS_ON_STACK(AssignmentScenario, "var i=", VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
-    TEST_VISIT_PUTS_ON_STACK(NoAssignmentScenario, "var i", VariableDeclaration, m_someIdentifierStringRef, nullptr)
-    void test_visit_VariableDeclaration_generatesCorrectCode_ConstAssignment() {
-        // Prepare
-        QQmlJS::AST::VariableDeclaration variableDeclaration(m_someIdentifierStringRef, &m_trueExpression);
-        variableDeclaration.readOnly = true;
-
-        // Do
-        m_generator->visit(&variableDeclaration);
-
-        // Verify
-        QCOMPARE(asPureJSGen(m_generator)->getGeneratedCode(), QStringLiteral("const i="));
-    }
+    TEST_VISIT_PUTS_ON_STACK(AssignmentScenario, "i=", VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
+    TEST_VISIT_PUTS_ON_STACK(NoAssignmentScenario, "i", VariableDeclaration, m_someIdentifierStringRef, nullptr)
+    TEST_VISIT_PUTS_ON_STACK(VarDeclarationList, "var", VariableDeclarationList, &m_varDeclaration1)
+    TEST_VISIT_PUTS_ON_STACK(ConstDelcarationList, "const", VariableDeclarationList, &m_constDeclaration1)
     TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(VariableStatement, nullptr)
 
     TEST_ENDVISIT_REDUCES_STACK(TwoOperands, "2==4", ({"==", "2", "4"}), BinaryExpression, nullptr, -1, nullptr)
@@ -298,9 +307,11 @@ private slots:
     TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeSourceElements, "sEl1sEl2sEl3", ({"sEl1", "sEl2", "sEl3"}), SourceElements, &m_threeSourceElementsList)
     TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeStatements, "st1st2st3", ({"st1", "st2", "st3"}), StatementList, &m_threeStatementsList)
     TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "another string", ({"another string"}), StringLiteral, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(Assignment, "var x=5", ({"var x=", "5"}), VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
-    TEST_ENDVISIT_REDUCES_STACK(NoAssignment, "var x", ({"var x"}), VariableDeclaration, m_someIdentifierStringRef, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "var x;", ({"var x"}), VariableStatement, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(Assignment, "x=5", ({"x=", "5"}), VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
+    TEST_ENDVISIT_REDUCES_STACK(NoAssignment, "x", ({"x"}), VariableDeclaration, m_someIdentifierStringRef, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK_OBJ(TwoVarDeclarations, "var i,e=5", ({"var", "i", "e=5"}), VariableDeclarationList, &m_twoVarDeclarations)
+    TEST_ENDVISIT_REDUCES_STACK_OBJ(OneVarDeclaration, "var e=5", ({"var", "e=5"}), VariableDeclarationList, &m_twoVarDeclarationsPart2)
+    TEST_ENDVISIT_REDUCES_STACK(DefaultScenario, "x;", ({"x"}), VariableStatement, nullptr)
 
 };
 
