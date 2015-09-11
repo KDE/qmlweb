@@ -23,6 +23,7 @@
 #include "moduleloading.h"
 #include "ir/module.h"
 #include "ir/typesystem.h"
+#include "ir/builtintypes.h"
 #include "compiler.h"
 #include "error.h"
 
@@ -411,13 +412,16 @@ void TypeDefinitionVisitor::findSignalDefinition(AST::BinaryExpression *expr)
 
 }
 
-IR::Type *TypeDefinitionVisitor::getType(const QStringRef& name)
+IR::Type *TypeDefinitionVisitor::getType(const QStringRef& nameRef)
 {
-    IR::Type *t = 0;
-    t = m_module->typeFromJSName(name.toString());
-    // TODO: Search different locations (Task T488).
+    IR::Type *type = 0;
+    QString name = nameRef.toString();
+    type = m_module->typeFromJSName(name);
+    if (!type) {
+        type = IR::BuiltinTypes::typeFromJSName(name);
+    }
 
-    return t;
+    return type;
 }
 
 

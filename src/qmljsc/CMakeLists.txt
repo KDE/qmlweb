@@ -10,13 +10,15 @@ set(libqmljsc_srcs
   ir/module.cpp
   ir/file.cpp
   ir/typesystem.cpp
+  ir/builtintypes.cpp
 
   compilerpasses/parserpass.cpp
   compilerpasses/prettygeneratorpass.cpp
 
+  moduleloading/moduleloading.cpp
   moduleloading/abstractmoduleloader.cpp
   moduleloading/javascriptmoduleloader.cpp
-  moduleloading/moduleloading.cpp
+  moduleloading/qtqmlmoduleloader.cpp
 
   utils/shortsymbolname.cpp
 )

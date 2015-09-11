@@ -52,12 +52,13 @@ public:
     enum Flag {
         None = 0,
         IsInstantiable = 1,
-        IsComponent = 2
+        IsComponent = 2,
+        IsList = 4
     };
     Q_DECLARE_FLAGS(Flags, Flag);
 
     Type();
-    Type(Flags flags);
+    Type(const QString &name, const QString &jsName = QString(), Flags flags = None);
 
     const QString &name();
     const QString &javaScriptName();

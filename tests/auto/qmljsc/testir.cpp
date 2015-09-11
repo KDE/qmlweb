@@ -28,6 +28,7 @@
 #include "../../../src/qmljsc/ir/objecttree.h"
 #include "../../../src/qmljsc/ir/visitor.h"
 #include "../../../src/qmljsc/ir/typesystem.h"
+#include "../../../src/qmljsc/ir/builtintypes.h"
 
 // Qt private
 #include <private/qqmljsast_p.h>
@@ -47,6 +48,7 @@ private slots:
     void testBasics();
     void testAdd();
     void testVisitorAPI();
+    void testBuiltinTypes();
 
 private:
     Type city;
@@ -351,6 +353,46 @@ void TestIR::testVisitorAPI()
     QQmlJS::AST::StringLiteral* lastValueAssigned = QQmlJS::AST::cast<QQmlJS::AST::StringLiteral*>(visitor.lastValueAssigned);
     if (lastValueAssigned)
         QCOMPARE(lastValueAssigned->value.toString(), QStringLiteral("København"));
+}
+
+void TestIR::testBuiltinTypes()
+{
+    Type *boolType = BuiltinTypes::type("bool");
+    QVERIFY(boolType);
+    QCOMPARE(BuiltinTypes::typeFromJSName("Boolean"), boolType);
+
+    Type *doubleType = BuiltinTypes::type("double");
+    QVERIFY(doubleType);
+    QCOMPARE(BuiltinTypes::typeFromJSName("QWDouble"), doubleType);
+
+    Type *enumType = BuiltinTypes::type("enum");
+    QVERIFY(enumType);
+    QCOMPARE(BuiltinTypes::typeFromJSName("QWEnum"), enumType);
+
+    Type *intType = BuiltinTypes::type("int");
+    QVERIFY(intType);
+    QCOMPARE(BuiltinTypes::typeFromJSName("QWInt"), intType);
+
+    Type *listType = BuiltinTypes::type("list");
+    QVERIFY(listType);
+    QCOMPARE(BuiltinTypes::typeFromJSName("QWList"), listType);
+    QCOMPARE(listType->flags(), Type::IsList);
+
+    Type *realType = BuiltinTypes::type("real");
+    QVERIFY(realType);
+    QCOMPARE(BuiltinTypes::typeFromJSName("QWReal"), realType);
+
+    Type *stringType = BuiltinTypes::type("string");
+    QVERIFY(stringType);
+    QCOMPARE(BuiltinTypes::typeFromJSName("String"), stringType);
+
+    Type *urlType = BuiltinTypes::type("url");
+    QVERIFY(urlType);
+    QCOMPARE(BuiltinTypes::typeFromJSName("QWUrl"), urlType);
+
+    Type *varType = BuiltinTypes::type("var");
+    QVERIFY(varType);
+    QCOMPARE(BuiltinTypes::typeFromJSName("QWVar"), varType);
 }
 
 } // namespace IR

@@ -49,6 +49,7 @@
     }
 
     __engine.registerModule({
+        Oven: Oven,
         Pastry: Pastry,
         Cake: Cake,
         Pizza: Pizza
