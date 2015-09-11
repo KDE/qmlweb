@@ -21,7 +21,7 @@
 // Own
 #include "abstractmoduleloader.h"
 #include "ir/module.h"
-#include "error.h"
+#include "utils/error.h"
 
 using namespace QmlJSc;
 

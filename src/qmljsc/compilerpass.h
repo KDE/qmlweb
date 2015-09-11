@@ -24,7 +24,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QVariant>
 
-#include "error.h"
+#include "utils/error.h"
 
 #include "ir/file.h"
 #include <private/qqmljsast_p.h>

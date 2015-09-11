@@ -25,7 +25,7 @@
 #include "ir/typesystem.h"
 #include "ir/builtintypes.h"
 #include "compiler.h"
-#include "error.h"
+#include "utils/error.h"
 
 // Qt
 #include <QtCore/QDir>

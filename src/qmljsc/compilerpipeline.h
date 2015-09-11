@@ -26,7 +26,7 @@
 #include <QtCore/QUrl>
 #include <QtCore/QVariant>
 
-#include "error.h"
+#include "utils/error.h"
 
 namespace QmlJSc {
 

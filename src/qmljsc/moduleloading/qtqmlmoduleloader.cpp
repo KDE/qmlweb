@@ -23,7 +23,7 @@
 #include "ir/typesystem.h"
 #include "ir/module.h"
 #include "ir/builtintypes.h"
-#include "error.h"
+#include "utils/error.h"
 
 using namespace QmlJSc;
 

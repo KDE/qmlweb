@@ -20,7 +20,7 @@
 
 #include "file.h"
 #include "module.h"
-#include "../error.h"
+#include "../utils/error.h"
 #include "../compiler.h"
 #include "visitor.h"
 

@@ -2,7 +2,6 @@ find_package(Qt5 COMPONENTS Core Qml)
 
 set(libqmljsc_srcs
   compiler.cpp
-  error.cpp
   compilerpipeline.cpp
   compilerpass.cpp
 
@@ -20,6 +19,7 @@ set(libqmljsc_srcs
   moduleloading/javascriptmoduleloader.cpp
   moduleloading/qtqmlmoduleloader.cpp
 
+  utils/error.cpp
   utils/shortsymbolname.cpp
 )
 add_library(libqmljsc SHARED ${libqmljsc_srcs})
