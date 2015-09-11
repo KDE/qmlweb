@@ -21,7 +21,7 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include "ir.h"
+#include "objecttree.h"
 #include "importdefinition.h"
 #include "../utils/shortsymbolname.h"
 
@@ -37,7 +37,7 @@ namespace IR {
 class Module;
 struct Type;
 
-class File
+class File : public Node
 {
     struct ModuleData {
         Module *module;
@@ -55,15 +55,17 @@ public:
     Type* type(const QString &typeName) const;
     QString fullyQualifiedName(const QString &typeName);
 
-    Component *rootObject() const;
-    void setRootObject(Component *root);
+    Object *rootObject() const;
+    void setRootObject(Object *root);
+
+    virtual void accept(Visitor * visitor) override;
 
 private:
     const ModuleData *moduleForType(const QString &typeName) const;
 
     QVector<ModuleData> m_importedModules;
     ShortSymbolName m_prefix;
-    Component *m_rootObject;
+    Object *m_rootObject;
 };
 
 } // namespace IR

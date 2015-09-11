@@ -26,7 +26,7 @@
 
 #include "error.h"
 
-#include "ir/ir.h"
+#include "ir/file.h"
 #include <private/qqmljsast_p.h>
 
 Q_DECLARE_METATYPE(QQmlJS::AST::UiProgram*)
@@ -47,12 +47,12 @@ public:
 public slots:
   virtual void process(QString);
   virtual void process(QQmlJS::AST::UiProgram*);
-  virtual void process(IR::Component*);
+  virtual void process(IR::File*);
 
 signals:
   void finished(QString);
   void finished(QQmlJS::AST::UiProgram*);
-  void finished(IR::Component*);
+  void finished(IR::File*);
 
 private:
   void failBecauseOfWrongType();

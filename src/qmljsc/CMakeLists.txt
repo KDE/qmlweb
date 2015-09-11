@@ -6,9 +6,10 @@ set(libqmljsc_srcs
   compilerpipeline.cpp
   compilerpass.cpp
 
-  ir/ir.cpp
+  ir/objecttree.cpp
   ir/module.cpp
   ir/file.cpp
+  ir/typesystem.cpp
 
   compilerpasses/parserpass.cpp
   compilerpasses/prettygeneratorpass.cpp

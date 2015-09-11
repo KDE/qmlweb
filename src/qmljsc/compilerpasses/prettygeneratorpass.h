@@ -35,11 +35,11 @@ class PrettyGeneratorPass : public CompilerPass, public IR::Visitor
 public:
  PrettyGeneratorPass();
 
- virtual void visit(IR::Component* component) override;
- virtual void endVisit(IR::Component* component) override;
+ virtual void visit(IR::File* file) override;
+ virtual void endVisit(IR::File* file) override;
 
 public slots:
- void process(IR::Component* rootComponent) override;
+ void process(IR::File *file) override;
 
 private:
  int m_levelSpaceCount = 4;

@@ -88,7 +88,6 @@ void TestModules::loadMinimalModule()
     QVERIFY(readonlyProp);
     QCOMPARE(readonlyProp->type, d);
     QCOMPARE(readonlyProp->readOnly, true);
-    QCOMPARE(readonlyProp->jsValue->kind, (int)AST::Node::Kind_FalseLiteral);
 
     IR::Method *prototypeMethod = b->method("prototypeMethod");
     QVERIFY(prototypeMethod);
@@ -160,7 +159,6 @@ void TestModules::loadModule()
     IR::Property *baked = pizza->property("baked");
     QVERIFY(baked);
     QCOMPARE(baked->readOnly, true);
-    QCOMPARE(baked->jsValue->kind, (int)AST::Node::Kind_FalseLiteral);
 
     QVERIFY(pastry->method("eat"));
     QVERIFY(pastry->method("bake"));

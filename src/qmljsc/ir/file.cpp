@@ -22,6 +22,7 @@
 #include "module.h"
 #include "../error.h"
 #include "../compiler.h"
+#include "visitor.h"
 
 using namespace QmlJSc;
 using namespace QmlJSc::IR;
@@ -65,12 +66,12 @@ QString File::fullyQualifiedName(const QString &typeName)
     return QStringLiteral("%1.%2").arg(moduleForType(typeName)->localPrefix, typeName);
 }
 
-Component *File::rootObject() const
+Object *File::rootObject() const
 {
     return m_rootObject;
 }
 
-void File::setRootObject(Component *rootObject)
+void File::setRootObject(Object *rootObject)
 {
     m_rootObject = rootObject;
 }
@@ -83,10 +84,10 @@ const File::ModuleData *File::moduleForType(const QString &typeName) const
         if (Type * type = data.module->type(typeName)) {
             if (foundType) {
                 throw Error(
-                            QmlJSc::Error::SymbolLookupError,
-                            QString("Ambigious type name. Type %1 was defined by module %2 and %3.")
-                                .arg(typeName, moduleData->module->name(), data.module->name())
-                           );
+                    QmlJSc::Error::SymbolLookupError,
+                    QString("Ambigious type name. Type %1 was defined by module %2 and %3.")
+                    .arg(typeName, moduleData->module->name(), data.module->name())
+                );
                 return 0;
             } else {
                 foundType = type;
@@ -95,4 +96,11 @@ const File::ModuleData *File::moduleForType(const QString &typeName) const
         }
     }
     return moduleData;
+}
+
+void QmlJSc::IR::File::accept(QmlJSc::IR::Visitor* visitor)
+{
+    visitor->visit(this);
+    m_rootObject->accept(visitor);
+    visitor->endVisit(this);
 }

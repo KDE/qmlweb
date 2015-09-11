@@ -22,7 +22,7 @@
 #include "javascriptmoduleloader.h"
 #include "moduleloading.h"
 #include "ir/module.h"
-#include "ir/ir.h"
+#include "ir/typesystem.h"
 #include "compiler.h"
 #include "error.h"
 
@@ -110,7 +110,7 @@ bool RegisterModuleVisitor::visit(AST::CallExpression *call)
         );
 
 
-        IR::Class *c = new IR::Class;
+        IR::LibraryClass *c = new IR::LibraryClass;
         c->setName(nameAndValue->name->asString());
         c->setJavaScriptName(functionId->name.toString());
         m_module->addType(c);
@@ -270,10 +270,6 @@ void TypeDefinitionVisitor::findPropertyDefinition(AST::BinaryExpression *expr)
                 "Malformed QWProperty call: Expected argument 'typeArg' to have an identifier expression as value."
             );
              property->type = getType(id->name);
-            continue;
-        }
-        if (nameAndValue->name->asString() == "initialValue") {
-            property->jsValue = nameAndValue->value;
             continue;
         }
         if (nameAndValue->name->asString() == "readonly") {

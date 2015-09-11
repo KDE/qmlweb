@@ -23,15 +23,15 @@
 #include <QtTest/QSignalSpy>
 #include <QtCore/QFile>
 
-#include "../../../src/qmljsc/ir/ir.h"
+#include "../../../src/qmljsc/ir/objecttree.h"
 #include "../../../src/qmljsc/compiler.h"
 #include "../../../src/qmljsc/compilerpasses/prettygeneratorpass.h"
 
 template<class TestedVisitorNodeType>
-class TestNodeComponent : public QmlJSc::IR::Component
+class TestNodeFile : public QmlJSc::IR::File
 {
 public:
-    TestNodeComponent(TestedVisitorNodeType& testedNode)
+    TestNodeFile(TestedVisitorNodeType& testedNode)
             : m_testedNode(testedNode)
     {
     }
@@ -54,7 +54,7 @@ private:
 
     QmlJSc::PrettyGeneratorPass* m_prettyGeneratorPass = Q_NULLPTR;
     QString m_result;
-    QmlJSc::IR::Class* m_qtObjectType = Q_NULLPTR;
+    QmlJSc::IR::LibraryClass* m_qtObjectType = Q_NULLPTR;
 
 private slots:
     void setResult(QString);
@@ -64,7 +64,7 @@ private slots:
     void init();
 
     void emitsFinishedSignal();
-    void visitComponent();
+    void visitFile();
 
 };
 
@@ -85,7 +85,7 @@ void TestPrettyGeneratorPass::initBasicTypes() {
     QmlJSc::IR::Type* stringType = new QmlJSc::IR::Type();
     stringType->setName("string");
 
-    m_qtObjectType = new QmlJSc::IR::Class();
+    m_qtObjectType = new QmlJSc::IR::LibraryClass();
     m_qtObjectType->setName("QtObject");
     QmlJSc::IR::Property *p = m_qtObjectType->addProperty("objectName");
     p->type = stringType;
@@ -114,34 +114,36 @@ void TestPrettyGeneratorPass::init()
 
 void TestPrettyGeneratorPass::emitsFinishedSignal() {
     // Setup
-    QmlJSc::IR::Component component;
-    component.setSuper(m_qtObjectType);
-    TestNodeComponent<QmlJSc::IR::Component> testNodeComponent(component);
+    QmlJSc::IR::File file;
+    file.setRootObject(new QmlJSc::IR::Object);
+    file.rootObject()->setSuper(m_qtObjectType);
+    TestNodeFile<QmlJSc::IR::File> testNodeFile(file);
 
     QSignalSpy finishedSpy(m_prettyGeneratorPass, SIGNAL(finished(QString)));
 
     // Do
-    m_prettyGeneratorPass->process(&testNodeComponent);
+    m_prettyGeneratorPass->process(&testNodeFile);
 
     // Verify
     QCOMPARE(finishedSpy.count(), 1);
 }
 
-void TestPrettyGeneratorPass::visitComponent()
+void TestPrettyGeneratorPass::visitFile()
 {
     // Setup
-    QString minimalComponentJs = readTestFileContent("minimal.qml.js");
+    QString minimalFileJs = readTestFileContent("minimal.qml.js");
 
-    QmlJSc::IR::Component component;
-    component.setSuper(m_qtObjectType);
+    QmlJSc::IR::File file;
+    file.setRootObject(new QmlJSc::IR::Object);
+    file.rootObject()->setSuper(m_qtObjectType);
 
-    TestNodeComponent<QmlJSc::IR::Component> testNodeComponent(component);
+    TestNodeFile<QmlJSc::IR::File> testNodeFile(file);
 
     // Do
-    m_prettyGeneratorPass->process(&testNodeComponent);
+    m_prettyGeneratorPass->process(&testNodeFile);
 
     // Verify
-    QCOMPARE(m_result, minimalComponentJs);
+    QCOMPARE(m_result, minimalFileJs);
 }
 
 QTEST_MAIN(TestPrettyGeneratorPass)
