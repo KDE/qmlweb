@@ -149,12 +149,19 @@ public:
         , m_twoConstDeclarationsPart2(&m_twoConstDeclarations, &m_constDeclaration2)
         , m_twoVarDeclarations(&m_varDeclaration1)
         , m_twoVarDeclarationsPart2(&m_twoVarDeclarations, &m_varDeclaration2)
+        , m_caseClause1(&m_trueExpression, &m_threeStatementsList)
+        , m_caseClause2(&m_trueExpression, &m_threeStatementsList)
+        , m_twoCaseClauses(&m_caseClause1)
+        , m_twoCaseClausesPart2(&m_twoCaseClauses, &m_caseClause2)
+        , m_defaultClause(&m_threeStatementsList)
+        , m_caseBlock(&m_twoCaseClauses, &m_defaultClause, &m_twoCaseClauses)
     {
         m_statementListPart3.finish();
         m_sourceElementsListPart3.finish();
         m_parameterListPart2.finish();
         m_twoConstDeclarationsPart2.finish(true);
         m_twoVarDeclarationsPart2.finish(false);
+        m_twoCaseClausesPart2.finish();
     }
 
 private:
@@ -196,6 +203,12 @@ private:
     QQmlJS::AST::VariableDeclarationList m_twoConstDeclarationsPart2;
     QQmlJS::AST::VariableDeclarationList m_twoVarDeclarations;
     QQmlJS::AST::VariableDeclarationList m_twoVarDeclarationsPart2;
+    QQmlJS::AST::CaseClause m_caseClause1;
+    QQmlJS::AST::CaseClause m_caseClause2;
+    QQmlJS::AST::CaseClauses m_twoCaseClauses;
+    QQmlJS::AST::CaseClauses m_twoCaseClausesPart2;
+    QQmlJS::AST::DefaultClause m_defaultClause;
+    QQmlJS::AST::CaseBlock m_caseBlock;
 
 private slots:
     void init() {
@@ -264,6 +277,10 @@ private slots:
     TEST_VISIT_PUTS_ON_STACK(WithoutStatements, "{", Block, nullptr)
     TEST_VISIT_PUTS_ON_STACK(WithLabel, "break ALabel;", BreakStatement, m_someLabelStringRef)
     TEST_VISIT_PUTS_ON_STACK(WithoutLabel, "break;", BreakStatement, nullptr)
+    TEST_VISIT_PUTS_ON_STACK(AnyCase, "{", CaseBlock, nullptr ,nullptr, nullptr)
+    TEST_VISIT_PUTS_ON_STACK(Default, "case", CaseClause, &m_trueExpression, &m_threeStatementsList)
+    TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(CaseClauses, nullptr)
+    TEST_VISIT_PUTS_ON_STACK(Default, "default", DefaultClause, &m_threeStatementsList)
     TEST_VISIT_PUTS_ON_STACK(WithLabel, "continue ALabel;", ContinueStatement, m_someLabelStringRef)
     TEST_VISIT_PUTS_ON_STACK(WithoutLabel, "continue;", ContinueStatement, nullptr)
     //TODO TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(EmptyStatement)
@@ -285,6 +302,7 @@ private slots:
     TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(SourceElements, nullptr)
     TEST_VISIT_IS_DEFAULT_IMPLEMENTATION(StatementList, nullptr)
     TEST_VISIT_PUTS_ON_STACK(SomeString, "some string", StringLiteral, m_someStringStringRef)
+    TEST_VISIT_PUTS_ON_STACK(Default, "switch", SwitchStatement, nullptr, nullptr)
     TEST_VISIT_PUTS_ON_STACK(AssignmentScenario, "i=", VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
     TEST_VISIT_PUTS_ON_STACK(NoAssignmentScenario, "i", VariableDeclaration, m_someIdentifierStringRef, nullptr)
     TEST_VISIT_PUTS_ON_STACK(VarDeclarationList, "var", VariableDeclarationList, &m_varDeclaration1)
@@ -293,6 +311,14 @@ private slots:
 
     TEST_ENDVISIT_REDUCES_STACK(TwoOperands, "2==4", ({"==", "2", "4"}), BinaryExpression, nullptr, -1, nullptr)
     TEST_ENDVISIT_REDUCES_STACK(WithoutStatements, "{content}", ({"{", "content"}), Block, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(OnlyCases, "{cases}", ({"{", "cases"}), CaseBlock, &m_twoCaseClauses)
+    TEST_ENDVISIT_REDUCES_STACK(CasesAndDefault, "{casesdefault}", ({"{", "cases", "default"}),
+                                                     CaseBlock, &m_twoCaseClauses, &m_defaultClause)
+    TEST_ENDVISIT_REDUCES_STACK(CasesDefaultCases, "{casesdefaultcases}", ({"{", "cases", "default", "cases"}),
+                                                     CaseBlock, &m_twoCaseClauses, &m_defaultClause, &m_twoCaseClauses)
+    TEST_ENDVISIT_REDUCES_STACK(Default, "case exp:stm;", ({"case", "exp", "stm;"}), CaseClause, &m_trueExpression, &m_threeStatementsList)
+    TEST_ENDVISIT_REDUCES_STACK_OBJ(TwoClauses, "case exp:stm;case exp2:stm2;", ({"case exp:stm;", "case exp2:stm2;"}), CaseClauses, &m_twoCaseClauses)
+    TEST_ENDVISIT_REDUCES_STACK(Default, "default:stm", ({"default", "stm"}), DefaultClause, &m_threeStatementsList)
     TEST_ENDVISIT_REDUCES_STACK_OBJ(DefaultScenario, ";", ({}), EmptyStatement, &m_statement1)
     TEST_ENDVISIT_REDUCES_STACK(NoExpression, "expression;", ({"expression"}), ExpressionStatement, nullptr)
     TEST_ENDVISIT_REDUCES_STACK_OBJ(AnyNumberOfParameters, "i", ({"i"}), FormalParameterList, &m_twoParameters) // does nothing
@@ -311,11 +337,12 @@ private slots:
     TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "2.7++", ({"++", "2.7"}), PostIncrementExpression, nullptr)
     TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "--2.7", ({"--", "2.7"}), PreDecrementExpression, nullptr)
     TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "++2.7", ({"++", "2.7"}), PreIncrementExpression, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(WithoutReturnValue, "return;", ({"return"}),  ReturnStatement, nullptr)
+    TEST_ENDVISIT_REDUCES_STACK(WithReturnValue, "return true;",  ({"return", "true"}), ReturnStatement, &m_trueExpression)
     TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeSourceElements, "sEl1sEl2sEl3", ({"sEl1", "sEl2", "sEl3"}), SourceElements, &m_threeSourceElementsList)
     TEST_ENDVISIT_REDUCES_STACK_OBJ(ThreeStatements, "st1st2st3", ({"st1", "st2", "st3"}), StatementList, &m_threeStatementsList)
     TEST_ENDVISIT_REDUCES_STACK(OneLiteral, "another string", ({"another string"}), StringLiteral, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(WithoutReturnValue, "return;", ({"return"}),  ReturnStatement, nullptr)
-    TEST_ENDVISIT_REDUCES_STACK(WithReturnValue, "return true;",  ({"return", "true"}), ReturnStatement, &m_trueExpression)
+    TEST_ENDVISIT_REDUCES_STACK(Default, "switch(expr){clauseBlock}", ({"switch", "expr", "{clauseBlock}"}), SwitchStatement, &m_trueExpression, &m_caseBlock)
     TEST_ENDVISIT_REDUCES_STACK(Assignment, "x=5", ({"x=", "5"}), VariableDeclaration, m_someIdentifierStringRef, &m_trueExpression)
     TEST_ENDVISIT_REDUCES_STACK(NoAssignment, "x", ({"x"}), VariableDeclaration, m_someIdentifierStringRef, nullptr)
     TEST_ENDVISIT_REDUCES_STACK_OBJ(TwoVarDeclarations, "var i,e=5", ({"var", "i", "e=5"}), VariableDeclarationList, &m_twoVarDeclarations)

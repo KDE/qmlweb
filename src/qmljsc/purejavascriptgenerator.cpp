@@ -91,8 +91,23 @@ bool PureJavaScriptGenerator::visit(AST::BreakStatement *breakStatement) {
     return true;
 }
 
+bool PureJavaScriptGenerator::visit(AST::CaseClause *) {
+    m_outputStack << "case";
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::CaseBlock *) {
+    m_outputStack << "{";
+    return true;
+}
+
 bool PureJavaScriptGenerator::visit(AST::ContinueStatement *continueStatement) {
     reduceJumpWithOptionalLabelStatement("continue", continueStatement->label);
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(QQmlJS::AST::DefaultClause *) {
+    m_outputStack << "default";
     return true;
 }
 
@@ -165,6 +180,11 @@ bool PureJavaScriptGenerator::visit(AST::StringLiteral *stringLiteral) {
     return true;
 }
 
+bool PureJavaScriptGenerator::visit(AST::SwitchStatement *) {
+    m_outputStack << "switch";
+    return true;
+}
+
 bool PureJavaScriptGenerator::visit(AST::VariableDeclaration *variableDeclaration) {
     const QString identifier = variableDeclaration->name.toString();
     QString variableDeclarationCode = identifier;
@@ -178,7 +198,7 @@ bool PureJavaScriptGenerator::visit(AST::VariableDeclaration *variableDeclaratio
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(QQmlJS::AST::VariableDeclarationList *variableDeclarationList) {
+bool PureJavaScriptGenerator::visit(AST::VariableDeclarationList *variableDeclarationList) {
     if (variableDeclarationList->declaration->readOnly) {
         // read only state is the same for all declarations in one list
         m_outputStack << "const";
@@ -201,6 +221,37 @@ void PureJavaScriptGenerator::endVisit(AST::Block *) {
     const QString blockCode = m_outputStack.pop();
     const QString openingParenthesis = m_outputStack.pop();
     m_outputStack << QString("%1%2}").arg(openingParenthesis, blockCode);
+}
+
+void PureJavaScriptGenerator::endVisit(QQmlJS::AST::CaseBlock *caseBlock) {
+    QString clausesRight;
+    if (caseBlock->moreClauses) {
+        clausesRight = m_outputStack.pop();
+    }
+    QString defaultClause;
+    if (caseBlock->defaultClause) {
+        defaultClause = m_outputStack.pop();
+    }
+    const QString clausesLeft = m_outputStack.pop();
+    const QString leftBrace = m_outputStack.pop();
+    m_outputStack << leftBrace + clausesLeft + defaultClause + clausesRight + '}';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::CaseClause *) {
+    const QString statement = m_outputStack.pop();
+    const QString expression = m_outputStack.pop();
+    const QString caseKeyword = m_outputStack.pop();
+    m_outputStack << caseKeyword + ' ' + expression + ':' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::CaseClauses *caseClauses) {
+    reduceListStack<AST::CaseClauses>(caseClauses);
+}
+
+void PureJavaScriptGenerator::endVisit(AST::DefaultClause *) {
+    const QString statement = m_outputStack.pop();
+    const QString defaultKeyword = m_outputStack.pop();
+    m_outputStack << defaultKeyword + ':' + statement;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::EmptyStatement *) {
@@ -264,7 +315,7 @@ void PureJavaScriptGenerator::endVisit(AST::PreIncrementExpression *) {
     updateStackWithPreOperation();
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::ReturnStatement *returnStatement) {
+void PureJavaScriptGenerator::endVisit(AST::ReturnStatement *returnStatement) {
     QString expression;
     if (returnStatement->expression) {
         expression = ' ' + m_outputStack.pop();
@@ -282,6 +333,13 @@ void PureJavaScriptGenerator::endVisit(AST::StatementList *statementList) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::StringLiteral *) {
+}
+
+void PureJavaScriptGenerator::endVisit(AST::SwitchStatement *) {
+    const QString clauseBlock = m_outputStack.pop();
+    const QString expression = m_outputStack.pop();
+    const QString switchKeyword = m_outputStack.pop();
+    m_outputStack << switchKeyword + '(' + expression + ')' + clauseBlock;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::VariableDeclaration *declaration) {

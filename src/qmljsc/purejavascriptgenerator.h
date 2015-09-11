@@ -35,7 +35,10 @@ public:
     virtual bool visit(QQmlJS::AST::BinaryExpression *) override;
     virtual bool visit(QQmlJS::AST::Block *) override;
     virtual bool visit(QQmlJS::AST::BreakStatement *) override;
+    virtual bool visit(QQmlJS::AST::CaseBlock *) override;
+    virtual bool visit(QQmlJS::AST::CaseClause *) override;
     virtual bool visit(QQmlJS::AST::ContinueStatement *) override;
+    virtual bool visit(QQmlJS::AST::DefaultClause *) override;
     virtual bool visit(QQmlJS::AST::FormalParameterList *) override;
     virtual bool visit(QQmlJS::AST::FunctionBody *) override;
     virtual bool visit(QQmlJS::AST::FunctionDeclaration *) override;
@@ -44,6 +47,7 @@ public:
     virtual bool visit(QQmlJS::AST::NumericLiteral *) override;
     virtual bool visit(QQmlJS::AST::ReturnStatement *) override;
     virtual bool visit(QQmlJS::AST::StringLiteral *) override;
+    virtual bool visit(QQmlJS::AST::SwitchStatement *) override;
     virtual bool visit(QQmlJS::AST::PostDecrementExpression *) override;
     virtual bool visit(QQmlJS::AST::PostIncrementExpression *) override;
     virtual bool visit(QQmlJS::AST::PreDecrementExpression *) override;
@@ -53,6 +57,10 @@ public:
 
     virtual void endVisit(QQmlJS::AST::BinaryExpression *) override;
     virtual void endVisit(QQmlJS::AST::Block *) override;
+    virtual void endVisit(QQmlJS::AST::CaseBlock *) override;
+    virtual void endVisit(QQmlJS::AST::CaseClause *) override;
+    virtual void endVisit(QQmlJS::AST::CaseClauses *) override;
+    virtual void endVisit(QQmlJS::AST::DefaultClause *) override;
     virtual void endVisit(QQmlJS::AST::EmptyStatement *) override;
     virtual void endVisit(QQmlJS::AST::ExpressionStatement *) override;
     virtual void endVisit(QQmlJS::AST::FunctionBody *) override;
@@ -66,8 +74,9 @@ public:
     virtual void endVisit(QQmlJS::AST::PreIncrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::ReturnStatement *) override;
     virtual void endVisit(QQmlJS::AST::SourceElements *) override;
-    virtual void endVisit(QQmlJS::AST::StatementList *) override;
     virtual void endVisit(QQmlJS::AST::StringLiteral *) override;
+    virtual void endVisit(QQmlJS::AST::StatementList *) override;
+    virtual void endVisit(QQmlJS::AST::SwitchStatement *) override;
     virtual void endVisit(QQmlJS::AST::VariableDeclaration *) override;
     virtual void endVisit(QQmlJS::AST::VariableDeclarationList *) override;
     virtual void endVisit(QQmlJS::AST::VariableStatement *) override;
