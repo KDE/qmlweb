@@ -18,35 +18,41 @@
  *
  */
 
-#ifndef QTQMLMODULELOADER_H
-#define QTQMLMODULELOADER_H
+#ifndef BUILTINTYPES_H
+#define BUILTINTYPES_H
 
-#include "abstractmoduleloader.h"
-
-//Qt
-#include <QtCore/QRunnable>
+#include <QtCore/QString>
 
 namespace QmlJSc {
 
 namespace IR {
-    class Module;
-}
 
-/**
- * This class is used when loading the QtQml module.
- */
-class QtQmlModuleLoader : public AbstractModuleLoader
+class Type;
+
+class BuiltinTypes
 {
 public:
-    static QtQmlModuleLoader *create(IR::Module *module);
-
-    bool canLoad() override;
-    void doLoad() override;
+    static Type *type(const QString &name);
+    static Type *typeFromJSName(const QString &name);
+    static Type *boolType();
+    static Type *doubleType();
+    static Type *enumType();
+    static Type *intType();
+    static Type *listType();
+    static Type *realType();
+    static Type *stringType();
+    static Type *urlType();
+    static Type *varType();
 
 private:
-    QtQmlModuleLoader(IR::Module *module);
+    static bool init();
+
+    static const int builtinTypesCount = 9;
+
+    static Type s_builtinTypes[builtinTypesCount];
 };
 
+} // namespace IR
 } // namespace QMLJSc
 
-#endif // QTQMLMODULELOADER_H
+#endif // BUILTINTYPES_H

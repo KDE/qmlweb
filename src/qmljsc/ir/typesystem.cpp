@@ -24,13 +24,15 @@
 using namespace QmlJSc::IR;
 
 Type::Type()
-        : m_super(0)
+    : m_super(0)
 {
 }
 
-Type::Type(Flags flags)
-        : m_flags(flags)
-        , m_super(0)
+Type::Type(const QString &name, const QString &jsName, Flags flags)
+    : m_name(name)
+    , m_javaScriptName(jsName)
+    , m_flags(flags)
+    , m_super(0)
 {
 }
 

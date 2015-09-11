@@ -10,6 +10,7 @@ set(libqmljsc_srcs
   ir/module.cpp
   ir/file.cpp
   ir/typesystem.cpp
+  ir/builtintypes.cpp
 
   compilerpasses/parserpass.cpp
   compilerpasses/prettygeneratorpass.cpp

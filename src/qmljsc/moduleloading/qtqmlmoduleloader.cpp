@@ -22,6 +22,7 @@
 #include "qtqmlmoduleloader.h"
 #include "ir/typesystem.h"
 #include "ir/module.h"
+#include "ir/builtintypes.h"
 #include "error.h"
 
 using namespace QmlJSc;
@@ -48,65 +49,16 @@ void QtQmlModuleLoader::doLoad()
     IR::Method *m = 0;
     IR::Signal *s = 0;
 
-    // Basic types
-    IR::Type *boolType = new IR::Type;
-    boolType->setName("bool");
-    boolType->setJavaScriptName("Boolean");
-    module->addType(boolType);
-
-    IR::Type *doubleType = new IR::Type;
-    doubleType->setName("double");
-    doubleType->setJavaScriptName("QWDouble");
-    module->addType(doubleType);
-
-    IR::Type *enumType = new IR::Type;
-    enumType->setName("enum");
-    enumType->setJavaScriptName("QWEnum");
-    module->addType(enumType);
-
-    IR::Type *intType = new IR::Type;
-    intType->setName("int");
-    intType->setJavaScriptName("QWInt");
-    module->addType(intType);
-
-    IR::Type *listType = new IR::Type;
-    listType->setName("list");
-    listType->setJavaScriptName("QWList");
-    // TODO: Add list-flag (Requires T504)
-    module->addType(listType);
-
-    IR::Type *realType = new IR::Type;
-    realType->setName("real");
-    realType->setJavaScriptName("QWReal");
-    module->addType(realType);
-
-    IR::Type *stringType = new IR::Type;
-    stringType->setName("string");
-    stringType->setJavaScriptName("String");
-    module->addType(stringType);
-
-    IR::Type *urlType = new IR::Type;
-    urlType->setName("url");
-    urlType->setJavaScriptName("QWUrl");
-    module->addType(urlType);
-
-    IR::Type *varType = new IR::Type;
-    varType->setName("var");
-    varType->setJavaScriptName("QWVar");
-    module->addType(varType);
-
     // === Classes ===
 
     // Component
-    IR::Type *componentClass = new IR::Type( IR::Type::Flags(IR::Type::IsInstantiable | IR::Type::IsComponent) );
-    componentClass->setName("Component");
-    componentClass->setJavaScriptName("QWComponent");
+    IR::Type *componentClass = new IR::Type("Component", "QWComponent", IR::Type::Flags(IR::Type::IsInstantiable | IR::Type::IsComponent) );
     p = componentClass->addProperty("progress");
-    p->type = realType;
+    p->type = IR::BuiltinTypes:: realType();
     p = componentClass->addProperty("status");
-    p->type = enumType;
+    p->type = IR::BuiltinTypes:: enumType();
     p = componentClass->addProperty("url");
-    p->type = urlType;
+    p->type = IR::BuiltinTypes:: urlType();
     m = componentClass->addMethod("createObject");
     m->parameters.append("parent");
     m->parameters.append("properties");
@@ -116,53 +68,48 @@ void QtQmlModuleLoader::doLoad()
     m->parameters.append("properties");
     m->parameters.append("mode");
 
-    IR::Type *componentAttached = new IR::Type(IR::Type::IsInstantiable);
+    IR::Type *componentAttached = new IR::Type;
     componentAttached->addSignal("completed");
     componentAttached->addSignal("destruction");
     componentClass->setAttachedType(componentAttached);
     module->addType(componentClass);
 
     // QtObject
-    IR::Type *qtobjectClass = new IR::Type(IR::Type::IsInstantiable);
-    qtobjectClass->setName("QtObject");
-    qtobjectClass->setJavaScriptName("QWObject");
+    IR::Type *qtobjectClass = new IR::Type("QtObject", "QWObject", IR::Type::IsInstantiable);
     p = qtobjectClass->addProperty("objectName");
-    p->type = stringType;
+    p->type = IR::BuiltinTypes:: stringType();
     module->addType(qtobjectClass);
 
     // Binding
-    IR::Type *bindingClass = new IR::Type(IR::Type::IsInstantiable);
-    bindingClass->setName("Binding");
+    IR::Type *bindingClass = new IR::Type("Binding", "", IR::Type::IsInstantiable);
     p = bindingClass->addProperty("property");
-    p->type = stringType;
+    p->type = IR::BuiltinTypes:: stringType();
     p = bindingClass->addProperty("target");
     p->type = qtobjectClass;
     p = bindingClass->addProperty("value");
-    p->type = varType;
+    p->type = IR::BuiltinTypes:: varType();
     p = bindingClass->addProperty("when");
-    p->type = boolType;
+    p->type = IR::BuiltinTypes:: boolType();
     module->addType(bindingClass);
 
     // Connections
-    IR::Type *connectionsClass = new IR::Type(IR::Type::IsInstantiable);
-    connectionsClass->setName("Connections");
+    IR::Type *connectionsClass = new IR::Type("Connections", "", IR::Type::IsInstantiable);
     p = connectionsClass->addProperty("ignoreUnknownSignals");
-    p->type = boolType;
+    p->type = IR::BuiltinTypes:: boolType();
     p = connectionsClass->addProperty("target");
     p->type = qtobjectClass;
     module->addType(connectionsClass);
 
     // Timer
-    IR::Type *timerClass = new IR::Type(IR::Type::IsInstantiable);
-    timerClass->setName("Timer");
+    IR::Type *timerClass = new IR::Type("Timer", "", IR::Type::IsInstantiable);
     p = timerClass->addProperty("interval");
-    p->type = intType;
+    p->type = IR::BuiltinTypes:: intType();
     p = timerClass->addProperty("repeat");
-    p->type = boolType;
+    p->type = IR::BuiltinTypes:: boolType();
     p = timerClass->addProperty("running");
-    p->type = boolType;
+    p->type = IR::BuiltinTypes:: boolType();
     p = timerClass->addProperty("triggeredOnStart");
-    p->type = boolType;
+    p->type = IR::BuiltinTypes:: boolType();
     timerClass->addSignal("triggered");
     timerClass->addMethod("restart");
     timerClass->addMethod("start");
