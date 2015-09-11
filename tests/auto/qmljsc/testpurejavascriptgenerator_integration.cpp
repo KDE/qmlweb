@@ -82,6 +82,7 @@ private slots:
 
         addRowForFileWithCompiled("declarations");
         addRowForFile("expressions");
+        addRowForFileWithCompiled("functions");
         addRowForFileWithCompiled("binaryoperations");
     }
 

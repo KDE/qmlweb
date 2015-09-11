@@ -11,3 +11,6 @@ function multipleParameters(p1,p2) {
 }
 
 function noBody() {}
+
+return 5;
+return;

@@ -131,11 +131,6 @@ bool PureJavaScriptGenerator::visit(AST::NumericLiteral *numericLiteral) {
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(AST::StringLiteral *stringLiteral) {
-    m_outputStack.push(stringLiteral->value.toString());
-    return true;
-}
-
 bool PureJavaScriptGenerator::visit(AST::PostDecrementExpression *) {
     m_outputStack.push("--");
     return true;
@@ -153,6 +148,16 @@ bool PureJavaScriptGenerator::visit(AST::PreDecrementExpression *) {
 
 bool PureJavaScriptGenerator::visit(AST::PreIncrementExpression *) {
     m_outputStack.push("++");
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::ReturnStatement *) {
+    m_outputStack << "return";
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::StringLiteral *stringLiteral) {
+    m_outputStack.push(stringLiteral->value.toString());
     return true;
 }
 
@@ -235,6 +240,15 @@ void PureJavaScriptGenerator::endVisit(AST::PreDecrementExpression *) {
 
 void PureJavaScriptGenerator::endVisit(AST::PreIncrementExpression *) {
     updateStackWithPreOperation();
+}
+
+void PureJavaScriptGenerator::endVisit(QQmlJS::AST::ReturnStatement *returnStatement) {
+    QString expression;
+    if (returnStatement->expression) {
+        expression = ' ' + m_outputStack.pop();
+    }
+    const QString returnCode = m_outputStack.pop();
+    m_outputStack << returnCode + expression + ';';
 }
 
 void PureJavaScriptGenerator::endVisit(AST::SourceElements *sourceElements) {

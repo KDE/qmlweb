@@ -40,6 +40,7 @@ public:
     virtual bool visit(QQmlJS::AST::FunctionDeclaration *) override;
     virtual bool visit(QQmlJS::AST::IdentifierExpression *) override;
     virtual bool visit(QQmlJS::AST::NumericLiteral *) override;
+    virtual bool visit(QQmlJS::AST::ReturnStatement *) override;
     virtual bool visit(QQmlJS::AST::StringLiteral *) override;
     virtual bool visit(QQmlJS::AST::PostDecrementExpression *) override;
     virtual bool visit(QQmlJS::AST::PostIncrementExpression *) override;
@@ -60,6 +61,7 @@ public:
     virtual void endVisit(QQmlJS::AST::PostIncrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::PreDecrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::PreIncrementExpression *) override;
+    virtual void endVisit(QQmlJS::AST::ReturnStatement *) override;
     virtual void endVisit(QQmlJS::AST::SourceElements *) override;
     virtual void endVisit(QQmlJS::AST::StatementList *) override;
     virtual void endVisit(QQmlJS::AST::StringLiteral *) override;
