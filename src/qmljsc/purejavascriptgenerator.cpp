@@ -101,6 +101,21 @@ bool PureJavaScriptGenerator::visit(AST::DefaultClause *) {
     return true;
 }
 
+bool PureJavaScriptGenerator::visit(AST::Elision *currentElision) {
+    QString output;
+    while (currentElision) {
+        output += ',';
+        currentElision = currentElision->next;
+    }
+    m_outputStack << output;
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::FalseLiteral *) {
+    m_outputStack << "false";
+    return true;
+}
+
 bool PureJavaScriptGenerator::visit(AST::FormalParameterList *currentParameter) {
     QString parameterCode;
     while (currentParameter) {
@@ -119,6 +134,11 @@ bool PureJavaScriptGenerator::visit(AST::IdentifierExpression *identifierExpress
     return true;
 }
 
+bool PureJavaScriptGenerator::visit(AST::NullExpression *) {
+    m_outputStack << "null";
+    return true;
+}
+
 bool PureJavaScriptGenerator::visit(AST::NumericLiteral *numericLiteral) {
     m_outputStack.push(QString::number(numericLiteral->value));
     return true;
@@ -127,6 +147,22 @@ bool PureJavaScriptGenerator::visit(AST::NumericLiteral *numericLiteral) {
 bool PureJavaScriptGenerator::visit(AST::StringLiteral *stringLiteral) {
     m_outputStack << '"' + stringLiteral->value.toString() + '"';
     return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::ThisExpression *) {
+    m_outputStack << "this";
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::TrueLiteral *) {
+    m_outputStack << "true";
+    return true;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ArrayLiteral *arrayLiteral) {
+    const QString elision = (arrayLiteral->elision)?m_outputStack.pop():"";
+    const QString elements = (arrayLiteral->elements)?m_outputStack.pop():"";
+    m_outputStack << '[' + elements + elision + ']';
 }
 
 void PureJavaScriptGenerator::endVisit(AST::BinaryExpression *) {
@@ -170,6 +206,34 @@ void PureJavaScriptGenerator::endVisit(AST::DefaultClause *) {
     const QString statement = m_outputStack.pop();
     const QString defaultKeyword = m_outputStack.pop();
     m_outputStack << defaultKeyword + ':' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ElementList *elementList) {
+    QString code;
+    AST::ElementList *currentElement = elementList;
+    QStack<QString>::iterator positionOnStack = m_outputStack.end();
+
+    for (currentElement = elementList; currentElement; currentElement = currentElement->next) {
+        if (currentElement->elision) {
+            --positionOnStack;
+        }
+        if (currentElement->expression) {
+            --positionOnStack;
+        }
+    }
+
+    for (currentElement = elementList; currentElement; currentElement = currentElement->next) {
+        if (currentElement->elision) {
+            code += *positionOnStack;
+            positionOnStack = m_outputStack.erase(positionOnStack);
+        }
+        if (currentElement->expression) {
+            code += *positionOnStack + ',';
+            positionOnStack = m_outputStack.erase(positionOnStack);
+        }
+    }
+
+    m_outputStack << code;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::EmptyStatement *) {
