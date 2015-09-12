@@ -37,17 +37,24 @@ public:
     virtual bool visit(QQmlJS::AST::CaseClause *) override;
     virtual bool visit(QQmlJS::AST::ContinueStatement *) override;
     virtual bool visit(QQmlJS::AST::DefaultClause *) override;
+    virtual bool visit(QQmlJS::AST::Elision *) override;
+    virtual bool visit(QQmlJS::AST::FalseLiteral *) override;
     virtual bool visit(QQmlJS::AST::FormalParameterList *) override;
     virtual bool visit(QQmlJS::AST::IdentifierExpression *) override;
+    virtual bool visit(QQmlJS::AST::NullExpression *) override;
     virtual bool visit(QQmlJS::AST::NumericLiteral *) override;
     virtual bool visit(QQmlJS::AST::StringLiteral *) override;
-
+    virtual bool visit(QQmlJS::AST::ThisExpression *) override;
+    virtual bool visit(QQmlJS::AST::TrueLiteral *) override;
+    
+    virtual void endVisit(QQmlJS::AST::ArrayLiteral *) override;
     virtual void endVisit(QQmlJS::AST::BinaryExpression *) override;
     virtual void endVisit(QQmlJS::AST::Block *) override;
     virtual void endVisit(QQmlJS::AST::CaseBlock *) override;
     virtual void endVisit(QQmlJS::AST::CaseClause *) override;
     virtual void endVisit(QQmlJS::AST::CaseClauses *) override;
     virtual void endVisit(QQmlJS::AST::DefaultClause *) override;
+    virtual void endVisit(QQmlJS::AST::ElementList *) override;
     virtual void endVisit(QQmlJS::AST::EmptyStatement *) override;
     virtual void endVisit(QQmlJS::AST::ExpressionStatement *) override;
     virtual void endVisit(QQmlJS::AST::FunctionBody *) override;

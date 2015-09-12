@@ -87,6 +87,7 @@ private slots:
         addRowForFileWithCompiled("otherstatements");
         addRowForFileWithCompiled("ifstatements");
         addRowForFileWithCompiled("switchstatements");
+        addRowForFileWithCompiled("literals");
     }
 
     void test_compileJavaScriptFile() {

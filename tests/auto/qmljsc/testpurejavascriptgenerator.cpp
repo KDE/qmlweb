@@ -58,7 +58,7 @@
             }
 
 #define TEST_ENDVISIT_REDUCES(className, scenarioName, expectedTopOfStack, stackContent, instance) \
-            void test_endVisit_ ## className ## scenarioName ## _reducesStack() { \
+            void test_endVisit_ ## className ## _ ## scenarioName ## _reducesStack() { \
                 asPureJSGen(m_generator)->m_outputStack.append(QVector<QString>stackContent); \
                 m_generator->endVisit(&instance); \
                 QCOMPARE(asPureJSGen(m_generator)->m_outputStack.top(), QStringLiteral(expectedTopOfStack)); \
@@ -84,11 +84,24 @@ public:
         , m_anotherIdentifier("e")
         , m_anotherIdentifierStringRef(&m_anotherIdentifier)
         /* Expressions */
+        , m_thisExpression()
+        , m_nullExpression()
         , m_identifierExpression(m_someIdentifierStringRef)
+        , m_trueLiteral()
+        , m_falseLiteral()
         , m_numericalExpressionPi(3.14)
         , m_stringLiteral(m_someStringStringRef)
-        , m_trueExpression()
-        , m_falseExpression()
+        , m_twoElisions()
+        , m_elisionsPart2(&m_twoElisions)
+        , m_arrayElementsExp(nullptr, &m_trueLiteral)
+        , m_arrayElementsExpExp(nullptr, &m_trueLiteral)
+        , m_arrayElementsExpExpPart2(&m_arrayElementsExpExp, nullptr, &m_falseLiteral)
+        , m_arrayElementsElisionExp(&m_twoElisions, &m_falseLiteral)
+        , m_arrayElementsExpElisionExp(nullptr, &m_falseLiteral)
+        , m_arrayLiteralWithElision(&m_arrayElementsExp, &m_twoElisions)
+        , m_arrayLiteralWithoutElision(&m_arrayElementsExp)
+        , m_arrayLiteralOnlyElision(&m_twoElisions)
+        , m_arrayElementsExpElisionExpPart2(&m_arrayElementsExpElisionExp, &m_twoElisions, &m_trueLiteral)
         , m_equalsBinaryExpression(nullptr, QSOperator::Equal, nullptr)
         , m_postDecrementExpression(&m_numericalExpressionPi)
         , m_postIncrementExpression(&m_numericalExpressionPi)
@@ -98,7 +111,7 @@ public:
         /* Variable Declarations */
         , m_constDeclaration1(m_someIdentifierStringRef, nullptr)
         , m_constDeclaration2(m_anotherIdentifierStringRef, nullptr)
-        , m_variableDeclarationWithAssignment(m_someIdentifierStringRef, &m_trueExpression)
+        , m_variableDeclarationWithAssignment(m_someIdentifierStringRef, &m_trueLiteral)
         , m_variableDeclarationWithoutAssignment(m_someIdentifierStringRef, nullptr)
         , m_twoConstDeclarations(&m_constDeclaration1)
         , m_twoConstDeclarationsPart2(&m_twoConstDeclarations, &m_constDeclaration2)
@@ -114,10 +127,10 @@ public:
         , m_statement2()
         , m_statement3()
         , m_expressionStatement(nullptr)
-        , m_ifStatementWithoutElse(&m_trueExpression, &m_statement1)
-        , m_ifStatementWithElse(&m_trueExpression, &m_statement1, &m_statement2)
+        , m_ifStatementWithoutElse(&m_trueLiteral, &m_statement1)
+        , m_ifStatementWithElse(&m_trueLiteral, &m_statement1, &m_statement2)
         , m_returnStatementWithoutValue(nullptr)
-        , m_returnStatementWithValue(&m_trueExpression)
+        , m_returnStatementWithValue(&m_trueLiteral)
         , m_variableStatement(&m_twoVarDeclarations)
         , m_threeStatementsList(&m_statement1)
         , m_statementListPart2(&m_threeStatementsList, &m_statement2)
@@ -136,8 +149,8 @@ public:
         , m_functionDeclarationWithParameters(m_someIdentifierStringRef, &m_twoParameters , &m_functionBody)
         , m_functionDeclarationWithoutBody(m_someIdentifierStringRef, &m_twoParameters, nullptr)
         /* Switch */
-        , m_caseClause1(&m_trueExpression, &m_threeStatementsList)
-        , m_caseClause2(&m_trueExpression, &m_threeStatementsList)
+        , m_caseClause1(&m_trueLiteral, &m_threeStatementsList)
+        , m_caseClause2(&m_trueLiteral, &m_threeStatementsList)
         , m_twoCaseClauses(&m_caseClause1)
         , m_twoCaseClausesPart2(&m_twoCaseClauses, &m_caseClause2)
         , m_defaultClause(&m_threeStatementsList)
@@ -145,9 +158,14 @@ public:
         , m_caseBlockOnlyCases(&m_twoCaseClauses)
         , m_caseBlockCasesAndDefault(&m_twoCaseClauses, &m_defaultClause)
         , m_caseBlockCasesDefaultCases(&m_twoCaseClauses, &m_defaultClause, &m_twoCaseClauses)
-        , m_caseClause(&m_trueExpression, &m_threeStatementsList)
-        , m_switchStatement(&m_trueExpression, &m_caseBlock)
+        , m_caseClause(&m_trueLiteral, &m_threeStatementsList)
+        , m_switchStatement(&m_trueLiteral, &m_caseBlock)
     {
+        m_elisionsPart2.finish();
+        m_arrayElementsExp.finish();
+        m_arrayElementsExpExpPart2.finish();
+        m_arrayElementsElisionExp.finish();
+        m_arrayElementsExpElisionExpPart2.finish();
         m_statementListPart3.finish();
         m_sourceElementsListPart3.finish();
         m_parameterListPart2.finish();
@@ -172,11 +190,25 @@ private:
     const QStringRef m_anotherIdentifierStringRef;
 
     /* Expressions */
+    AST::ThisExpression m_thisExpression;
+    AST::NullExpression m_nullExpression;
     AST::IdentifierExpression m_identifierExpression;
+    AST::TrueLiteral m_trueLiteral;
+    AST::FalseLiteral m_falseLiteral;
     AST::NumericLiteral m_numericalExpressionPi;
     AST::StringLiteral m_stringLiteral;
-    AST::TrueLiteral m_trueExpression;
-    AST::FalseLiteral m_falseExpression;
+
+    AST::Elision m_twoElisions;
+    AST::Elision m_elisionsPart2;
+    AST::ElementList m_arrayElementsExp;
+    AST::ElementList m_arrayElementsExpExp;
+    AST::ElementList m_arrayElementsExpExpPart2;
+    AST::ElementList m_arrayElementsElisionExp;
+    AST::ElementList m_arrayElementsExpElisionExp;
+    AST::ElementList m_arrayElementsExpElisionExpPart2;
+    AST::ArrayLiteral m_arrayLiteralWithElision;
+    AST::ArrayLiteral m_arrayLiteralWithoutElision;
+    AST::ArrayLiteral m_arrayLiteralOnlyElision;
 
     AST::BinaryExpression m_equalsBinaryExpression;
 
@@ -280,14 +312,17 @@ private slots:
     TEST_VISIT_PUTS_ON_STACK(DefaultClause          , Default           , "default"         , m_defaultClause)
     TEST_VISIT_PUTS_ON_STACK(ContinueStatement      , WithLabel         , "continue ALabel;", m_continueStatementWithLabel)
     TEST_VISIT_PUTS_ON_STACK(ContinueStatement      , WithoutLabel      , "continue;"       , m_continueStatementWithoutLabel)
+    TEST_VISIT_PUTS_ON_STACK(Elision                , AnyCase           , ",,"              , m_twoElisions)
     TEST_VISIT_DEFAULT_IMPL_(EmptyStatement                                                 , m_emptyStatement)
     TEST_VISIT_DEFAULT_IMPL_(ExpressionStatement                                            , m_expressionStatement)
     TEST_VISIT_PUTS_ON_STACK(FormalParameterList    , OneParameter      , "e"               , m_parameterListPart2)
     TEST_VISIT_PUTS_ON_STACK(FormalParameterList    , TwoParameters     , "i,e"             , m_twoParameters)
+    TEST_VISIT_PUTS_ON_STACK(FalseLiteral           , AnyCase           , "false"           , m_falseLiteral)
     TEST_VISIT_DEFAULT_IMPL_(FunctionBody                                                   , m_functionBody)
     TEST_VISIT_DEFAULT_IMPL_(FunctionDeclaration                                            , m_functionDeclarationWithParameters)
     TEST_VISIT_PUTS_ON_STACK(IdentifierExpression   , AnyCase           , "i"               , m_identifierExpression)
     TEST_VISIT_DEFAULT_IMPL_(IfStatement                                                    , m_ifStatementWithoutElse)
+    TEST_VISIT_PUTS_ON_STACK(NullExpression         , AnyCase           , "null"            , m_nullExpression)
     TEST_VISIT_PUTS_ON_STACK(NumericLiteral         , Pi                , "3.14"            , m_numericalExpressionPi)
     TEST_VISIT_DEFAULT_IMPL_(PostDecrementExpression                                        , m_postDecrementExpression)
     TEST_VISIT_DEFAULT_IMPL_(PostIncrementExpression                                        , m_postIncrementExpression)
@@ -298,10 +333,15 @@ private slots:
     TEST_VISIT_DEFAULT_IMPL_(StatementList                                                  , m_threeStatementsList)
     TEST_VISIT_PUTS_ON_STACK(StringLiteral          , AnyCase           , "\"some string\"" , m_stringLiteral)
     TEST_VISIT_DEFAULT_IMPL_(SwitchStatement                                                , m_switchStatement)
+    TEST_VISIT_PUTS_ON_STACK(ThisExpression         , AnyCase           , "this"            , m_thisExpression)
+    TEST_VISIT_PUTS_ON_STACK(TrueLiteral            , AnyCase           , "true"            , m_trueLiteral)
     TEST_VISIT_DEFAULT_IMPL_(VariableDeclaration                                            , m_variableDeclarationWithoutAssignment)
     TEST_VISIT_DEFAULT_IMPL_(VariableDeclarationList                                        , m_twoConstDeclarations)
     TEST_VISIT_DEFAULT_IMPL_(VariableStatement                                              , m_variableStatement)
 
+    TEST_ENDVISIT_REDUCES(ArrayLiteral            , OnlyElision       , "[,,,]"           , ({",,,"})                    , m_arrayLiteralOnlyElision)
+    TEST_ENDVISIT_REDUCES(ArrayLiteral            , WithElision       , "[5,,,]"          , ({"5", ",,,"})               , m_arrayLiteralWithElision)
+    TEST_ENDVISIT_REDUCES(ArrayLiteral            , WithoutElision    , "[5]"             , ({"5"})                      , m_arrayLiteralWithoutElision)
     TEST_ENDVISIT_REDUCES(BinaryExpression        , TwoOperands       , "2==4"            , ({"==", "2", "4"})           , m_equalsBinaryExpression)
     TEST_ENDVISIT_REDUCES(Block                   , AnyCase           , "{content}"       , ({"content"})                , m_block)
     TEST_ENDVISIT_REDUCES(CaseBlock               , OnlyCases         , "{cases;}"        , ({"cases;"})                 , m_caseBlockOnlyCases)
@@ -310,6 +350,10 @@ private slots:
     TEST_ENDVISIT_REDUCES(CaseClause              , CaseWithStatement , "case exp:stm;"   , ({"case", "exp", "stm;"})    , m_caseClause)
     TEST_ENDVISIT_REDUCES(CaseClauses             , TwoClauses        , "case e:s;case e2:s2;", ({"case e:s;", "case e2:s2;"}), m_twoCaseClauses)
     TEST_ENDVISIT_REDUCES(DefaultClause           , AnyCase           , "default:stm"     , ({"default", "stm"})         , m_defaultClause)
+    TEST_ENDVISIT_REDUCES(ElementList             , Expression        , "expr,"           , ({"expr"})                   , m_arrayElementsExp)
+    TEST_ENDVISIT_REDUCES(ElementList             , TwoExpressions    , "expr,expr,"      , ({"expr", "expr"})           , m_arrayElementsExpExp)
+    TEST_ENDVISIT_REDUCES(ElementList             , ElisionExpression , "elisionexpr,"    , ({"elision", "expr"})        , m_arrayElementsElisionExp)
+    TEST_ENDVISIT_REDUCES(ElementList             , ExprElisionExpr   , "expr,eliexpr,"   , ({"expr", "eli", "expr"})    , m_arrayElementsExpElisionExp)
     TEST_ENDVISIT_REDUCES(EmptyStatement          , DefaultScenario   , ";"               , ({})                         , m_emptyStatement)
     TEST_ENDVISIT_REDUCES(ExpressionStatement     , AnyCase           , "expression;"     , ({"expression"})             , m_expressionStatement)
     TEST_ENDVISIT_REDUCES(FormalParameterList     , AnyCase           , "i"               , ({"i"})                      , m_twoParameters) // does nothing
