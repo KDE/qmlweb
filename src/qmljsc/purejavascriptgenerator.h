@@ -33,27 +33,14 @@ public:
     QString getGeneratedCode();
 
     virtual bool visit(QQmlJS::AST::BinaryExpression *) override;
-    virtual bool visit(QQmlJS::AST::Block *) override;
     virtual bool visit(QQmlJS::AST::BreakStatement *) override;
-    virtual bool visit(QQmlJS::AST::CaseBlock *) override;
     virtual bool visit(QQmlJS::AST::CaseClause *) override;
     virtual bool visit(QQmlJS::AST::ContinueStatement *) override;
     virtual bool visit(QQmlJS::AST::DefaultClause *) override;
     virtual bool visit(QQmlJS::AST::FormalParameterList *) override;
-    virtual bool visit(QQmlJS::AST::FunctionBody *) override;
-    virtual bool visit(QQmlJS::AST::FunctionDeclaration *) override;
     virtual bool visit(QQmlJS::AST::IdentifierExpression *) override;
-    virtual bool visit(QQmlJS::AST::IfStatement *) override;
     virtual bool visit(QQmlJS::AST::NumericLiteral *) override;
-    virtual bool visit(QQmlJS::AST::ReturnStatement *) override;
     virtual bool visit(QQmlJS::AST::StringLiteral *) override;
-    virtual bool visit(QQmlJS::AST::SwitchStatement *) override;
-    virtual bool visit(QQmlJS::AST::PostDecrementExpression *) override;
-    virtual bool visit(QQmlJS::AST::PostIncrementExpression *) override;
-    virtual bool visit(QQmlJS::AST::PreDecrementExpression *) override;
-    virtual bool visit(QQmlJS::AST::PreIncrementExpression *) override;
-    virtual bool visit(QQmlJS::AST::VariableDeclaration *) override;
-    virtual bool visit(QQmlJS::AST::VariableDeclarationList *) override;
 
     virtual void endVisit(QQmlJS::AST::BinaryExpression *) override;
     virtual void endVisit(QQmlJS::AST::Block *) override;
@@ -82,10 +69,8 @@ public:
     virtual void endVisit(QQmlJS::AST::VariableStatement *) override;
 
 private:
-    void updateStackWithPostOperation();
-    void updateStackWithPreOperation();
     template<typename ListType> void reduceListStack(ListType* list, const char* separator = "");
-    void reduceJumpWithOptionalLabelStatement(const char* keyword, QStringRef label);
+    void reduceJumpStatement(const char *keyword, QStringRef label);
 
     QStack<QString> m_outputStack;
 
