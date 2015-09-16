@@ -41,6 +41,7 @@ public:
     virtual bool visit(QQmlJS::AST::FalseLiteral *) override;
     virtual bool visit(QQmlJS::AST::FormalParameterList *) override;
     virtual bool visit(QQmlJS::AST::IdentifierExpression *) override;
+    virtual bool visit(QQmlJS::AST::IdentifierPropertyName *) override;
     virtual bool visit(QQmlJS::AST::NullExpression *) override;
     virtual bool visit(QQmlJS::AST::NumericLiteral *) override;
     virtual bool visit(QQmlJS::AST::StringLiteral *) override;
@@ -62,10 +63,14 @@ public:
     virtual void endVisit(QQmlJS::AST::IdentifierExpression *) override;
     virtual void endVisit(QQmlJS::AST::IfStatement *) override;
     virtual void endVisit(QQmlJS::AST::NumericLiteral *) override;
+    virtual void endVisit(QQmlJS::AST::ObjectLiteral *) override;
     virtual void endVisit(QQmlJS::AST::PostDecrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::PostIncrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::PreDecrementExpression *) override;
     virtual void endVisit(QQmlJS::AST::PreIncrementExpression *) override;
+    virtual void endVisit(QQmlJS::AST::PropertyAssignmentList *) override;
+    virtual void endVisit(QQmlJS::AST::PropertyGetterSetter *) override;
+    virtual void endVisit(QQmlJS::AST::PropertyNameAndValue *) override;
     virtual void endVisit(QQmlJS::AST::ReturnStatement *) override;
     virtual void endVisit(QQmlJS::AST::SourceElements *) override;
     virtual void endVisit(QQmlJS::AST::StringLiteral *) override;
