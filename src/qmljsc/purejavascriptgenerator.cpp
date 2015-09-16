@@ -134,6 +134,11 @@ bool PureJavaScriptGenerator::visit(AST::IdentifierExpression *identifierExpress
     return true;
 }
 
+bool PureJavaScriptGenerator::visit(AST::IdentifierPropertyName *identifierPropertyName) {
+    m_outputStack << identifierPropertyName->id.toString();
+    return true;
+}
+
 bool PureJavaScriptGenerator::visit(AST::NullExpression *) {
     m_outputStack << "null";
     return true;
@@ -274,6 +279,11 @@ void PureJavaScriptGenerator::endVisit(AST::IfStatement *ifExpression) {
 void PureJavaScriptGenerator::endVisit(AST::NumericLiteral *) {
 }
 
+void PureJavaScriptGenerator::endVisit(AST::ObjectLiteral *) {
+    const QString properties = m_outputStack.pop();
+    m_outputStack << '{' + properties + '}';
+}
+
 void PureJavaScriptGenerator::endVisit(AST::PostDecrementExpression *) {
     const QString expression = m_outputStack.pop();
     m_outputStack << expression + "--";
@@ -292,6 +302,27 @@ void PureJavaScriptGenerator::endVisit(AST::PreDecrementExpression *) {
 void PureJavaScriptGenerator::endVisit(AST::PreIncrementExpression *) {
     const QString expression = m_outputStack.pop();
     m_outputStack << "++" + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::PropertyAssignmentList *assignmentList) {
+    reduceListStack<AST::PropertyAssignmentList>(assignmentList, ",");
+}
+
+void PureJavaScriptGenerator::endVisit(AST::PropertyGetterSetter *getterSetter) {
+    const QString functionBody = (getterSetter->functionBody)?m_outputStack.pop():"{}";
+    const QString parameters = (getterSetter->formals)?m_outputStack.pop():"";
+    const QString propertyName = m_outputStack.pop();
+    if (getterSetter->type == AST::PropertyGetterSetter::Getter) {
+        m_outputStack << "get " + propertyName + "()" + functionBody;
+    } else {
+        m_outputStack << "set " + propertyName + '(' + parameters + ')' + functionBody;
+    }
+}
+
+void PureJavaScriptGenerator::endVisit(AST::PropertyNameAndValue *) {
+    const QString expression = m_outputStack.pop();
+    const QString propertyName = m_outputStack.pop();
+    m_outputStack << propertyName + ':' + expression;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::ReturnStatement *returnStatement) {

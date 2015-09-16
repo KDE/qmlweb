@@ -102,6 +102,15 @@ public:
         , m_arrayLiteralWithoutElision(&m_arrayElementsExp)
         , m_arrayLiteralOnlyElision(&m_twoElisions)
         , m_arrayElementsExpElisionExpPart2(&m_arrayElementsExpElisionExp, &m_twoElisions, &m_trueLiteral)
+        , m_identifierPropertyName(m_someIdentifierStringRef)
+        , m_propertyNameAndValue(&m_identifierPropertyName, &m_falseLiteral)
+        , m_propertyGetter(&m_identifierPropertyName, &m_functionBody)
+        , m_propertyGetterEmptyBody(&m_identifierPropertyName, nullptr)
+        , m_propertySetter(&m_identifierPropertyName, &m_twoParameters, &m_functionBody)
+        , m_propertySetterEmptyBody(&m_identifierPropertyName, &m_twoParameters, nullptr)
+        , m_twoProperties(&m_propertyNameAndValue)
+        , m_twoPropertiesPart2(&m_twoProperties, &m_propertyNameAndValue)
+        , m_objectLiteral(&m_twoProperties)
         , m_equalsBinaryExpression(nullptr, QSOperator::Equal, nullptr)
         , m_postDecrementExpression(&m_numericalExpressionPi)
         , m_postIncrementExpression(&m_numericalExpressionPi)
@@ -166,6 +175,7 @@ public:
         m_arrayElementsExpExpPart2.finish();
         m_arrayElementsElisionExp.finish();
         m_arrayElementsExpElisionExpPart2.finish();
+        m_twoPropertiesPart2.finish();
         m_statementListPart3.finish();
         m_sourceElementsListPart3.finish();
         m_parameterListPart2.finish();
@@ -209,6 +219,16 @@ private:
     AST::ArrayLiteral m_arrayLiteralWithElision;
     AST::ArrayLiteral m_arrayLiteralWithoutElision;
     AST::ArrayLiteral m_arrayLiteralOnlyElision;
+
+    AST::IdentifierPropertyName m_identifierPropertyName;
+    AST::PropertyNameAndValue m_propertyNameAndValue;
+    AST::PropertyGetterSetter m_propertyGetter;
+    AST::PropertyGetterSetter m_propertyGetterEmptyBody;
+    AST::PropertyGetterSetter m_propertySetter;
+    AST::PropertyGetterSetter m_propertySetterEmptyBody;
+    AST::PropertyAssignmentList m_twoProperties;
+    AST::PropertyAssignmentList m_twoPropertiesPart2;
+    AST::ObjectLiteral m_objectLiteral;
 
     AST::BinaryExpression m_equalsBinaryExpression;
 
@@ -321,6 +341,7 @@ private slots:
     TEST_VISIT_DEFAULT_IMPL_(FunctionBody                                                   , m_functionBody)
     TEST_VISIT_DEFAULT_IMPL_(FunctionDeclaration                                            , m_functionDeclarationWithParameters)
     TEST_VISIT_PUTS_ON_STACK(IdentifierExpression   , AnyCase           , "i"               , m_identifierExpression)
+    TEST_VISIT_PUTS_ON_STACK(IdentifierPropertyName , AnyCase           , "i"               , m_identifierPropertyName)
     TEST_VISIT_DEFAULT_IMPL_(IfStatement                                                    , m_ifStatementWithoutElse)
     TEST_VISIT_PUTS_ON_STACK(NullExpression         , AnyCase           , "null"            , m_nullExpression)
     TEST_VISIT_PUTS_ON_STACK(NumericLiteral         , Pi                , "3.14"            , m_numericalExpressionPi)
@@ -365,10 +386,17 @@ private slots:
     TEST_ENDVISIT_REDUCES(IfStatement             , OnlyIf            , "if(exp)stm;"     , ({"exp", "stm;"})            , m_ifStatementWithoutElse)
     TEST_ENDVISIT_REDUCES(IfStatement             , IfElse            , "if(exp)s;else s;", ({"exp", "s;", "s;"})        , m_ifStatementWithElse)
     TEST_ENDVISIT_REDUCES(NumericLiteral          , AnyCase           , "2.7"             , ({"2.7"})                    , m_numericalExpressionPi)
+    TEST_ENDVISIT_REDUCES(ObjectLiteral           , AnyCase           , "{properties}"    , ({"properties"})             , m_objectLiteral)
     TEST_ENDVISIT_REDUCES(PostDecrementExpression , AnyCase           , "2.7--"           , ({"2.7"})                    , m_postDecrementExpression)
     TEST_ENDVISIT_REDUCES(PostIncrementExpression , AnyCase           , "2.7++"           , ({"2.7"})                    , m_postIncrementExpression)
     TEST_ENDVISIT_REDUCES(PreDecrementExpression  , AnyCase           , "--2.7"           , ({"2.7"})                    , m_preDecrementExpression)
     TEST_ENDVISIT_REDUCES(PreIncrementExpression  , AnyCase           , "++2.7"           , ({"2.7"})                    , m_preIncrementExpression)
+    TEST_ENDVISIT_REDUCES(PropertyAssignmentList  , TwoProperties     , "prop1,prop2"     , ({"prop1", "prop2"})         , m_twoProperties)
+    TEST_ENDVISIT_REDUCES(PropertyGetterSetter    , Getter            , "get i(){body}"   , ({"i", "{body}"})            , m_propertyGetter)
+    TEST_ENDVISIT_REDUCES(PropertyGetterSetter    , GetterEmptyBody   , "get i(){}"       , ({"i"})                      , m_propertyGetterEmptyBody)
+    TEST_ENDVISIT_REDUCES(PropertyGetterSetter    , Setter            , "set i(param){body}", ({"i", "param", "{body}"}) , m_propertySetter)
+    TEST_ENDVISIT_REDUCES(PropertyGetterSetter    , SetterEmptyBody   , "set i(param){}"  , ({"i", "param"})             , m_propertySetterEmptyBody)
+    TEST_ENDVISIT_REDUCES(PropertyNameAndValue    , AnyCase           , "prop:expr"       , ({"prop", "expr"})           , m_propertyNameAndValue)
     TEST_ENDVISIT_REDUCES(ReturnStatement         , WithoutReturnValue, "return;"         , ({})                         , m_returnStatementWithoutValue)
     TEST_ENDVISIT_REDUCES(ReturnStatement         , WithReturnValue   , "return true;"    , ({"true"})                   , m_returnStatementWithValue)
     TEST_ENDVISIT_REDUCES(SourceElements          , ThreeSrcElements  , "sEl1sEl2sEl3"    , ({"sEl1", "sEl2", "sEl3"})   , m_threeSourceElementsList)
