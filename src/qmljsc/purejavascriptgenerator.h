@@ -49,6 +49,7 @@ public:
     virtual bool visit(QQmlJS::AST::TrueLiteral *) override;
     
     virtual void endVisit(QQmlJS::AST::ArrayLiteral *) override;
+    virtual void endVisit(QQmlJS::AST::ArrayMemberExpression *) override;
     virtual void endVisit(QQmlJS::AST::BinaryExpression *) override;
     virtual void endVisit(QQmlJS::AST::Block *) override;
     virtual void endVisit(QQmlJS::AST::CaseBlock *) override;
@@ -58,6 +59,7 @@ public:
     virtual void endVisit(QQmlJS::AST::ElementList *) override;
     virtual void endVisit(QQmlJS::AST::EmptyStatement *) override;
     virtual void endVisit(QQmlJS::AST::ExpressionStatement *) override;
+    virtual void endVisit(QQmlJS::AST::FieldMemberExpression *) override;
     virtual void endVisit(QQmlJS::AST::FunctionBody *) override;
     virtual void endVisit(QQmlJS::AST::FunctionDeclaration *) override;
     virtual void endVisit(QQmlJS::AST::IdentifierExpression *) override;

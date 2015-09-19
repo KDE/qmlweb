@@ -83,6 +83,8 @@ public:
         , m_someIdentifierStringRef(&m_someIdentifier)
         , m_anotherIdentifier("e")
         , m_anotherIdentifierStringRef(&m_anotherIdentifier)
+        , m_propertyIdentifier("property")
+        , m_propertyIdentifierStringRef(&m_propertyIdentifier)
         /* Expressions */
         , m_thisExpression()
         , m_nullExpression()
@@ -117,6 +119,8 @@ public:
         , m_preDecrementExpression(&m_numericalExpressionPi)
         , m_preIncrementExpression(&m_numericalExpressionPi)
         , m_block(nullptr)
+        , m_fieldMemberExpression(&m_identifierExpression, m_propertyIdentifierStringRef)
+        , m_arrayMemberExpression(nullptr, nullptr)
         /* Variable Declarations */
         , m_constDeclaration1(m_someIdentifierStringRef, nullptr)
         , m_constDeclaration2(m_anotherIdentifierStringRef, nullptr)
@@ -198,6 +202,8 @@ private:
     const QStringRef m_someIdentifierStringRef;
     const QString m_anotherIdentifier;
     const QStringRef m_anotherIdentifierStringRef;
+    const QString m_propertyIdentifier;
+    const QStringRef m_propertyIdentifierStringRef;
 
     /* Expressions */
     AST::ThisExpression m_thisExpression;
@@ -236,6 +242,9 @@ private:
     AST::PostIncrementExpression m_postIncrementExpression;
     AST::PreDecrementExpression m_preDecrementExpression;
     AST::PreIncrementExpression m_preIncrementExpression;
+
+    AST::FieldMemberExpression m_fieldMemberExpression;
+    AST::ArrayMemberExpression m_arrayMemberExpression;
 
     /* Variable Declarations */
     AST::VariableDeclaration m_constDeclaration1;
@@ -363,6 +372,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(ArrayLiteral            , OnlyElision       , "[,,,]"           , ({",,,"})                    , m_arrayLiteralOnlyElision)
     TEST_ENDVISIT_REDUCES(ArrayLiteral            , WithElision       , "[5,,,]"          , ({"5", ",,,"})               , m_arrayLiteralWithElision)
     TEST_ENDVISIT_REDUCES(ArrayLiteral            , WithoutElision    , "[5]"             , ({"5"})                      , m_arrayLiteralWithoutElision)
+    TEST_ENDVISIT_REDUCES(ArrayMemberExpression   , AnyCase           , "i[2]"            , ({"i", "2"})                 , m_arrayMemberExpression)
     TEST_ENDVISIT_REDUCES(BinaryExpression        , TwoOperands       , "2==4"            , ({"==", "2", "4"})           , m_equalsBinaryExpression)
     TEST_ENDVISIT_REDUCES(Block                   , AnyCase           , "{content}"       , ({"content"})                , m_block)
     TEST_ENDVISIT_REDUCES(CaseBlock               , OnlyCases         , "{cases;}"        , ({"cases;"})                 , m_caseBlockOnlyCases)
@@ -377,6 +387,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(ElementList             , ExprElisionExpr   , "expr,eliexpr,"   , ({"expr", "eli", "expr"})    , m_arrayElementsExpElisionExp)
     TEST_ENDVISIT_REDUCES(EmptyStatement          , DefaultScenario   , ";"               , ({})                         , m_emptyStatement)
     TEST_ENDVISIT_REDUCES(ExpressionStatement     , AnyCase           , "expression;"     , ({"expression"})             , m_expressionStatement)
+    TEST_ENDVISIT_REDUCES(FieldMemberExpression   , AnyCase           , "obj.property"    , ({"obj"})                    , m_fieldMemberExpression)
     TEST_ENDVISIT_REDUCES(FormalParameterList     , AnyCase           , "i"               , ({"i"})                      , m_twoParameters) // does nothing
     TEST_ENDVISIT_REDUCES(FunctionBody            , ClosesCorrectly   , "{func}"          , ({"func"})                   , m_functionBody)
     TEST_ENDVISIT_REDUCES(FunctionDeclaration     , BodyNoParameters  , "function i(){body}"    , ({"{body}"})           , m_functionDeclarationWithoutParameters)
