@@ -114,6 +114,7 @@ public:
         , m_twoPropertiesPart2(&m_twoProperties, &m_propertyNameAndValue)
         , m_objectLiteral(&m_twoProperties)
         , m_equalsBinaryExpression(nullptr, QSOperator::Equal, nullptr)
+        , m_nestedExpression(nullptr)
         , m_postDecrementExpression(&m_numericalExpressionPi)
         , m_postIncrementExpression(&m_numericalExpressionPi)
         , m_preDecrementExpression(&m_numericalExpressionPi)
@@ -126,6 +127,17 @@ public:
         , m_argumentListTwoArgumentsPart2(&m_argumentListTwoArguments, &m_trueLiteral)
         , m_callExpressionWithArguments(&m_identifierExpression, &m_argumentListTwoArguments)
         , m_callExpressionWithoutArguments(&m_identifierExpression, nullptr)
+        , m_newMemberExpressionArguments(&m_identifierExpression, &m_argumentListOneArgument)
+        , m_newMemberExpressionNoArguments(&m_identifierExpression, nullptr)
+        , m_newExpression(&m_identifierExpression)
+        , m_tildeExpression(&m_identifierExpression)
+        , m_notExpression(&m_identifierExpression)
+        , m_unaryPlusExpression(&m_identifierExpression)
+        , m_unaryMinusExpression(&m_identifierExpression)
+        , m_deleteExpression(&m_identifierExpression)
+        , m_typeOfExpression(&m_identifierExpression)
+        , m_voidExpression(&m_identifierExpression)
+        , m_conditionalExpression(&m_trueLiteral, &m_numericalExpressionPi, &m_numericalExpressionPi)
         /* Variable Declarations */
         , m_constDeclaration1(m_someIdentifierStringRef, nullptr)
         , m_constDeclaration2(m_anotherIdentifierStringRef, nullptr)
@@ -252,6 +264,7 @@ private:
     AST::ObjectLiteral m_objectLiteral;
 
     AST::BinaryExpression m_equalsBinaryExpression;
+    AST::NestedExpression m_nestedExpression;
 
     AST::PostDecrementExpression m_postDecrementExpression;
     AST::PostIncrementExpression m_postIncrementExpression;
@@ -266,6 +279,19 @@ private:
     AST::ArgumentList m_argumentListTwoArgumentsPart2;
     AST::CallExpression m_callExpressionWithArguments;
     AST::CallExpression m_callExpressionWithoutArguments;
+    AST::NewMemberExpression m_newMemberExpressionNoArguments;
+    AST::NewMemberExpression m_newMemberExpressionArguments;
+    AST::NewExpression m_newExpression;
+
+    AST::TildeExpression m_tildeExpression;
+    AST::NotExpression m_notExpression;
+    AST::UnaryPlusExpression m_unaryPlusExpression;
+    AST::UnaryMinusExpression m_unaryMinusExpression;
+    AST::DeleteExpression m_deleteExpression;
+    AST::TypeOfExpression m_typeOfExpression;
+    AST::VoidExpression m_voidExpression;
+
+    AST::ConditionalExpression m_conditionalExpression;
 
     /* Variable Declarations */
     AST::VariableDeclaration m_constDeclaration1;
@@ -415,8 +441,10 @@ private slots:
     TEST_ENDVISIT_REDUCES(CaseBlock               , CasesDefaultCases , "{cases;default;cases;}", ({"cases;", "default;", "cases;"}), m_caseBlockCasesDefaultCases)
     TEST_ENDVISIT_REDUCES(CaseClause              , CaseWithStatement , "case exp:stm;"   , ({"case", "exp", "stm;"})    , m_caseClause)
     TEST_ENDVISIT_REDUCES(CaseClauses             , TwoClauses        , "case e:s;case e2:s2;", ({"case e:s;", "case e2:s2;"}), m_twoCaseClauses)
+    TEST_ENDVISIT_REDUCES(ConditionalExpression   , AnyCase           , "condition?e1:e2" , ({"condition", "e1", "e2"})  , m_conditionalExpression)
     TEST_ENDVISIT_REDUCES(DefaultClause           , AnyCase           , "default:stm"     , ({"default", "stm"})         , m_defaultClause)
-    TEST_ENDVISIT_REDUCES(DoWhileStatement        , AnyCase           , "do stm;while(e);", ({"stm;", "e"})               , m_doWhileStatement)
+    TEST_ENDVISIT_REDUCES(DeleteExpression        , AnyCase           , "delete v"        , ({"v"})                      , m_deleteExpression)
+    TEST_ENDVISIT_REDUCES(DoWhileStatement        , AnyCase           , "do stm;while(e);", ({"stm;", "e"})              , m_doWhileStatement)
     TEST_ENDVISIT_REDUCES(ElementList             , Expression        , "expr,"           , ({"expr"})                   , m_arrayElementsExp)
     TEST_ENDVISIT_REDUCES(ElementList             , TwoExpressions    , "expr,expr,"      , ({"expr", "expr"})           , m_arrayElementsExpExp)
     TEST_ENDVISIT_REDUCES(ElementList             , ElisionExpression , "elisionexpr,"    , ({"elision", "expr"})        , m_arrayElementsElisionExp)
@@ -438,6 +466,11 @@ private slots:
     TEST_ENDVISIT_REDUCES(LocalForEachStatement   , AnyCase           , "for(var i in o)stm;", ({"i", "o", "stm;"})      , m_localForEachStatement)
     TEST_ENDVISIT_REDUCES(LocalForStatement       , AllParts          , "for(var i;c;++)stm;", ({"var i", "c", "++", "stm;"}), m_localForStatementAllParts)
     TEST_ENDVISIT_REDUCES(LocalForStatement       , NoPart            , "for(;;)stm;"     , ({"stm;"})                   , m_localForStatementNoPart)
+    TEST_ENDVISIT_REDUCES(NestedExpression        , AnyCase           , "(expression)"    , ({"expression"})             , m_nestedExpression)
+    TEST_ENDVISIT_REDUCES(NewExpression           , AnyCase           , "new constr"      , ({"constr"})                 , m_newExpression)
+    TEST_ENDVISIT_REDUCES(NewMemberExpression     , NoArguments       , "new constr()"    , ({"constr"})                 , m_newMemberExpressionNoArguments)
+    TEST_ENDVISIT_REDUCES(NewMemberExpression     , Arguments         , "new constr(arg)" , ({"constr", "arg"})          , m_newMemberExpressionArguments)
+    TEST_ENDVISIT_REDUCES(NotExpression           , AnyCase           , "!5"              , ({"5"})                      , m_notExpression)
     TEST_ENDVISIT_REDUCES(NumericLiteral          , AnyCase           , "2.7"             , ({"2.7"})                    , m_numericalExpressionPi)
     TEST_ENDVISIT_REDUCES(ObjectLiteral           , AnyCase           , "{properties}"    , ({"properties"})             , m_objectLiteral)
     TEST_ENDVISIT_REDUCES(PostDecrementExpression , AnyCase           , "2.7--"           , ({"2.7"})                    , m_postDecrementExpression)
@@ -456,12 +489,17 @@ private slots:
     TEST_ENDVISIT_REDUCES(SourceElements          , ThreeStatements   , "st1st2st3"       , ({"st1", "st2", "st3"})      , m_threeStatementsList)
     TEST_ENDVISIT_REDUCES(StringLiteral           , AnyCase           , "another string"  , ({"another string"})         , m_stringLiteral)
     TEST_ENDVISIT_REDUCES(SwitchStatement         , AnyCase           , "switch(e){blk}"  , ({"e", "{blk}"})             , m_switchStatement)
+    TEST_ENDVISIT_REDUCES(TildeExpression         , AnyCase           , "~5"              , ({"5"})                      , m_tildeExpression)
+    TEST_ENDVISIT_REDUCES(TypeOfExpression        , AnyCase           , "typeof v"        , ({"v"})                      , m_typeOfExpression)
+    TEST_ENDVISIT_REDUCES(UnaryMinusExpression    , AnyCase           , "-5"              , ({"5"})                      , m_unaryMinusExpression)
+    TEST_ENDVISIT_REDUCES(UnaryPlusExpression     , AnyCase           , "+5"              , ({"5"})                      , m_unaryPlusExpression)
     TEST_ENDVISIT_REDUCES(VariableDeclaration     , WithAssignment    , "i=5"             , ({"5"})                      , m_variableDeclarationWithAssignment)
     TEST_ENDVISIT_REDUCES(VariableDeclaration     , WithoutAssignment , "i"               , ({})                         , m_variableDeclarationWithoutAssignment)
     TEST_ENDVISIT_REDUCES(VariableDeclarationList , TwoDeclarations   , "var i,e=5"       , ({"i", "e=5"})               , m_twoVarDeclarations)
     TEST_ENDVISIT_REDUCES(VariableDeclarationList , OneDeclaration    , "var e=5"         , ({"e=5"})                    , m_twoVarDeclarationsPart2)
     TEST_ENDVISIT_REDUCES(VariableDeclarationList , ConstDeclaration  , "const e=5"       , ({"e=5"})                    , m_twoConstDeclarationsPart2)
     TEST_ENDVISIT_REDUCES(VariableStatement       , AnyCase           , "x;"              , ({"x"})                      , m_variableStatement)
+    TEST_ENDVISIT_REDUCES(VoidExpression          , AnyCase           , "void v"          , ({"v"})                      , m_voidExpression)
     TEST_ENDVISIT_REDUCES(WhileStatement          , AnyCase           , "while(e)stm"     , ({"e", "stm"})               , m_whileStatement)
 
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(Assign, "=")

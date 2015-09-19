@@ -230,10 +230,22 @@ void PureJavaScriptGenerator::endVisit(AST::CaseClauses *caseClauses) {
     reduceListStack<AST::CaseClauses>(caseClauses);
 }
 
+void PureJavaScriptGenerator::endVisit(AST::ConditionalExpression *) {
+    const QString secondExpression = m_outputStack.pop();
+    const QString firstExpression = m_outputStack.pop();
+    const QString condition = m_outputStack.pop();
+    m_outputStack << condition + '?' + firstExpression + ':' + secondExpression;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::DefaultClause *) {
     const QString statement = m_outputStack.pop();
     const QString defaultKeyword = m_outputStack.pop();
     m_outputStack << defaultKeyword + ':' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::DeleteExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "delete " + expression;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::ElementList *elementList) {
@@ -335,6 +347,27 @@ void PureJavaScriptGenerator::endVisit(AST::LocalForStatement *localForStatement
     m_outputStack << "for(" + declaration + ';' + condition + ';' + incrementExpression + ')' + statement;
 }
 
+void PureJavaScriptGenerator::endVisit(AST::NewExpression *) {
+    const QString constructor = m_outputStack.pop();
+    m_outputStack << "new " + constructor;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::NewMemberExpression *newMemberExpression) {
+    const QString arguments = (newMemberExpression->arguments)?m_outputStack.pop():"";
+    const QString constructor = m_outputStack.pop();
+    m_outputStack << "new " + constructor + '(' + arguments + ')';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::NestedExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '(' + expression + ')';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::NotExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '!' + expression;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::NumericLiteral *) {
 }
 
@@ -406,6 +439,26 @@ void PureJavaScriptGenerator::endVisit(AST::SwitchStatement *) {
     m_outputStack << "switch(" + expression + ')' + clauseBlock;
 }
 
+void PureJavaScriptGenerator::endVisit(AST::TildeExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '~' + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::TypeOfExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "typeof " + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::UnaryMinusExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '-' + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::UnaryPlusExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '+' + expression;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::VariableDeclaration *declaration) {
     const QString expression = (declaration->expression) ? "="+m_outputStack.pop() : "";
     const QString variableName = declaration->name.toString();
@@ -422,6 +475,12 @@ void PureJavaScriptGenerator::endVisit(AST::VariableDeclarationList *declaration
 void PureJavaScriptGenerator::endVisit(AST::VariableStatement *) {
     m_outputStack << m_outputStack.pop() + ';';
 }
+
+void PureJavaScriptGenerator::endVisit(AST::VoidExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "void " + expression;
+}
+
 
 void PureJavaScriptGenerator::endVisit(AST::WhileStatement *) {
     const QString statement = m_outputStack.pop();
