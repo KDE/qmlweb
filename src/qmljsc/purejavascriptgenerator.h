@@ -58,14 +58,19 @@ public:
     virtual void endVisit(QQmlJS::AST::CaseClause *) override;
     virtual void endVisit(QQmlJS::AST::CaseClauses *) override;
     virtual void endVisit(QQmlJS::AST::DefaultClause *) override;
+    virtual void endVisit(QQmlJS::AST::DoWhileStatement *) override;
     virtual void endVisit(QQmlJS::AST::ElementList *) override;
     virtual void endVisit(QQmlJS::AST::EmptyStatement *) override;
     virtual void endVisit(QQmlJS::AST::ExpressionStatement *) override;
     virtual void endVisit(QQmlJS::AST::FieldMemberExpression *) override;
+    virtual void endVisit(QQmlJS::AST::ForEachStatement *) override;
+    virtual void endVisit(QQmlJS::AST::ForStatement *) override;
     virtual void endVisit(QQmlJS::AST::FunctionBody *) override;
     virtual void endVisit(QQmlJS::AST::FunctionDeclaration *) override;
     virtual void endVisit(QQmlJS::AST::IdentifierExpression *) override;
     virtual void endVisit(QQmlJS::AST::IfStatement *) override;
+    virtual void endVisit(QQmlJS::AST::LocalForEachStatement *) override;
+    virtual void endVisit(QQmlJS::AST::LocalForStatement *) override;
     virtual void endVisit(QQmlJS::AST::NumericLiteral *) override;
     virtual void endVisit(QQmlJS::AST::ObjectLiteral *) override;
     virtual void endVisit(QQmlJS::AST::PostDecrementExpression *) override;
@@ -83,6 +88,7 @@ public:
     virtual void endVisit(QQmlJS::AST::VariableDeclaration *) override;
     virtual void endVisit(QQmlJS::AST::VariableDeclarationList *) override;
     virtual void endVisit(QQmlJS::AST::VariableStatement *) override;
+    virtual void endVisit(QQmlJS::AST::WhileStatement *) override;
 
 private:
     template<typename ListType> void reduceListStack(ListType* list, const char* separator = "");
