@@ -83,6 +83,7 @@ private slots:
         addRowForFileWithCompiled("declarations");
         addRowForFile("expressions");
         addRowForFileWithCompiled("functions");
+        addRowForFile("unaryoperators");
         addRowForFileWithCompiled("binaryoperations");
         addRowForFileWithCompiled("otherstatements");
         addRowForFileWithCompiled("ifstatements");
@@ -90,7 +91,7 @@ private slots:
         addRowForFileWithCompiled("literals");
         addRowForFileWithCompiled("arrayliterals");
         addRowForFileWithCompiled("objectliterals");
-        addRowForFileWithCompiled("propertyaccess");
+        addRowForFileWithCompiled("lefthandexpressions");
         addRowForFileWithCompiled("functioncalls");
         addRowForFileWithCompiled("loops");
     }
