@@ -121,6 +121,11 @@ public:
         , m_block(nullptr)
         , m_fieldMemberExpression(&m_identifierExpression, m_propertyIdentifierStringRef)
         , m_arrayMemberExpression(nullptr, nullptr)
+        , m_argumentListOneArgument(&m_trueLiteral)
+        , m_argumentListTwoArguments(&m_trueLiteral)
+        , m_argumentListTwoArgumentsPart2(&m_argumentListTwoArguments, &m_trueLiteral)
+        , m_callExpressionWithArguments(&m_identifierExpression, &m_argumentListTwoArguments)
+        , m_callExpressionWithoutArguments(&m_identifierExpression, nullptr)
         /* Variable Declarations */
         , m_constDeclaration1(m_someIdentifierStringRef, nullptr)
         , m_constDeclaration2(m_anotherIdentifierStringRef, nullptr)
@@ -180,6 +185,8 @@ public:
         m_arrayElementsElisionExp.finish();
         m_arrayElementsExpElisionExpPart2.finish();
         m_twoPropertiesPart2.finish();
+        m_argumentListOneArgument.finish();
+        m_argumentListTwoArgumentsPart2.finish();
         m_statementListPart3.finish();
         m_sourceElementsListPart3.finish();
         m_parameterListPart2.finish();
@@ -245,6 +252,12 @@ private:
 
     AST::FieldMemberExpression m_fieldMemberExpression;
     AST::ArrayMemberExpression m_arrayMemberExpression;
+
+    AST::ArgumentList m_argumentListOneArgument;
+    AST::ArgumentList m_argumentListTwoArguments;
+    AST::ArgumentList m_argumentListTwoArgumentsPart2;
+    AST::CallExpression m_callExpressionWithArguments;
+    AST::CallExpression m_callExpressionWithoutArguments;
 
     /* Variable Declarations */
     AST::VariableDeclaration m_constDeclaration1;
@@ -369,12 +382,16 @@ private slots:
     TEST_VISIT_DEFAULT_IMPL_(VariableDeclarationList                                        , m_twoConstDeclarations)
     TEST_VISIT_DEFAULT_IMPL_(VariableStatement                                              , m_variableStatement)
 
+    TEST_ENDVISIT_REDUCES(ArgumentList            , OneArgument       , "1"               , ({"1"})                      , m_argumentListOneArgument)
+    TEST_ENDVISIT_REDUCES(ArgumentList            , TwoArguments      , "1,2"             , ({"1", "2"})                 , m_argumentListTwoArguments)
     TEST_ENDVISIT_REDUCES(ArrayLiteral            , OnlyElision       , "[,,,]"           , ({",,,"})                    , m_arrayLiteralOnlyElision)
     TEST_ENDVISIT_REDUCES(ArrayLiteral            , WithElision       , "[5,,,]"          , ({"5", ",,,"})               , m_arrayLiteralWithElision)
     TEST_ENDVISIT_REDUCES(ArrayLiteral            , WithoutElision    , "[5]"             , ({"5"})                      , m_arrayLiteralWithoutElision)
     TEST_ENDVISIT_REDUCES(ArrayMemberExpression   , AnyCase           , "i[2]"            , ({"i", "2"})                 , m_arrayMemberExpression)
     TEST_ENDVISIT_REDUCES(BinaryExpression        , TwoOperands       , "2==4"            , ({"==", "2", "4"})           , m_equalsBinaryExpression)
     TEST_ENDVISIT_REDUCES(Block                   , AnyCase           , "{content}"       , ({"content"})                , m_block)
+    TEST_ENDVISIT_REDUCES(CallExpression          , WithArguments     , "func(args)"      , ({"func", "args"})           , m_callExpressionWithArguments)
+    TEST_ENDVISIT_REDUCES(CallExpression          , WithoutArguments  , "func()"          , ({"func"})                   , m_callExpressionWithoutArguments)
     TEST_ENDVISIT_REDUCES(CaseBlock               , OnlyCases         , "{cases;}"        , ({"cases;"})                 , m_caseBlockOnlyCases)
     TEST_ENDVISIT_REDUCES(CaseBlock               , CasesAndDefault   , "{cases;default;}", ({"cases;", "default;"})     , m_caseBlockCasesAndDefault)
     TEST_ENDVISIT_REDUCES(CaseBlock               , CasesDefaultCases , "{cases;default;cases;}", ({"cases;", "default;", "cases;"}), m_caseBlockCasesDefaultCases)
