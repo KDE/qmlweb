@@ -90,6 +90,7 @@ private slots:
         addRowForFileWithCompiled("literals");
         addRowForFileWithCompiled("arrayliterals");
         addRowForFileWithCompiled("objectliterals");
+        addRowForFileWithCompiled("propertyaccess");
     }
 
     void test_compileJavaScriptFile() {

@@ -170,6 +170,12 @@ void PureJavaScriptGenerator::endVisit(AST::ArrayLiteral *arrayLiteral) {
     m_outputStack << '[' + elements + elision + ']';
 }
 
+void PureJavaScriptGenerator::endVisit(AST::ArrayMemberExpression *) {
+    const QString keyExpression = m_outputStack.pop();
+    const QString arrayExpression = m_outputStack.pop();
+    m_outputStack << arrayExpression + '[' + keyExpression + ']';
+}
+
 void PureJavaScriptGenerator::endVisit(AST::BinaryExpression *) {
     const QString rightOperand = m_outputStack.pop();
     const QString leftOperand = m_outputStack.pop();
@@ -247,6 +253,12 @@ void PureJavaScriptGenerator::endVisit(AST::EmptyStatement *) {
 
 void PureJavaScriptGenerator::endVisit(AST::ExpressionStatement *) {
     m_outputStack << m_outputStack.pop() + ';';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::FieldMemberExpression *fieldMemberExpression) {
+    const QString objectExpression = m_outputStack.pop();
+    const QString memberName = fieldMemberExpression->name.toString();
+    m_outputStack << objectExpression + '.' + memberName;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::FunctionBody *) {
