@@ -178,6 +178,14 @@ public:
         , m_caseBlockCasesDefaultCases(&m_twoCaseClauses, &m_defaultClause, &m_twoCaseClauses)
         , m_caseClause(&m_trueLiteral, &m_threeStatementsList)
         , m_switchStatement(&m_trueLiteral, &m_caseBlock)
+        , m_whileStatement(nullptr, nullptr)
+        , m_doWhileStatement(nullptr, nullptr)
+        , m_forStatementAllParts(&m_trueLiteral, &m_falseLiteral, &m_trueLiteral, &m_block)
+        , m_forStatementNoPart(nullptr, nullptr, nullptr, &m_block)
+        , m_localForStatementAllParts(&m_twoVarDeclarations, &m_falseLiteral, &m_trueLiteral, &m_block)
+        , m_localForStatementNoPart(nullptr, nullptr, nullptr, &m_block)
+        , m_forEachStatement(&m_trueLiteral, &m_trueLiteral, &m_block)
+        , m_localForEachStatement(&m_variableDeclarationWithoutAssignment, &m_trueLiteral, &m_block)
     {
         m_elisionsPart2.finish();
         m_arrayElementsExp.finish();
@@ -316,6 +324,16 @@ private:
     AST::CaseClause m_caseClause;
     AST::SwitchStatement m_switchStatement;
 
+    /* Loops */
+    AST::WhileStatement m_whileStatement;
+    AST::DoWhileStatement m_doWhileStatement;
+    AST::ForStatement m_forStatementAllParts;
+    AST::ForStatement m_forStatementNoPart;
+    AST::LocalForStatement m_localForStatementAllParts;
+    AST::LocalForStatement m_localForStatementNoPart;
+    AST::ForEachStatement m_forEachStatement;
+    AST::LocalForEachStatement m_localForEachStatement;
+
 private slots:
     void init() {
         m_generator = new PureJavaScriptGenerator();
@@ -398,6 +416,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(CaseClause              , CaseWithStatement , "case exp:stm;"   , ({"case", "exp", "stm;"})    , m_caseClause)
     TEST_ENDVISIT_REDUCES(CaseClauses             , TwoClauses        , "case e:s;case e2:s2;", ({"case e:s;", "case e2:s2;"}), m_twoCaseClauses)
     TEST_ENDVISIT_REDUCES(DefaultClause           , AnyCase           , "default:stm"     , ({"default", "stm"})         , m_defaultClause)
+    TEST_ENDVISIT_REDUCES(DoWhileStatement        , AnyCase           , "do stm;while(e);", ({"stm;", "e"})               , m_doWhileStatement)
     TEST_ENDVISIT_REDUCES(ElementList             , Expression        , "expr,"           , ({"expr"})                   , m_arrayElementsExp)
     TEST_ENDVISIT_REDUCES(ElementList             , TwoExpressions    , "expr,expr,"      , ({"expr", "expr"})           , m_arrayElementsExpExp)
     TEST_ENDVISIT_REDUCES(ElementList             , ElisionExpression , "elisionexpr,"    , ({"elision", "expr"})        , m_arrayElementsElisionExp)
@@ -406,6 +425,9 @@ private slots:
     TEST_ENDVISIT_REDUCES(ExpressionStatement     , AnyCase           , "expression;"     , ({"expression"})             , m_expressionStatement)
     TEST_ENDVISIT_REDUCES(FieldMemberExpression   , AnyCase           , "obj.property"    , ({"obj"})                    , m_fieldMemberExpression)
     TEST_ENDVISIT_REDUCES(FormalParameterList     , AnyCase           , "i"               , ({"i"})                      , m_twoParameters) // does nothing
+    TEST_ENDVISIT_REDUCES(ForEachStatement        , AnyCase           , "for(i in o)stm;" , ({"i", "o", "stm;"})         , m_forEachStatement)
+    TEST_ENDVISIT_REDUCES(ForStatement            , AllParts          , "for(i;c;++)stm;" , ({"i", "c", "++", "stm;"})   , m_forStatementAllParts)
+    TEST_ENDVISIT_REDUCES(ForStatement            , NoPart            , "for(;;)stm;"     , ({"stm;"})                   , m_forStatementNoPart)
     TEST_ENDVISIT_REDUCES(FunctionBody            , ClosesCorrectly   , "{func}"          , ({"func"})                   , m_functionBody)
     TEST_ENDVISIT_REDUCES(FunctionDeclaration     , BodyNoParameters  , "function i(){body}"    , ({"{body}"})           , m_functionDeclarationWithoutParameters)
     TEST_ENDVISIT_REDUCES(FunctionDeclaration     , BodyParameters    , "function i(para){body}", ({"para", "{body}"})   , m_functionDeclarationWithParameters)
@@ -413,6 +435,9 @@ private slots:
     TEST_ENDVISIT_REDUCES(IdentifierExpression    , AnyCase           , "abc"             , ({"abc"})                    , m_identifierExpression)
     TEST_ENDVISIT_REDUCES(IfStatement             , OnlyIf            , "if(exp)stm;"     , ({"exp", "stm;"})            , m_ifStatementWithoutElse)
     TEST_ENDVISIT_REDUCES(IfStatement             , IfElse            , "if(exp)s;else s;", ({"exp", "s;", "s;"})        , m_ifStatementWithElse)
+    TEST_ENDVISIT_REDUCES(LocalForEachStatement   , AnyCase           , "for(var i in o)stm;", ({"i", "o", "stm;"})      , m_localForEachStatement)
+    TEST_ENDVISIT_REDUCES(LocalForStatement       , AllParts          , "for(var i;c;++)stm;", ({"var i", "c", "++", "stm;"}), m_localForStatementAllParts)
+    TEST_ENDVISIT_REDUCES(LocalForStatement       , NoPart            , "for(;;)stm;"     , ({"stm;"})                   , m_localForStatementNoPart)
     TEST_ENDVISIT_REDUCES(NumericLiteral          , AnyCase           , "2.7"             , ({"2.7"})                    , m_numericalExpressionPi)
     TEST_ENDVISIT_REDUCES(ObjectLiteral           , AnyCase           , "{properties}"    , ({"properties"})             , m_objectLiteral)
     TEST_ENDVISIT_REDUCES(PostDecrementExpression , AnyCase           , "2.7--"           , ({"2.7"})                    , m_postDecrementExpression)
@@ -437,6 +462,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(VariableDeclarationList , OneDeclaration    , "var e=5"         , ({"e=5"})                    , m_twoVarDeclarationsPart2)
     TEST_ENDVISIT_REDUCES(VariableDeclarationList , ConstDeclaration  , "const e=5"       , ({"e=5"})                    , m_twoConstDeclarationsPart2)
     TEST_ENDVISIT_REDUCES(VariableStatement       , AnyCase           , "x;"              , ({"x"})                      , m_variableStatement)
+    TEST_ENDVISIT_REDUCES(WhileStatement          , AnyCase           , "while(e)stm"     , ({"e", "stm"})               , m_whileStatement)
 
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(Assign, "=")
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceAdd, "+=")

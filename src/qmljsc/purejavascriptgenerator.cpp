@@ -212,6 +212,13 @@ void PureJavaScriptGenerator::endVisit(AST::CaseBlock *caseBlock) {
     m_outputStack << '{' + clausesLeft + defaultClause + clausesRight + '}';
 }
 
+void PureJavaScriptGenerator::endVisit(AST::DoWhileStatement *) {
+    const QString expression = m_outputStack.pop();
+    const QString statement = m_outputStack.pop();
+    m_outputStack << "do " + statement + "while" + '(' + expression + ')' + ';';
+    // space after do: do var i;while(false); is a valid statement and requires a space
+}
+
 void PureJavaScriptGenerator::endVisit(AST::CaseClause *) {
     const QString statement = m_outputStack.pop();
     const QString expression = m_outputStack.pop();
@@ -271,6 +278,21 @@ void PureJavaScriptGenerator::endVisit(AST::FieldMemberExpression *fieldMemberEx
     m_outputStack << objectExpression + '.' + memberName;
 }
 
+void PureJavaScriptGenerator::endVisit(AST::ForEachStatement *) {
+    const QString statement = m_outputStack.pop();
+    const QString objectExpression = m_outputStack.pop();
+    const QString variableExpression = m_outputStack.pop();
+    m_outputStack << "for(" + variableExpression + " in " + objectExpression + ')' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ForStatement *forStatement) {
+    const QString statement = m_outputStack.pop();
+    const QString incrementExpression = (forStatement->expression)?m_outputStack.pop():"";
+    const QString condition = (forStatement->condition)?m_outputStack.pop():"";
+    const QString initialisation = (forStatement->initialiser)?m_outputStack.pop():"";
+    m_outputStack << "for(" + initialisation + ';' + condition + ';' + incrementExpression + ')' + statement;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::FunctionBody *) {
     const QString body = m_outputStack.pop();
     m_outputStack << '{' + body + '}';
@@ -296,6 +318,21 @@ void PureJavaScriptGenerator::endVisit(AST::IfStatement *ifExpression) {
         code += "else " + elseStatements;
     }
     m_outputStack << code;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::LocalForEachStatement *) {
+    const QString statement = m_outputStack.pop();
+    const QString objectExpression = m_outputStack.pop();
+    const QString declaredVariableName = m_outputStack.pop();
+    m_outputStack << "for(var " + declaredVariableName + " in " + objectExpression + ')' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::LocalForStatement *localForStatement) {
+    const QString statement = m_outputStack.pop();
+    const QString incrementExpression = (localForStatement->expression)?m_outputStack.pop():"";
+    const QString condition = (localForStatement->condition)?m_outputStack.pop():"";
+    const QString declaration = (localForStatement->declarations)?m_outputStack.pop():"";
+    m_outputStack << "for(" + declaration + ';' + condition + ';' + incrementExpression + ')' + statement;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::NumericLiteral *) {
@@ -384,6 +421,12 @@ void PureJavaScriptGenerator::endVisit(AST::VariableDeclarationList *declaration
 
 void PureJavaScriptGenerator::endVisit(AST::VariableStatement *) {
     m_outputStack << m_outputStack.pop() + ';';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::WhileStatement *) {
+    const QString statement = m_outputStack.pop();
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "while(" + expression + ')' + statement;
 }
 
 void PureJavaScriptGenerator::reduceJumpStatement(const char *keyword, QStringRef label) {
