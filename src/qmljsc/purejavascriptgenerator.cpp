@@ -164,6 +164,10 @@ bool PureJavaScriptGenerator::visit(AST::TrueLiteral *) {
     return true;
 }
 
+void PureJavaScriptGenerator::endVisit(AST::ArgumentList *argumentList) {
+    reduceListStack<AST::ArgumentList>(argumentList, ",");
+}
+
 void PureJavaScriptGenerator::endVisit(AST::ArrayLiteral *arrayLiteral) {
     const QString elision = (arrayLiteral->elision)?m_outputStack.pop():"";
     const QString elements = (arrayLiteral->elements)?m_outputStack.pop():"";
@@ -187,6 +191,12 @@ void PureJavaScriptGenerator::endVisit(AST::BinaryExpression *) {
 void PureJavaScriptGenerator::endVisit(AST::Block *) {
     const QString blockCode = m_outputStack.pop();
     m_outputStack << '{' + blockCode + '}';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::CallExpression *callExpression) {
+    const QString arguments = (callExpression->arguments)?m_outputStack.pop():"";
+    const QString function = m_outputStack.pop();
+    m_outputStack << function + '(' + arguments + ')';
 }
 
 void PureJavaScriptGenerator::endVisit(AST::CaseBlock *caseBlock) {

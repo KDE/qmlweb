@@ -47,11 +47,13 @@ public:
     virtual bool visit(QQmlJS::AST::StringLiteral *) override;
     virtual bool visit(QQmlJS::AST::ThisExpression *) override;
     virtual bool visit(QQmlJS::AST::TrueLiteral *) override;
-    
+
+    virtual void endVisit(QQmlJS::AST::ArgumentList *) override;
     virtual void endVisit(QQmlJS::AST::ArrayLiteral *) override;
     virtual void endVisit(QQmlJS::AST::ArrayMemberExpression *) override;
     virtual void endVisit(QQmlJS::AST::BinaryExpression *) override;
     virtual void endVisit(QQmlJS::AST::Block *) override;
+    virtual void endVisit(QQmlJS::AST::CallExpression *) override;
     virtual void endVisit(QQmlJS::AST::CaseBlock *) override;
     virtual void endVisit(QQmlJS::AST::CaseClause *) override;
     virtual void endVisit(QQmlJS::AST::CaseClauses *) override;
