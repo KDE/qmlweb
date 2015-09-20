@@ -24,6 +24,7 @@
 #include <QStack>
 
 #include <private/qqmljsast_p.h>
+#include <private/qqmljslexer_p.h>
 
 class PureJavaScriptGenerator : public QQmlJS::AST::Visitor {
 
@@ -44,6 +45,8 @@ public:
     virtual bool visit(QQmlJS::AST::IdentifierPropertyName *) override;
     virtual bool visit(QQmlJS::AST::NullExpression *) override;
     virtual bool visit(QQmlJS::AST::NumericLiteral *) override;
+    virtual bool visit(QQmlJS::AST::NumericLiteralPropertyName *) override;
+    virtual bool visit(QQmlJS::AST::RegExpLiteral *) override;
     virtual bool visit(QQmlJS::AST::StringLiteral *) override;
     virtual bool visit(QQmlJS::AST::ThisExpression *) override;
     virtual bool visit(QQmlJS::AST::TrueLiteral *) override;
@@ -63,14 +66,17 @@ public:
     virtual void endVisit(QQmlJS::AST::DoWhileStatement *) override;
     virtual void endVisit(QQmlJS::AST::ElementList *) override;
     virtual void endVisit(QQmlJS::AST::EmptyStatement *) override;
+    virtual void endVisit(QQmlJS::AST::Expression *) override;
     virtual void endVisit(QQmlJS::AST::ExpressionStatement *) override;
     virtual void endVisit(QQmlJS::AST::FieldMemberExpression *) override;
     virtual void endVisit(QQmlJS::AST::ForEachStatement *) override;
     virtual void endVisit(QQmlJS::AST::ForStatement *) override;
     virtual void endVisit(QQmlJS::AST::FunctionBody *) override;
     virtual void endVisit(QQmlJS::AST::FunctionDeclaration *) override;
+    virtual void endVisit(QQmlJS::AST::FunctionExpression *) override;
     virtual void endVisit(QQmlJS::AST::IdentifierExpression *) override;
     virtual void endVisit(QQmlJS::AST::IfStatement *) override;
+    virtual void endVisit(QQmlJS::AST::LabelledStatement *) override;
     virtual void endVisit(QQmlJS::AST::LocalForEachStatement *) override;
     virtual void endVisit(QQmlJS::AST::LocalForStatement *) override;
     virtual void endVisit(QQmlJS::AST::NewExpression *) override;
@@ -100,6 +106,7 @@ public:
     virtual void endVisit(QQmlJS::AST::VariableStatement *) override;
     virtual void endVisit(QQmlJS::AST::VoidExpression *) override;
     virtual void endVisit(QQmlJS::AST::WhileStatement *) override;
+    virtual void endVisit(QQmlJS::AST::WithStatement *) override;
 
 private:
     template<typename ListType> void reduceListStack(ListType* list, const char* separator = "");
@@ -108,6 +115,8 @@ private:
     QStack<QString> m_outputStack;
 
     friend class TestPureJavaScriptGenerator;
+
+    const QString regExpFlagsString(const QQmlJS::Lexer::RegExpFlag &flagsAsEnum) const;
 };
 
 template<typename ListType> void PureJavaScriptGenerator::reduceListStack(ListType* current, const char* separator) {

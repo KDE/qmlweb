@@ -21,6 +21,8 @@
 #include <QtTest/QTest>
 
 #include <private/qqmljsast_p.h>
+#include <private/qqmljsgrammar_p.h>
+#include <private/qqmljslexer_p.h>
 
 #include "../../../src/qmljsc/utils/error.h"
 #include "../../../src/qmljsc/purejavascriptgenerator.h"
@@ -85,6 +87,7 @@ public:
         , m_anotherIdentifierStringRef(&m_anotherIdentifier)
         , m_propertyIdentifier("property")
         , m_propertyIdentifierStringRef(&m_propertyIdentifier)
+        , m_program(nullptr)
         /* Expressions */
         , m_thisExpression()
         , m_nullExpression()
@@ -93,6 +96,9 @@ public:
         , m_falseLiteral()
         , m_numericalExpressionPi(3.14)
         , m_stringLiteral(m_someStringStringRef)
+        , m_regexpNoFlag(m_someStringStringRef, 0)
+        , m_regexpOneFlag(m_someStringStringRef, Lexer::RegExp_Global)
+        , m_regexpAllFlags(m_someStringStringRef, Lexer::RegExp_Global | Lexer::RegExp_IgnoreCase | Lexer::RegExp_Multiline)
         , m_twoElisions()
         , m_elisionsPart2(&m_twoElisions)
         , m_arrayElementsExp(nullptr, &m_trueLiteral)
@@ -104,6 +110,7 @@ public:
         , m_arrayLiteralWithoutElision(&m_arrayElementsExp)
         , m_arrayLiteralOnlyElision(&m_twoElisions)
         , m_arrayElementsExpElisionExpPart2(&m_arrayElementsExpElisionExp, &m_twoElisions, &m_trueLiteral)
+        , m_numericPropertyName(3.14)
         , m_identifierPropertyName(m_someIdentifierStringRef)
         , m_propertyNameAndValue(&m_identifierPropertyName, &m_falseLiteral)
         , m_propertyGetter(&m_identifierPropertyName, &m_functionBody)
@@ -138,6 +145,9 @@ public:
         , m_typeOfExpression(&m_identifierExpression)
         , m_voidExpression(&m_identifierExpression)
         , m_conditionalExpression(&m_trueLiteral, &m_numericalExpressionPi, &m_numericalExpressionPi)
+        , m_commaExpression(&m_identifierExpression, &m_trueLiteral)
+        , m_functionExpressionParameterBody(m_someIdentifierStringRef, &m_twoParameters, &m_functionBody)
+        , m_functionExpressionNoParameterNoBody(m_someIdentifierStringRef, nullptr, nullptr)
         /* Variable Declarations */
         , m_constDeclaration1(m_someIdentifierStringRef, nullptr)
         , m_constDeclaration2(m_anotherIdentifierStringRef, nullptr)
@@ -171,6 +181,9 @@ public:
         , m_threeSourceElementsList(&m_sourceElement1)
         , m_sourceElementsListPart2(&m_threeSourceElementsList, &m_sourceElement2)
         , m_sourceElementsListPart3(&m_sourceElementsListPart2, &m_sourceElement3)
+        , m_labelledStatement(m_someLabelStringRef, &m_expressionStatement)
+        , m_withStatement(&m_trueLiteral, &m_block)
+        , m_statementSourceElement(&m_block)
         /* Function declaration */
         , m_twoParameters(m_someIdentifierStringRef)
         , m_parameterListPart2(&m_twoParameters, m_anotherIdentifierStringRef)
@@ -178,6 +191,7 @@ public:
         , m_functionDeclarationWithoutParameters(m_someIdentifierStringRef, nullptr, &m_functionBody)
         , m_functionDeclarationWithParameters(m_someIdentifierStringRef, &m_twoParameters , &m_functionBody)
         , m_functionDeclarationWithoutBody(m_someIdentifierStringRef, &m_twoParameters, nullptr)
+        , m_functionSourceElement(&m_functionDeclarationWithoutBody)
         /* Switch */
         , m_caseClause1(&m_trueLiteral, &m_threeStatementsList)
         , m_caseClause2(&m_trueLiteral, &m_threeStatementsList)
@@ -232,6 +246,8 @@ private:
     const QString m_propertyIdentifier;
     const QStringRef m_propertyIdentifierStringRef;
 
+    AST::Program m_program;
+
     /* Expressions */
     AST::ThisExpression m_thisExpression;
     AST::NullExpression m_nullExpression;
@@ -240,6 +256,9 @@ private:
     AST::FalseLiteral m_falseLiteral;
     AST::NumericLiteral m_numericalExpressionPi;
     AST::StringLiteral m_stringLiteral;
+    AST::RegExpLiteral m_regexpNoFlag;
+    AST::RegExpLiteral m_regexpOneFlag;
+    AST::RegExpLiteral m_regexpAllFlags;
 
     AST::Elision m_twoElisions;
     AST::Elision m_elisionsPart2;
@@ -253,6 +272,7 @@ private:
     AST::ArrayLiteral m_arrayLiteralWithoutElision;
     AST::ArrayLiteral m_arrayLiteralOnlyElision;
 
+    AST::NumericLiteralPropertyName m_numericPropertyName;
     AST::IdentifierPropertyName m_identifierPropertyName;
     AST::PropertyNameAndValue m_propertyNameAndValue;
     AST::PropertyGetterSetter m_propertyGetter;
@@ -292,6 +312,9 @@ private:
     AST::VoidExpression m_voidExpression;
 
     AST::ConditionalExpression m_conditionalExpression;
+    AST::Expression m_commaExpression;
+    AST::FunctionExpression m_functionExpressionParameterBody;
+    AST::FunctionExpression m_functionExpressionNoParameterNoBody;
 
     /* Variable Declarations */
     AST::VariableDeclaration m_constDeclaration1;
@@ -328,6 +351,9 @@ private:
     AST::SourceElements m_threeSourceElementsList;
     AST::SourceElements m_sourceElementsListPart2;
     AST::SourceElements m_sourceElementsListPart3;
+    AST::LabelledStatement m_labelledStatement;
+    AST::WithStatement m_withStatement;
+    AST::StatementSourceElement m_statementSourceElement;
 
     /* Function declarations */
     AST::FormalParameterList m_twoParameters;
@@ -336,6 +362,8 @@ private:
     AST::FunctionDeclaration m_functionDeclarationWithoutParameters;
     AST::FunctionDeclaration m_functionDeclarationWithParameters;
     AST::FunctionDeclaration m_functionDeclarationWithoutBody;
+
+    AST::FunctionSourceElement m_functionSourceElement;
     
     /* Switch */
     AST::CaseClause m_caseClause1;
@@ -411,10 +439,14 @@ private slots:
     TEST_VISIT_DEFAULT_IMPL_(IfStatement                                                    , m_ifStatementWithoutElse)
     TEST_VISIT_PUTS_ON_STACK(NullExpression         , AnyCase           , "null"            , m_nullExpression)
     TEST_VISIT_PUTS_ON_STACK(NumericLiteral         , Pi                , "3.14"            , m_numericalExpressionPi)
+    TEST_VISIT_PUTS_ON_STACK(NumericLiteralPropertyName, AnyCase        , "3.14"            , m_numericPropertyName)
     TEST_VISIT_DEFAULT_IMPL_(PostDecrementExpression                                        , m_postDecrementExpression)
     TEST_VISIT_DEFAULT_IMPL_(PostIncrementExpression                                        , m_postIncrementExpression)
     TEST_VISIT_DEFAULT_IMPL_(PreDecrementExpression                                         , m_preDecrementExpression)
     TEST_VISIT_DEFAULT_IMPL_(PreIncrementExpression                                         , m_preIncrementExpression)
+    TEST_VISIT_PUTS_ON_STACK(RegExpLiteral          , NoFlags           , "/some string/"   , m_regexpNoFlag)
+    TEST_VISIT_PUTS_ON_STACK(RegExpLiteral          , OneFlag           , "/some string/g"  , m_regexpOneFlag)
+    TEST_VISIT_PUTS_ON_STACK(RegExpLiteral          , AllFlags          , "/some string/gim", m_regexpAllFlags)
     TEST_VISIT_DEFAULT_IMPL_(ReturnStatement                                                , m_returnStatementWithoutValue)
     TEST_VISIT_DEFAULT_IMPL_(SourceElements                                                 , m_threeSourceElementsList)
     TEST_VISIT_DEFAULT_IMPL_(StatementList                                                  , m_threeStatementsList)
@@ -450,6 +482,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(ElementList             , ElisionExpression , "elisionexpr,"    , ({"elision", "expr"})        , m_arrayElementsElisionExp)
     TEST_ENDVISIT_REDUCES(ElementList             , ExprElisionExpr   , "expr,eliexpr,"   , ({"expr", "eli", "expr"})    , m_arrayElementsExpElisionExp)
     TEST_ENDVISIT_REDUCES(EmptyStatement          , DefaultScenario   , ";"               , ({})                         , m_emptyStatement)
+    TEST_ENDVISIT_REDUCES(/*Comma*/Expression     , AnyCase           , "a,b"             , ({"a", "b"})                 , m_commaExpression)
     TEST_ENDVISIT_REDUCES(ExpressionStatement     , AnyCase           , "expression;"     , ({"expression"})             , m_expressionStatement)
     TEST_ENDVISIT_REDUCES(FieldMemberExpression   , AnyCase           , "obj.property"    , ({"obj"})                    , m_fieldMemberExpression)
     TEST_ENDVISIT_REDUCES(FormalParameterList     , AnyCase           , "i"               , ({"i"})                      , m_twoParameters) // does nothing
@@ -460,9 +493,13 @@ private slots:
     TEST_ENDVISIT_REDUCES(FunctionDeclaration     , BodyNoParameters  , "function i(){body}"    , ({"{body}"})           , m_functionDeclarationWithoutParameters)
     TEST_ENDVISIT_REDUCES(FunctionDeclaration     , BodyParameters    , "function i(para){body}", ({"para", "{body}"})   , m_functionDeclarationWithParameters)
     TEST_ENDVISIT_REDUCES(FunctionDeclaration     , WithoutBody       , "function i(para){}"    , ({"para"})             , m_functionDeclarationWithoutBody)
+    TEST_ENDVISIT_REDUCES(FunctionExpression      , ParametersBody    , "function i(para){body}", ({"para", "{body}"})     , m_functionExpressionParameterBody)
+    TEST_ENDVISIT_REDUCES(FunctionExpression      , NoParametersNoBody, "function i(){}"  , ({})                         , m_functionExpressionNoParameterNoBody)
+    TEST_ENDVISIT_REDUCES(FunctionSourceElement   , AnyCase           , "i"               , ({"i"})                      , m_functionSourceElement) // does nothing
     TEST_ENDVISIT_REDUCES(IdentifierExpression    , AnyCase           , "abc"             , ({"abc"})                    , m_identifierExpression)
     TEST_ENDVISIT_REDUCES(IfStatement             , OnlyIf            , "if(exp)stm;"     , ({"exp", "stm;"})            , m_ifStatementWithoutElse)
     TEST_ENDVISIT_REDUCES(IfStatement             , IfElse            , "if(exp)s;else s;", ({"exp", "s;", "s;"})        , m_ifStatementWithElse)
+    TEST_ENDVISIT_REDUCES(LabelledStatement       , AnyCase           , "ALabel:stm;"     , ({"stm;"})                   , m_labelledStatement)
     TEST_ENDVISIT_REDUCES(LocalForEachStatement   , AnyCase           , "for(var i in o)stm;", ({"i", "o", "stm;"})      , m_localForEachStatement)
     TEST_ENDVISIT_REDUCES(LocalForStatement       , AllParts          , "for(var i;c;++)stm;", ({"var i", "c", "++", "stm;"}), m_localForStatementAllParts)
     TEST_ENDVISIT_REDUCES(LocalForStatement       , NoPart            , "for(;;)stm;"     , ({"stm;"})                   , m_localForStatementNoPart)
@@ -477,6 +514,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(PostIncrementExpression , AnyCase           , "2.7++"           , ({"2.7"})                    , m_postIncrementExpression)
     TEST_ENDVISIT_REDUCES(PreDecrementExpression  , AnyCase           , "--2.7"           , ({"2.7"})                    , m_preDecrementExpression)
     TEST_ENDVISIT_REDUCES(PreIncrementExpression  , AnyCase           , "++2.7"           , ({"2.7"})                    , m_preIncrementExpression)
+    TEST_ENDVISIT_REDUCES(Program                 , AnyCase           , "i"               , ({"i"})                      , m_program) // does nothing
     TEST_ENDVISIT_REDUCES(PropertyAssignmentList  , TwoProperties     , "prop1,prop2"     , ({"prop1", "prop2"})         , m_twoProperties)
     TEST_ENDVISIT_REDUCES(PropertyGetterSetter    , Getter            , "get i(){body}"   , ({"i", "{body}"})            , m_propertyGetter)
     TEST_ENDVISIT_REDUCES(PropertyGetterSetter    , GetterEmptyBody   , "get i(){}"       , ({"i"})                      , m_propertyGetterEmptyBody)
@@ -487,6 +525,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(ReturnStatement         , WithReturnValue   , "return true;"    , ({"true"})                   , m_returnStatementWithValue)
     TEST_ENDVISIT_REDUCES(SourceElements          , ThreeSrcElements  , "sEl1sEl2sEl3"    , ({"sEl1", "sEl2", "sEl3"})   , m_threeSourceElementsList)
     TEST_ENDVISIT_REDUCES(SourceElements          , ThreeStatements   , "st1st2st3"       , ({"st1", "st2", "st3"})      , m_threeStatementsList)
+    TEST_ENDVISIT_REDUCES(StatementSourceElement  , AnyCase           , "i"               , ({"i"})                      , m_statementSourceElement) // does nothing
     TEST_ENDVISIT_REDUCES(StringLiteral           , AnyCase           , "another string"  , ({"another string"})         , m_stringLiteral)
     TEST_ENDVISIT_REDUCES(SwitchStatement         , AnyCase           , "switch(e){blk}"  , ({"e", "{blk}"})             , m_switchStatement)
     TEST_ENDVISIT_REDUCES(TildeExpression         , AnyCase           , "~5"              , ({"5"})                      , m_tildeExpression)
@@ -501,6 +540,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(VariableStatement       , AnyCase           , "x;"              , ({"x"})                      , m_variableStatement)
     TEST_ENDVISIT_REDUCES(VoidExpression          , AnyCase           , "void v"          , ({"v"})                      , m_voidExpression)
     TEST_ENDVISIT_REDUCES(WhileStatement          , AnyCase           , "while(e)stm"     , ({"e", "stm"})               , m_whileStatement)
+    TEST_ENDVISIT_REDUCES(WithStatement           , AnyCase           , "with(e)stm"      , ({"e", "stm"})               , m_withStatement)
 
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(Assign, "=")
     TEST_VISIT_BINARYOP_PUTS_ON_STACK(InplaceAdd, "+=")
