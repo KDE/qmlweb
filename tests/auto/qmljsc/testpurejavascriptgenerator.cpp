@@ -212,6 +212,13 @@ public:
         , m_localForStatementNoPart(nullptr, nullptr, nullptr, &m_block)
         , m_forEachStatement(&m_trueLiteral, &m_trueLiteral, &m_block)
         , m_localForEachStatement(&m_variableDeclarationWithoutAssignment, &m_trueLiteral, &m_block)
+        /* Exceptions */
+        , m_throwStatement(&m_trueLiteral)
+        , m_catch(m_someIdentifierStringRef, &m_block)
+        , m_finally(&m_block)
+        , m_tryStatementCatchFinally(&m_block, &m_catch, &m_finally)
+        , m_tryStatementCatch(&m_block, &m_catch)
+        , m_tryStatementFinally(&m_block, &m_finally)
     {
         m_elisionsPart2.finish();
         m_arrayElementsExp.finish();
@@ -388,6 +395,14 @@ private:
     AST::ForEachStatement m_forEachStatement;
     AST::LocalForEachStatement m_localForEachStatement;
 
+    /* Exceptions */
+    AST::ThrowStatement m_throwStatement;
+    AST::Catch m_catch;
+    AST::Finally m_finally;
+    AST::TryStatement m_tryStatementCatchFinally;
+    AST::TryStatement m_tryStatementCatch;
+    AST::TryStatement m_tryStatementFinally;
+
 private slots:
     void init() {
         m_generator = new PureJavaScriptGenerator();
@@ -473,6 +488,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(CaseBlock               , CasesDefaultCases , "{cases;default;cases;}", ({"cases;", "default;", "cases;"}), m_caseBlockCasesDefaultCases)
     TEST_ENDVISIT_REDUCES(CaseClause              , CaseWithStatement , "case exp:stm;"   , ({"case", "exp", "stm;"})    , m_caseClause)
     TEST_ENDVISIT_REDUCES(CaseClauses             , TwoClauses        , "case e:s;case e2:s2;", ({"case e:s;", "case e2:s2;"}), m_twoCaseClauses)
+    TEST_ENDVISIT_REDUCES(Catch                   , AnyCase           , "catch(i){block}" , ({"{block}"})                , m_catch)
     TEST_ENDVISIT_REDUCES(ConditionalExpression   , AnyCase           , "condition?e1:e2" , ({"condition", "e1", "e2"})  , m_conditionalExpression)
     TEST_ENDVISIT_REDUCES(DefaultClause           , AnyCase           , "default:stm"     , ({"default", "stm"})         , m_defaultClause)
     TEST_ENDVISIT_REDUCES(DeleteExpression        , AnyCase           , "delete v"        , ({"v"})                      , m_deleteExpression)
@@ -485,6 +501,7 @@ private slots:
     TEST_ENDVISIT_REDUCES(/*Comma*/Expression     , AnyCase           , "a,b"             , ({"a", "b"})                 , m_commaExpression)
     TEST_ENDVISIT_REDUCES(ExpressionStatement     , AnyCase           , "expression;"     , ({"expression"})             , m_expressionStatement)
     TEST_ENDVISIT_REDUCES(FieldMemberExpression   , AnyCase           , "obj.property"    , ({"obj"})                    , m_fieldMemberExpression)
+    TEST_ENDVISIT_REDUCES(Finally                 , AnyCase           , "finally{block}"  , ({"{block}"})                , m_finally)
     TEST_ENDVISIT_REDUCES(FormalParameterList     , AnyCase           , "i"               , ({"i"})                      , m_twoParameters) // does nothing
     TEST_ENDVISIT_REDUCES(ForEachStatement        , AnyCase           , "for(i in o)stm;" , ({"i", "o", "stm;"})         , m_forEachStatement)
     TEST_ENDVISIT_REDUCES(ForStatement            , AllParts          , "for(i;c;++)stm;" , ({"i", "c", "++", "stm;"})   , m_forStatementAllParts)
@@ -528,7 +545,11 @@ private slots:
     TEST_ENDVISIT_REDUCES(StatementSourceElement  , AnyCase           , "i"               , ({"i"})                      , m_statementSourceElement) // does nothing
     TEST_ENDVISIT_REDUCES(StringLiteral           , AnyCase           , "another string"  , ({"another string"})         , m_stringLiteral)
     TEST_ENDVISIT_REDUCES(SwitchStatement         , AnyCase           , "switch(e){blk}"  , ({"e", "{blk}"})             , m_switchStatement)
+    TEST_ENDVISIT_REDUCES(ThrowStatement          , AnyCase           , "throw 5;"        , ({"5"})                      , m_throwStatement)
     TEST_ENDVISIT_REDUCES(TildeExpression         , AnyCase           , "~5"              , ({"5"})                      , m_tildeExpression)
+    TEST_ENDVISIT_REDUCES(TryStatement            , OnlyCatch         , "try{stm}catch"   , ({"{stm}", "catch"})         , m_tryStatementCatch)
+    TEST_ENDVISIT_REDUCES(TryStatement            , OnlyFinally       , "try{stm}finally" , ({"{stm}", "finally"})       , m_tryStatementFinally)
+    TEST_ENDVISIT_REDUCES(TryStatement            , CatchFinally      , "try{stm}catchfinally", ({"{stm}", "catch", "finally"}), m_tryStatementCatchFinally)
     TEST_ENDVISIT_REDUCES(TypeOfExpression        , AnyCase           , "typeof v"        , ({"v"})                      , m_typeOfExpression)
     TEST_ENDVISIT_REDUCES(UnaryMinusExpression    , AnyCase           , "-5"              , ({"5"})                      , m_unaryMinusExpression)
     TEST_ENDVISIT_REDUCES(UnaryPlusExpression     , AnyCase           , "+5"              , ({"5"})                      , m_unaryPlusExpression)

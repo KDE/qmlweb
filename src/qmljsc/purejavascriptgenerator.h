@@ -60,6 +60,7 @@ public:
     virtual void endVisit(QQmlJS::AST::CaseBlock *) override;
     virtual void endVisit(QQmlJS::AST::CaseClause *) override;
     virtual void endVisit(QQmlJS::AST::CaseClauses *) override;
+    virtual void endVisit(QQmlJS::AST::Catch *) override;
     virtual void endVisit(QQmlJS::AST::ConditionalExpression *) override;
     virtual void endVisit(QQmlJS::AST::DefaultClause *) override;
     virtual void endVisit(QQmlJS::AST::DeleteExpression *) override;
@@ -69,6 +70,7 @@ public:
     virtual void endVisit(QQmlJS::AST::Expression *) override;
     virtual void endVisit(QQmlJS::AST::ExpressionStatement *) override;
     virtual void endVisit(QQmlJS::AST::FieldMemberExpression *) override;
+    virtual void endVisit(QQmlJS::AST::Finally *) override;
     virtual void endVisit(QQmlJS::AST::ForEachStatement *) override;
     virtual void endVisit(QQmlJS::AST::ForStatement *) override;
     virtual void endVisit(QQmlJS::AST::FunctionBody *) override;
@@ -97,7 +99,9 @@ public:
     virtual void endVisit(QQmlJS::AST::StringLiteral *) override;
     virtual void endVisit(QQmlJS::AST::StatementList *) override;
     virtual void endVisit(QQmlJS::AST::SwitchStatement *) override;
+    virtual void endVisit(QQmlJS::AST::ThrowStatement *) override;
     virtual void endVisit(QQmlJS::AST::TildeExpression *) override;
+    virtual void endVisit(QQmlJS::AST::TryStatement *) override;
     virtual void endVisit(QQmlJS::AST::TypeOfExpression *) override;
     virtual void endVisit(QQmlJS::AST::UnaryMinusExpression *) override;
     virtual void endVisit(QQmlJS::AST::UnaryPlusExpression *) override;

@@ -258,6 +258,12 @@ void PureJavaScriptGenerator::endVisit(AST::CaseClauses *caseClauses) {
     reduceListStack<AST::CaseClauses>(caseClauses);
 }
 
+void PureJavaScriptGenerator::endVisit(AST::Catch *catchClause) {
+    const QString block = m_outputStack.pop();
+    const QString variableIdentifier = catchClause->name.toString();
+    m_outputStack << "catch(" + variableIdentifier + ')' + block;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::ConditionalExpression *) {
     const QString secondExpression = m_outputStack.pop();
     const QString firstExpression = m_outputStack.pop();
@@ -325,6 +331,11 @@ void PureJavaScriptGenerator::endVisit(AST::FieldMemberExpression *fieldMemberEx
     m_outputStack << objectExpression + '.' + memberName;
 }
 
+void PureJavaScriptGenerator::endVisit(AST::Finally *) {
+    const QString block = m_outputStack.pop();
+    m_outputStack << "finally" + block;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::ForEachStatement *) {
     const QString statement = m_outputStack.pop();
     const QString objectExpression = m_outputStack.pop();
@@ -352,7 +363,7 @@ void PureJavaScriptGenerator::endVisit(AST::FunctionDeclaration *functionDeclara
     m_outputStack << "function " + name + '(' + parameters + ')' + body;
 }
 
-void PureJavaScriptGenerator::endVisit(QQmlJS::AST::FunctionExpression *functionExpression) {
+void PureJavaScriptGenerator::endVisit(AST::FunctionExpression *functionExpression) {
     const QString body = (functionExpression->body)?m_outputStack.pop():"{}";
     const QString parameters = (functionExpression->formals)?m_outputStack.pop():"";
     const QString name = functionExpression->name.toString();
@@ -486,9 +497,21 @@ void PureJavaScriptGenerator::endVisit(AST::SwitchStatement *) {
     m_outputStack << "switch(" + expression + ')' + clauseBlock;
 }
 
+void PureJavaScriptGenerator::endVisit(AST::ThrowStatement *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "throw " + expression + ';';
+}
+
 void PureJavaScriptGenerator::endVisit(AST::TildeExpression *) {
     const QString expression = m_outputStack.pop();
     m_outputStack << '~' + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::TryStatement *tryStatement) {
+    const QString finallyExpression = (tryStatement->finallyExpression)?m_outputStack.pop():"";
+    const QString catchExpression = (tryStatement->catchExpression)?m_outputStack.pop():"";
+    const QString block = m_outputStack.pop();
+    m_outputStack << "try" + block + catchExpression + finallyExpression;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::TypeOfExpression *) {

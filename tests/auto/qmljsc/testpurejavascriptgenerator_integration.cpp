@@ -94,6 +94,7 @@ private slots:
         addRowForFileWithCompiled("lefthandexpressions");
         addRowForFileWithCompiled("functioncalls");
         addRowForFileWithCompiled("loops");
+        addRowForFileWithCompiled("exceptionstatements");
     }
 
     void test_compileJavaScriptFile() {
