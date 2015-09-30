@@ -18,6 +18,8 @@
  *
  */
 
+#include <private/qqmljslexer_p.h>
+
 #include "purejavascriptgenerator.h"
 #include "utils/error.h"
 
@@ -101,6 +103,21 @@ bool PureJavaScriptGenerator::visit(AST::DefaultClause *) {
     return true;
 }
 
+bool PureJavaScriptGenerator::visit(AST::Elision *currentElision) {
+    QString output;
+    while (currentElision) {
+        output += ',';
+        currentElision = currentElision->next;
+    }
+    m_outputStack << output;
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::FalseLiteral *) {
+    m_outputStack << "false";
+    return true;
+}
+
 bool PureJavaScriptGenerator::visit(AST::FormalParameterList *currentParameter) {
     QString parameterCode;
     while (currentParameter) {
@@ -119,14 +136,76 @@ bool PureJavaScriptGenerator::visit(AST::IdentifierExpression *identifierExpress
     return true;
 }
 
-bool PureJavaScriptGenerator::visit(AST::NumericLiteral *numericLiteral) {
-    m_outputStack.push(QString::number(numericLiteral->value));
+bool PureJavaScriptGenerator::visit(AST::IdentifierPropertyName *identifierPropertyName) {
+    m_outputStack << identifierPropertyName->id.toString();
     return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::NullExpression *) {
+    m_outputStack << "null";
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::NumericLiteral *numericLiteral) {
+    m_outputStack << QString::number(numericLiteral->value);
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::NumericLiteralPropertyName *numericPropertyName) {
+    m_outputStack << numericPropertyName->asString();
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::RegExpLiteral *regExpLiteral) {
+    const QString regExp = regExpLiteral->pattern.toString();
+    const QString flags = regExpFlagsString((Lexer::RegExpFlag) regExpLiteral->flags);
+    m_outputStack << '/' + regExp + '/' + flags;
+    return true;
+}
+
+const QString PureJavaScriptGenerator::regExpFlagsString(const Lexer::RegExpFlag &flagsAsEnum) const {
+    QString flags;
+    if (flagsAsEnum & Lexer::RegExp_Global) {
+        flags += 'g';
+    }
+    if (flagsAsEnum & Lexer::RegExp_IgnoreCase) {
+        flags += 'i';
+    }
+    if (flagsAsEnum & Lexer::RegExp_Multiline) {
+        flags += 'm';
+    }
+    return flags;
 }
 
 bool PureJavaScriptGenerator::visit(AST::StringLiteral *stringLiteral) {
     m_outputStack << '"' + stringLiteral->value.toString() + '"';
     return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::ThisExpression *) {
+    m_outputStack << "this";
+    return true;
+}
+
+bool PureJavaScriptGenerator::visit(AST::TrueLiteral *) {
+    m_outputStack << "true";
+    return true;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ArgumentList *argumentList) {
+    reduceListStack<AST::ArgumentList>(argumentList, ",");
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ArrayLiteral *arrayLiteral) {
+    const QString elision = (arrayLiteral->elision) ? m_outputStack.pop() : "";
+    const QString elements = (arrayLiteral->elements) ? m_outputStack.pop() : "";
+    m_outputStack << '[' + elements + elision + ']';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ArrayMemberExpression *) {
+    const QString keyExpression = m_outputStack.pop();
+    const QString arrayExpression = m_outputStack.pop();
+    m_outputStack << arrayExpression + '[' + keyExpression + ']';
 }
 
 void PureJavaScriptGenerator::endVisit(AST::BinaryExpression *) {
@@ -142,6 +221,12 @@ void PureJavaScriptGenerator::endVisit(AST::Block *) {
     m_outputStack << '{' + blockCode + '}';
 }
 
+void PureJavaScriptGenerator::endVisit(AST::CallExpression *callExpression) {
+    const QString arguments = (callExpression->arguments) ? m_outputStack.pop() : "";
+    const QString function = m_outputStack.pop();
+    m_outputStack << function + '(' + arguments + ')';
+}
+
 void PureJavaScriptGenerator::endVisit(AST::CaseBlock *caseBlock) {
     QString clausesRight;
     if (caseBlock->moreClauses) {
@@ -155,6 +240,13 @@ void PureJavaScriptGenerator::endVisit(AST::CaseBlock *caseBlock) {
     m_outputStack << '{' + clausesLeft + defaultClause + clausesRight + '}';
 }
 
+void PureJavaScriptGenerator::endVisit(AST::DoWhileStatement *) {
+    const QString expression = m_outputStack.pop();
+    const QString statement = m_outputStack.pop();
+    m_outputStack << "do " + statement + "while" + '(' + expression + ')' + ';';
+    // space after do: do var i;while(false); is a valid statement and requires a space
+}
+
 void PureJavaScriptGenerator::endVisit(AST::CaseClause *) {
     const QString statement = m_outputStack.pop();
     const QString expression = m_outputStack.pop();
@@ -166,10 +258,56 @@ void PureJavaScriptGenerator::endVisit(AST::CaseClauses *caseClauses) {
     reduceListStack<AST::CaseClauses>(caseClauses);
 }
 
+void PureJavaScriptGenerator::endVisit(AST::Catch *catchClause) {
+    const QString block = m_outputStack.pop();
+    const QString variableIdentifier = catchClause->name.toString();
+    m_outputStack << "catch(" + variableIdentifier + ')' + block;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ConditionalExpression *) {
+    const QString secondExpression = m_outputStack.pop();
+    const QString firstExpression = m_outputStack.pop();
+    const QString condition = m_outputStack.pop();
+    m_outputStack << condition + '?' + firstExpression + ':' + secondExpression;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::DefaultClause *) {
     const QString statement = m_outputStack.pop();
     const QString defaultKeyword = m_outputStack.pop();
     m_outputStack << defaultKeyword + ':' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::DeleteExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "delete " + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ElementList *elementList) {
+    QString code;
+    AST::ElementList *currentElement = elementList;
+    QStack<QString>::iterator positionOnStack = m_outputStack.end();
+
+    for (currentElement = elementList; currentElement; currentElement = currentElement->next) {
+        if (currentElement->elision) {
+            --positionOnStack;
+        }
+        if (currentElement->expression) {
+            --positionOnStack;
+        }
+    }
+
+    for (currentElement = elementList; currentElement; currentElement = currentElement->next) {
+        if (currentElement->elision) {
+            code += *positionOnStack;
+            positionOnStack = m_outputStack.erase(positionOnStack);
+        }
+        if (currentElement->expression) {
+            code += *positionOnStack + ',';
+            positionOnStack = m_outputStack.erase(positionOnStack);
+        }
+    }
+
+    m_outputStack << code;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::EmptyStatement *) {
@@ -178,6 +316,39 @@ void PureJavaScriptGenerator::endVisit(AST::EmptyStatement *) {
 
 void PureJavaScriptGenerator::endVisit(AST::ExpressionStatement *) {
     m_outputStack << m_outputStack.pop() + ';';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::Expression *) {
+    // this is a comma expression a,b
+    const QString secondExpression = m_outputStack.pop();
+    const QString firstExpression = m_outputStack.pop();
+    m_outputStack << firstExpression + ',' + secondExpression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::FieldMemberExpression *fieldMemberExpression) {
+    const QString objectExpression = m_outputStack.pop();
+    const QString memberName = fieldMemberExpression->name.toString();
+    m_outputStack << objectExpression + '.' + memberName;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::Finally *) {
+    const QString block = m_outputStack.pop();
+    m_outputStack << "finally" + block;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ForEachStatement *) {
+    const QString statement = m_outputStack.pop();
+    const QString objectExpression = m_outputStack.pop();
+    const QString variableExpression = m_outputStack.pop();
+    m_outputStack << "for(" + variableExpression + " in " + objectExpression + ')' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ForStatement *forStatement) {
+    const QString statement = m_outputStack.pop();
+    const QString incrementExpression = (forStatement->expression) ? m_outputStack.pop() : "";
+    const QString condition = (forStatement->condition) ? m_outputStack.pop() : "";
+    const QString initialisation = (forStatement->initialiser) ? m_outputStack.pop() : "";
+    m_outputStack << "for(" + initialisation + ';' + condition + ';' + incrementExpression + ')' + statement;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::FunctionBody *) {
@@ -189,6 +360,13 @@ void PureJavaScriptGenerator::endVisit(AST::FunctionDeclaration *functionDeclara
     const QString body = (functionDeclaration->body) ? m_outputStack.pop() : "{}";
     const QString parameters = (functionDeclaration->formals) ? m_outputStack.pop() : "";
     const QString name = functionDeclaration->name.toString();
+    m_outputStack << "function " + name + '(' + parameters + ')' + body;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::FunctionExpression *functionExpression) {
+    const QString body = (functionExpression->body) ? m_outputStack.pop() : "{}";
+    const QString parameters = (functionExpression->formals) ? m_outputStack.pop() : "";
+    const QString name = functionExpression->name.toString();
     m_outputStack << "function " + name + '(' + parameters + ')' + body;
 }
 
@@ -207,7 +385,53 @@ void PureJavaScriptGenerator::endVisit(AST::IfStatement *ifExpression) {
     m_outputStack << code;
 }
 
+void PureJavaScriptGenerator::endVisit(AST::LabelledStatement *labelledStatement) {
+    const QString statement = m_outputStack.pop();
+    m_outputStack << labelledStatement->label.toString() + ':' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::LocalForEachStatement *) {
+    const QString statement = m_outputStack.pop();
+    const QString objectExpression = m_outputStack.pop();
+    const QString declaredVariableName = m_outputStack.pop();
+    m_outputStack << "for(var " + declaredVariableName + " in " + objectExpression + ')' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::LocalForStatement *localForStatement) {
+    const QString statement = m_outputStack.pop();
+    const QString incrementExpression = (localForStatement->expression) ? m_outputStack.pop() : "";
+    const QString condition = (localForStatement->condition) ? m_outputStack.pop() : "";
+    const QString declaration = (localForStatement->declarations) ? m_outputStack.pop() : "";
+    m_outputStack << "for(" + declaration + ';' + condition + ';' + incrementExpression + ')' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::NewExpression *) {
+    const QString constructor = m_outputStack.pop();
+    m_outputStack << "new " + constructor;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::NewMemberExpression *newMemberExpression) {
+    const QString arguments = (newMemberExpression->arguments) ? m_outputStack.pop() : "";
+    const QString constructor = m_outputStack.pop();
+    m_outputStack << "new " + constructor + '(' + arguments + ')';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::NestedExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '(' + expression + ')';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::NotExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '!' + expression;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::NumericLiteral *) {
+}
+
+void PureJavaScriptGenerator::endVisit(AST::ObjectLiteral *) {
+    const QString properties = m_outputStack.pop();
+    m_outputStack << '{' + properties + '}';
 }
 
 void PureJavaScriptGenerator::endVisit(AST::PostDecrementExpression *) {
@@ -228,6 +452,27 @@ void PureJavaScriptGenerator::endVisit(AST::PreDecrementExpression *) {
 void PureJavaScriptGenerator::endVisit(AST::PreIncrementExpression *) {
     const QString expression = m_outputStack.pop();
     m_outputStack << "++" + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::PropertyAssignmentList *assignmentList) {
+    reduceListStack<AST::PropertyAssignmentList>(assignmentList, ",");
+}
+
+void PureJavaScriptGenerator::endVisit(AST::PropertyGetterSetter *getterSetter) {
+    const QString functionBody = (getterSetter->functionBody) ? m_outputStack.pop() : "{}";
+    const QString parameters = (getterSetter->formals) ? m_outputStack.pop() : "";
+    const QString propertyName = m_outputStack.pop();
+    if (getterSetter->type == AST::PropertyGetterSetter::Getter) {
+        m_outputStack << "get " + propertyName + "()" + functionBody;
+    } else {
+        m_outputStack << "set " + propertyName + '(' + parameters + ')' + functionBody;
+    }
+}
+
+void PureJavaScriptGenerator::endVisit(AST::PropertyNameAndValue *) {
+    const QString expression = m_outputStack.pop();
+    const QString propertyName = m_outputStack.pop();
+    m_outputStack << propertyName + ':' + expression;
 }
 
 void PureJavaScriptGenerator::endVisit(AST::ReturnStatement *returnStatement) {
@@ -252,6 +497,38 @@ void PureJavaScriptGenerator::endVisit(AST::SwitchStatement *) {
     m_outputStack << "switch(" + expression + ')' + clauseBlock;
 }
 
+void PureJavaScriptGenerator::endVisit(AST::ThrowStatement *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "throw " + expression + ';';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::TildeExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '~' + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::TryStatement *tryStatement) {
+    const QString finallyExpression = (tryStatement->finallyExpression) ? m_outputStack.pop() : "";
+    const QString catchExpression = (tryStatement->catchExpression) ? m_outputStack.pop() : "";
+    const QString block = m_outputStack.pop();
+    m_outputStack << "try" + block + catchExpression + finallyExpression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::TypeOfExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "typeof " + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::UnaryMinusExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '-' + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::UnaryPlusExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << '+' + expression;
+}
+
 void PureJavaScriptGenerator::endVisit(AST::VariableDeclaration *declaration) {
     const QString expression = (declaration->expression) ? "="+m_outputStack.pop() : "";
     const QString variableName = declaration->name.toString();
@@ -267,6 +544,23 @@ void PureJavaScriptGenerator::endVisit(AST::VariableDeclarationList *declaration
 
 void PureJavaScriptGenerator::endVisit(AST::VariableStatement *) {
     m_outputStack << m_outputStack.pop() + ';';
+}
+
+void PureJavaScriptGenerator::endVisit(AST::VoidExpression *) {
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "void " + expression;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::WhileStatement *) {
+    const QString statement = m_outputStack.pop();
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "while(" + expression + ')' + statement;
+}
+
+void PureJavaScriptGenerator::endVisit(AST::WithStatement *) {
+    const QString statement = m_outputStack.pop();
+    const QString expression = m_outputStack.pop();
+    m_outputStack << "with(" + expression + ')' + statement;
 }
 
 void PureJavaScriptGenerator::reduceJumpStatement(const char *keyword, QStringRef label) {

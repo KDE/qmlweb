@@ -14,3 +14,9 @@ function noBody() {}
 
 return 5;
 return;
+
+x = function asfd() {}
+x = function asdf(x) {print()}
+x = function asdf(x, x1) {print()}
+x = function asdf(x) {print()}
+x = function(x){print()}

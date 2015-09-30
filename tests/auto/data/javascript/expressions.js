@@ -1,1 +1,1 @@
-var x;var i;var e=i++;e=++i;e=i--;e=--i;
+var x;var i;var e=i++;e=++i;e=i--;e=--i;5*(2+3);true?1:2;a,b,c;

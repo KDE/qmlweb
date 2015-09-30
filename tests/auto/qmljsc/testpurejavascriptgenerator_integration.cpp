@@ -60,14 +60,14 @@ private:
         return QString(inputFile.readAll());
     }
 
+    void addRowForFile(QString fileName) {
+        addRowForFileWithCompiled(fileName, fileName);
+    }
+
     void addRowForFileWithCompiled(QString sourceFileName, QString compiledFileName) {
         const QString folder(":/test/%1.js");
         QTest::newRow(sourceFileName.toLocal8Bit()) << astForFile(folder.arg(sourceFileName)) << fileContent(folder.arg(compiledFileName));
 
-    }
-
-    void addRowForFile(QString fileName) {
-        addRowForFileWithCompiled(fileName, fileName);
     }
 
     void addRowForFileWithCompiled(QString fileName) {
@@ -83,10 +83,18 @@ private slots:
         addRowForFileWithCompiled("declarations");
         addRowForFile("expressions");
         addRowForFileWithCompiled("functions");
+        addRowForFile("unaryoperators");
         addRowForFileWithCompiled("binaryoperations");
         addRowForFileWithCompiled("otherstatements");
         addRowForFileWithCompiled("ifstatements");
         addRowForFileWithCompiled("switchstatements");
+        addRowForFileWithCompiled("literals");
+        addRowForFileWithCompiled("arrayliterals");
+        addRowForFileWithCompiled("objectliterals");
+        addRowForFileWithCompiled("lefthandexpressions");
+        addRowForFileWithCompiled("functioncalls");
+        addRowForFileWithCompiled("loops");
+        addRowForFileWithCompiled("exceptionstatements");
     }
 
     void test_compileJavaScriptFile() {
