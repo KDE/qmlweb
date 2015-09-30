@@ -186,8 +186,8 @@ void PureJavaScriptGenerator::endVisit(AST::FunctionBody *) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::FunctionDeclaration *functionDeclaration) {
-    const QString body = (functionDeclaration->body)?m_outputStack.pop():"{}";
-    const QString parameters = (functionDeclaration->formals)?m_outputStack.pop():"";
+    const QString body = (functionDeclaration->body) ? m_outputStack.pop() : "{}";
+    const QString parameters = (functionDeclaration->formals) ? m_outputStack.pop() : "";
     const QString name = functionDeclaration->name.toString();
     m_outputStack << "function " + name + '(' + parameters + ')' + body;
 }
@@ -196,7 +196,7 @@ void PureJavaScriptGenerator::endVisit(AST::IdentifierExpression *) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::IfStatement *ifExpression) {
-    const QString elseStatements = (ifExpression->ko)?m_outputStack.pop():"";
+    const QString elseStatements = (ifExpression->ko) ? m_outputStack.pop() : "";
     const QString ifStatements = m_outputStack.pop();
     const QString expression = m_outputStack.pop();
 
@@ -231,7 +231,7 @@ void PureJavaScriptGenerator::endVisit(AST::PreIncrementExpression *) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::ReturnStatement *returnStatement) {
-    const QString expression = (returnStatement->expression)?' '+m_outputStack.pop():"";
+    const QString expression = (returnStatement->expression) ? ' '+m_outputStack.pop() : "";
     m_outputStack << "return" + expression + ';';
 }
 
@@ -253,7 +253,7 @@ void PureJavaScriptGenerator::endVisit(AST::SwitchStatement *) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::VariableDeclaration *declaration) {
-    const QString expression = (declaration->expression)?"="+m_outputStack.pop():"";
+    const QString expression = (declaration->expression) ? "="+m_outputStack.pop() : "";
     const QString variableName = declaration->name.toString();
     m_outputStack << variableName + expression;
 }
@@ -261,7 +261,7 @@ void PureJavaScriptGenerator::endVisit(AST::VariableDeclaration *declaration) {
 void PureJavaScriptGenerator::endVisit(AST::VariableDeclarationList *declarationList) {
     reduceListStack<AST::VariableDeclarationList>(declarationList, ",");
     const QString declarationListCode = m_outputStack.pop();
-    const QString declarationType = (declarationList->declaration->readOnly)?"const":"var";
+    const QString declarationType = (declarationList->declaration->readOnly) ? "const" : "var";
     m_outputStack << declarationType + ' ' + declarationListCode;
 }
 
