@@ -1,0 +1,1 @@
+var x;var y;y=5;x=y;x+=y;x-=y;x*=y;x/=y;x%=y;x<<=y;x>>=y;x>>>=y;x&=y;x^=y;x|=y;x+y;x-y;x*y;x/y;x%y;x<<y;x>>y;x>>>y;x&y;x^y;x|y;x==y;x!=y;x===y;x!==y;x>y;x>=y;x<y;x<=y;x&&y;x||y;x in y;x instanceof y;

@@ -39,7 +39,8 @@ public:
         ReadFileError,
         ParseError,
         ModuleImportError,
-        SymbolLookupError
+        SymbolLookupError,
+        InternalError
     };
 
     Error()
