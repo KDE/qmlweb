@@ -147,7 +147,7 @@ bool PureJavaScriptGenerator::visit(AST::NullExpression *) {
 }
 
 bool PureJavaScriptGenerator::visit(AST::NumericLiteral *numericLiteral) {
-    m_outputStack<< QString::number(numericLiteral->value);
+    m_outputStack << QString::number(numericLiteral->value);
     return true;
 }
 
@@ -197,8 +197,8 @@ void PureJavaScriptGenerator::endVisit(AST::ArgumentList *argumentList) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::ArrayLiteral *arrayLiteral) {
-    const QString elision = (arrayLiteral->elision)?m_outputStack.pop():"";
-    const QString elements = (arrayLiteral->elements)?m_outputStack.pop():"";
+    const QString elision = (arrayLiteral->elision) ? m_outputStack.pop() : "";
+    const QString elements = (arrayLiteral->elements) ? m_outputStack.pop() : "";
     m_outputStack << '[' + elements + elision + ']';
 }
 
@@ -222,7 +222,7 @@ void PureJavaScriptGenerator::endVisit(AST::Block *) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::CallExpression *callExpression) {
-    const QString arguments = (callExpression->arguments)?m_outputStack.pop():"";
+    const QString arguments = (callExpression->arguments) ? m_outputStack.pop() : "";
     const QString function = m_outputStack.pop();
     m_outputStack << function + '(' + arguments + ')';
 }
@@ -345,9 +345,9 @@ void PureJavaScriptGenerator::endVisit(AST::ForEachStatement *) {
 
 void PureJavaScriptGenerator::endVisit(AST::ForStatement *forStatement) {
     const QString statement = m_outputStack.pop();
-    const QString incrementExpression = (forStatement->expression)?m_outputStack.pop():"";
-    const QString condition = (forStatement->condition)?m_outputStack.pop():"";
-    const QString initialisation = (forStatement->initialiser)?m_outputStack.pop():"";
+    const QString incrementExpression = (forStatement->expression) ? m_outputStack.pop() : "";
+    const QString condition = (forStatement->condition) ? m_outputStack.pop() : "";
+    const QString initialisation = (forStatement->initialiser) ? m_outputStack.pop() : "";
     m_outputStack << "for(" + initialisation + ';' + condition + ';' + incrementExpression + ')' + statement;
 }
 
@@ -364,8 +364,8 @@ void PureJavaScriptGenerator::endVisit(AST::FunctionDeclaration *functionDeclara
 }
 
 void PureJavaScriptGenerator::endVisit(AST::FunctionExpression *functionExpression) {
-    const QString body = (functionExpression->body)?m_outputStack.pop():"{}";
-    const QString parameters = (functionExpression->formals)?m_outputStack.pop():"";
+    const QString body = (functionExpression->body) ? m_outputStack.pop() : "{}";
+    const QString parameters = (functionExpression->formals) ? m_outputStack.pop() : "";
     const QString name = functionExpression->name.toString();
     m_outputStack << "function " + name + '(' + parameters + ')' + body;
 }
@@ -399,9 +399,9 @@ void PureJavaScriptGenerator::endVisit(AST::LocalForEachStatement *) {
 
 void PureJavaScriptGenerator::endVisit(AST::LocalForStatement *localForStatement) {
     const QString statement = m_outputStack.pop();
-    const QString incrementExpression = (localForStatement->expression)?m_outputStack.pop():"";
-    const QString condition = (localForStatement->condition)?m_outputStack.pop():"";
-    const QString declaration = (localForStatement->declarations)?m_outputStack.pop():"";
+    const QString incrementExpression = (localForStatement->expression) ? m_outputStack.pop() : "";
+    const QString condition = (localForStatement->condition) ? m_outputStack.pop() : "";
+    const QString declaration = (localForStatement->declarations) ? m_outputStack.pop() : "";
     m_outputStack << "for(" + declaration + ';' + condition + ';' + incrementExpression + ')' + statement;
 }
 
@@ -411,7 +411,7 @@ void PureJavaScriptGenerator::endVisit(AST::NewExpression *) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::NewMemberExpression *newMemberExpression) {
-    const QString arguments = (newMemberExpression->arguments)?m_outputStack.pop():"";
+    const QString arguments = (newMemberExpression->arguments) ? m_outputStack.pop() : "";
     const QString constructor = m_outputStack.pop();
     m_outputStack << "new " + constructor + '(' + arguments + ')';
 }
@@ -459,8 +459,8 @@ void PureJavaScriptGenerator::endVisit(AST::PropertyAssignmentList *assignmentLi
 }
 
 void PureJavaScriptGenerator::endVisit(AST::PropertyGetterSetter *getterSetter) {
-    const QString functionBody = (getterSetter->functionBody)?m_outputStack.pop():"{}";
-    const QString parameters = (getterSetter->formals)?m_outputStack.pop():"";
+    const QString functionBody = (getterSetter->functionBody) ? m_outputStack.pop() : "{}";
+    const QString parameters = (getterSetter->formals) ? m_outputStack.pop() : "";
     const QString propertyName = m_outputStack.pop();
     if (getterSetter->type == AST::PropertyGetterSetter::Getter) {
         m_outputStack << "get " + propertyName + "()" + functionBody;
@@ -508,8 +508,8 @@ void PureJavaScriptGenerator::endVisit(AST::TildeExpression *) {
 }
 
 void PureJavaScriptGenerator::endVisit(AST::TryStatement *tryStatement) {
-    const QString finallyExpression = (tryStatement->finallyExpression)?m_outputStack.pop():"";
-    const QString catchExpression = (tryStatement->catchExpression)?m_outputStack.pop():"";
+    const QString finallyExpression = (tryStatement->finallyExpression) ? m_outputStack.pop() : "";
+    const QString catchExpression = (tryStatement->catchExpression) ? m_outputStack.pop() : "";
     const QString block = m_outputStack.pop();
     m_outputStack << "try" + block + catchExpression + finallyExpression;
 }
