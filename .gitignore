@@ -1,5 +1,17 @@
 *~
+*.bak
+*.log
+.*.swp
+.*.swo
 *.kdev4
 *kate-swp
 build/
+node_modules/
+lib/
+coverage/
+tmp/
 .idea
+.project
+.directory
+readme_gulp
+spec.js
